@@ -12,11 +12,20 @@ interface ReviewShot {
 const config = sections.reviews
 const headingId = 'reviews-title'
 
-const { data: mediaReviews } = await useFetch<ReviewShot[]>('/api/media', {
-  key: 'media-reviews',
-  query: { type: 'REVIEW' },
-  default: () => [],
-})
+// useState: SSR и клиент видят одни данные (useFetch + default:[] давал hydration mismatch —
+// картинки с сервера мигали и сменялись заглушкой).
+const mediaReviews = useState<ReviewShot[]>('media-reviews-shots', () => [])
+
+if (import.meta.server) {
+  try {
+    const data = await $fetch<ReviewShot[]>('/api/media', {
+      query: { type: 'REVIEW' },
+    })
+    mediaReviews.value = Array.isArray(data) ? data.filter((s) => !!s?.imageUrl) : []
+  } catch {
+    mediaReviews.value = []
+  }
+}
 
 const shots = computed(() => mediaReviews.value || [])
 const useScreenshots = computed(() => shots.value.length > 0)
