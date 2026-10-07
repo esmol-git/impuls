@@ -1,0 +1,53 @@
+# Caddy: витрина + API + админка на одном сервере
+# ---------------------------------------------------------------------------
+# Процессы на сервере (systemd — см. deploy/systemd/):
+#   Nest API   → 127.0.0.1:3001
+#   Nuxt site  → 127.0.0.1:3000   (npm run build → node .output/server/index.mjs)
+#                                Нужен Node, не «голая» статика: /api/lead, /api/catalog
+#                                и остальные Nitro-роуты живут в Nuxt, не в Nest.
+#
+# Статика админки:
+#   /var/www/admin.impuls.esmolakov.ru   ← apps/admin/dist
+#
+# Env:
+#   Nest:  CORS_ORIGIN=https://impuls.esmolakov.ru,https://admin.impuls.esmolakov.ru
+#   Nuxt:  NUXT_API_URL=http://127.0.0.1:3001
+#          NUXT_SITE_URL=https://impuls.esmolakov.ru
+#          (telegram* — опционально)
+#
+# После правки:
+#   caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy
+
+# Витрина (Nuxt Node) + картинки с Nest
+impuls.esmolakov.ru {
+	encode gzip zstd
+
+	# Картинки/файлы всегда с Nest (MinIO proxy)
+	handle /uploads/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	# Страницы + Nitro BFF (/api/catalog, /api/lead, /api/settings/…, /api/media, …)
+	handle {
+		reverse_proxy 127.0.0.1:3000
+	}
+}
+
+# Админка (SPA) → Nest API напрямую
+admin.impuls.esmolakov.ru {
+	encode gzip zstd
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	handle /uploads/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	handle {
+		root * /var/www/admin.impuls.esmolakov.ru
+		try_files {path} /index.html
+		file_server
+	}
+}

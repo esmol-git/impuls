@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  MANAGER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum MediaType {
+  CATALOG
+  NEWS
+  REVIEW
+}
+
+enum LeadStatus {
+  NEW
+  DONE
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  role          Role           @default(MANAGER)
+  firstName     String?
+  lastName      String?
+  gender        Gender?
+  birthDate     DateTime?      @db.Date
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model MediaItem {
+  id          String    @id @default(cuid())
+  type        MediaType
+  title       String    @default("")
+  /// Обложка / главное фото
+  imageUrl    String
+  /// Галерея фото товара (порядок = порядок слайдера)
+  imageUrls   String[]  @default([])
+  /// HTML-текст новости (TipTap)
+  body        String?   @db.Text
+  /// Тема новости (из справочника Taxonomy NEWS_TOPIC)
+  topic       String?
+  /// Категория товара (из справочника Taxonomy CATALOG_CATEGORY)
+  category    String?
+  /// Артикул товара (уникален; для новостей/отзывов null)
+  sku         String?   @unique
+  /// Остаток на складе (поле зарезервировано, логику пока не используем)
+  quantity    Int?
+  /// URL-slug новости
+  slug        String?   @unique
+  /// Описание товара каталога / анонс новости
+  description String?   @db.Text
+  /// Цена в рублях
+  price       Int?
+  /// Скидка в процентах 0–100
+  discount    Int?
+  /// Цена со скидкой в рублях
+  salePrice   Int?
+  sortOrder   Int       @default(0)
+  published   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  /// Публичные списки: тип + публикация + ручной порядок
+  @@index([type, published, sortOrder])
+  /// Админ-списки: сортировка по дате в рамках типа
+  @@index([type, createdAt])
+  /// Фильтры/таксономия каталога
+  @@index([type, category])
+  /// Фильтры/таксономия новостей
+  @@index([type, topic])
+}
+
+model Lead {
+  id         String     @id @default(cuid())
+  name       String
+  phone      String
+  age        String?
+  message    String?
+  source     String?
+  location   String?
+  program    String?
+  variant    String?
+  /// Состав желаемой покупки (гостевая корзина → заявка). Позже заменится Order.
+  items      Json?
+  /// Анонимный идентификатор гостя (корзина / избранное / будущие заказы)
+  guestToken String?
+  status     LeadStatus @default(NEW)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  order      Order?
+
+  @@index([status, createdAt])
+  @@index([guestToken])
+}
+
+enum OrderStatus {
+  DRAFT
+  NEW
+  PROCESSING
+  DONE
+  CANCELLED
+}
+
+/// Заказы без регистрации. Checkout пока идёт через Lead; Order — следующий шаг.
+model Order {
+  id         String      @id @default(cuid())
+  guestToken String
+  name       String
+  phone      String
+  comment    String?
+  status     OrderStatus @default(NEW)
+  total      Int         @default(0)
+  leadId     String?     @unique
+  lead       Lead?       @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  items      OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([guestToken])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  mediaId   String?
+  title     String
+  imageUrl  String?
+  unitPrice Int
+  qty       Int     @default(1)
+
+  @@index([orderId])
+}
+
+/// Видимость разделов сайта, которыми управляет админка (каталог / новости / отзывы)
+model SiteSection {
+  key       MediaType @id
+  enabled   Boolean   @default(true)
+  updatedAt DateTime  @updatedAt
+}
+
+/// Блоки главной страницы: порядок и вкл/выкл
+model HomeBlock {
+  key       String   @id
+  enabled   Boolean  @default(true)
+  sortOrder Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+/// Функции сайта (корзина, избранное и т.п.)
+model SiteFeature {
+  key       String   @id
+  enabled   Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+enum TaxonomyKind {
+  NEWS_TOPIC
+  CATALOG_CATEGORY
+  COACH_SPECIALTY
+}
+
+/// Справочники: темы новостей, категории товаров, специализации тренеров
+model Taxonomy {
+  id        String       @id @default(cuid())
+  kind      TaxonomyKind
+  name      String
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([kind, name])
+  @@index([kind, sortOrder])
+}
+
+/// Тренеры (страница /coaches и блок на главной)
+model Coach {
+  id           String   @id @default(cuid())
+  name         String
+  role         String
+  experience   String
+  bio          String
+  specialties  String[] @default([])
+  imageUrl     String?
+  imageAlt     String?
+  sortOrder    Int      @default(0)
+  published    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([published, sortOrder])
+  @@index([sortOrder])
+}
+
+/// Журнал действий в админке
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String?
+  action     String
+  entity     String?
+  entityId   String?
+  summary    String
+  meta       Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([entity, entityId])
+  @@index([action])
+}

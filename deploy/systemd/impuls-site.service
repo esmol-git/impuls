@@ -1,0 +1,23 @@
+[Unit]
+Description=Impuls Nuxt site
+After=network.target impuls-api.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/impuls
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=3000
+Environment=NUXT_API_URL=http://127.0.0.1:3001
+Environment=NUXT_SITE_URL=https://impuls.esmolakov.ru
+# Опционально Telegram (заявки):
+# Environment=NUXT_TELEGRAM_BOT_TOKEN=
+# Environment=NUXT_TELEGRAM_CHAT_ID=
+ExecStart=/usr/bin/node .output/server/index.mjs
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "TaxonomyKind" ADD VALUE 'COACH_SPECIALTY';

@@ -1,0 +1,17 @@
+[Unit]
+Description=Impuls Nest API
+After=network.target postgresql.service docker.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/impuls/apps/api
+Environment=NODE_ENV=production
+EnvironmentFile=/opt/impuls/apps/api/.env
+ExecStart=/usr/bin/node dist/main.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

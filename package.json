@@ -1,0 +1,47 @@
+{
+  "name": "impuls",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "nuxt dev",
+    "dev:all": "bash scripts/dev.sh",
+    "dev:local": "bash scripts/dev.sh",
+    "dev:site": "nuxt dev",
+    "dev:api": "npm run start:dev -w @impuls/api",
+    "dev:admin": "npm run dev -w @impuls/admin",
+    "build": "nuxt build",
+    "build:api": "npm run build -w @impuls/api",
+    "build:admin": "npm run build -w @impuls/admin",
+    "generate": "nuxt generate",
+    "deploy": "bash scripts/deploy.sh",
+    "deploy:all": "bash scripts/deploy-all.sh",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "db:up": "docker compose up -d postgres minio",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run prisma:migrate -w @impuls/api",
+    "db:seed": "npm run prisma:seed -w @impuls/api"
+  },
+  "dependencies": {
+    "@nuxt/image": "^2.0.0",
+    "@nuxtjs/seo": "5.2.1",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@vueuse/motion": "^3.0.3",
+    "gsap": "^3.15.0",
+    "nuxt": "^4.4.8",
+    "tailwindcss": "^3.4.19",
+    "vue": "^3.5.35",
+    "vue-router": "^5.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.0.7"
+  },
+  "overrides": {
+    "tailwindcss": "$tailwindcss"
+  }
+}
