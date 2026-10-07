@@ -1,0 +1,17 @@
+services:
+  gatus:
+    image: ghcr.io/twin/gatus:v5.17.0
+    container_name: impuls-gatus
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      # пустые значения ок, пока не настроите Telegram
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    volumes:
+      - ./config.yaml:/config/config.yaml:ro
+      - gatus_data:/data
+volumes:
+  gatus_data:

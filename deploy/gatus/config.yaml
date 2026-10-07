@@ -1,0 +1,102 @@
+# Публичный status-page: https://status.esmolakov.ru
+web:
+  port: 8080
+
+ui:
+  title: Impuls Status
+  header: Impuls Status
+  description: Витрина · админка · API · инфраструктура
+  link: https://impuls.esmolakov.ru
+  buttons:
+    - name: Сайт
+      link: https://impuls.esmolakov.ru
+    - name: Админка
+      link: https://admin.impuls.esmolakov.ru
+  default-sort-by: group
+
+storage:
+  type: sqlite
+  path: /data/gatus.db
+
+maintenance:
+  enabled: false
+
+# Telegram: задайте TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID в .env рядом с compose.
+# Пока пусто — алерты просто не уйдут (dashboard работает).
+alerting:
+  telegram:
+    token: "${TELEGRAM_BOT_TOKEN}"
+    id: "${TELEGRAM_CHAT_ID}"
+    default-alert:
+      description: "Impuls uptime"
+      send-on-resolved: true
+      failure-threshold: 2
+      success-threshold: 2
+
+default-endpoint: &defaults
+  group: Public
+  interval: 60s
+  client:
+    timeout: 15s
+  conditions:
+    - "[STATUS] == 200"
+  alerts:
+    - type: telegram
+      send-on-resolved: true
+
+endpoints:
+  # Origin-проверки с VPS. Внешний путь (через Cloudflare/IPv6) смотрит
+  # GitHub Actions workflow «Uptime watchdog» — он как раз снаружи.
+  - name: Витрина
+    <<: *defaults
+    url: "http://127.0.0.1:3000/"
+
+  - name: Админка
+    <<: *defaults
+    url: "https://admin.impuls.esmolakov.ru/"
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 240h"
+
+  - name: API health
+    <<: *defaults
+    group: API
+    url: "https://admin.impuls.esmolakov.ru/api/health"
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].ok == true"
+
+  - name: API (local)
+    <<: *defaults
+    group: Internal
+    url: "http://127.0.0.1:3001/api/health"
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].ok == true"
+
+  - name: Nuxt (local)
+    <<: *defaults
+    group: Internal
+    url: "http://127.0.0.1:3000/"
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: Postgres
+    group: Internal
+    interval: 60s
+    url: "tcp://127.0.0.1:5432"
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: telegram
+        send-on-resolved: true
+
+  - name: MinIO
+    group: Internal
+    interval: 60s
+    url: "http://127.0.0.1:9000/minio/health/live"
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: telegram
+        send-on-resolved: true
