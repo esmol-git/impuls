@@ -53,6 +53,9 @@ export default defineNuxtConfig({
 
 
   routeRules: {
+    // Сайт крутится как Nuxt Node; данные из Nest. Prerender при CI-сборке
+    // ходит на 127.0.0.1:3001 без API и запекает пустые каталог/новости/отзывы.
+    '/**': { prerender: false },
     '/api/**': { prerender: false },
   },
 
@@ -66,9 +69,8 @@ export default defineNuxtConfig({
 
   nitro: {
     prerender: {
-      crawlLinks: true,
-      failOnError: false,
-      routes: ['/', '/news', '/catalog', '/about', '/coaches', '/programs'],
+      crawlLinks: false,
+      routes: [],
     },
     devProxy: {
       '/uploads': {
