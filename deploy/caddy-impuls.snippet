@@ -11,12 +11,15 @@
 #
 # Env:
 #   Nest:  CORS_ORIGIN=https://impuls.esmolakov.ru,https://admin.impuls.esmolakov.ru
-#   Nuxt:  NUXT_API_URL=http://127.0.0.1:3001
+#   Nuxt:  NUXT_API_URL=http://127.0.0.1:3001   ← так и должно быть в проде
+#          (Nuxt на том же VPS стучится в Nest локально; браузер — на публичные домены)
 #          NUXT_SITE_URL=https://impuls.esmolakov.ru
-#          (telegram* — опционально)
 #
 # После правки:
 #   caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy
+#
+# DNS (Cloudflare):
+#   api.impuls → A 185.219.43.126  (DNS only / серое облако — как admin.impuls)
 
 # Витрина (Nuxt Node) + картинки с Nest
 impuls.esmolakov.ru {
@@ -30,6 +33,19 @@ impuls.esmolakov.ru {
 	# Страницы + Nitro BFF (/api/catalog, /api/lead, /api/settings/…, /api/media, …)
 	handle {
 		reverse_proxy 127.0.0.1:3000
+	}
+}
+
+# Публичный Nest API (браузер/интеграции/curl)
+api.impuls.esmolakov.ru {
+	encode gzip zstd
+
+	handle /uploads/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:3001
 	}
 }
 
