@@ -18,8 +18,9 @@ DEPLOY_ADMIN_PATH="${DEPLOY_ADMIN_PATH:-/var/www/admin.impuls.esmolakov.ru}"
 NUXT_SITE_URL="${NUXT_SITE_URL:-https://impuls.esmolakov.ru}"
 NUXT_API_URL="${NUXT_API_URL:-http://127.0.0.1:3001}"
 
-SSH=(ssh -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}")
-RSYNC=(rsync -avz --delete -e "ssh -p ${DEPLOY_PORT}")
+SSH_OPTS=(-p "${DEPLOY_PORT}" -o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+SSH=(ssh "${SSH_OPTS[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}")
+RSYNC=(rsync -avz --delete -e "ssh ${SSH_OPTS[*]}")
 
 echo "→ Сборка Nest API..."
 npm run build:api
@@ -33,14 +34,20 @@ NUXT_SITE_URL="$NUXT_SITE_URL" NUXT_API_URL="$NUXT_API_URL" npm run build
 echo "→ Синхронизация приложения → ${DEPLOY_APP_PATH}"
 "${SSH[@]}" "mkdir -p '${DEPLOY_APP_PATH}' '${DEPLOY_ADMIN_PATH}'"
 
-# Код + сборки (без node_modules и тяжёлого мусора)
+# Код + сборки (без node_modules и секретов; .env на сервере не трогаем)
 "${RSYNC[@]}" \
   --exclude node_modules \
   --exclude .git \
+  --exclude .github \
   --exclude .nuxt \
+  --exclude .env \
+  --exclude '.env.*' \
+  --exclude apps/api/.env \
+  --exclude deploy/secrets \
   --exclude apps/admin/node_modules \
   --exclude apps/api/node_modules \
   --exclude apps/admin/dist \
+  --exclude apps/api/uploads \
   --exclude .output \
   ./ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_APP_PATH}/"
 

@@ -1,0 +1,77 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Use npm 11 (lockfile compatible)
+        run: npm install -g npm@11
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          DEPLOY_USER="${DEPLOY_USER:-root}"
+          DEPLOY_PORT="${DEPLOY_PORT:-22}"
+          : "${DEPLOY_HOST:?Set repository secret DEPLOY_HOST}"
+          : "${DEPLOY_SSH_KEY:?Set repository secret DEPLOY_SSH_KEY}"
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+          {
+            echo "Host deploy-target"
+            echo "  HostName ${DEPLOY_HOST}"
+            echo "  User ${DEPLOY_USER}"
+            echo "  Port ${DEPLOY_PORT}"
+            echo "  IdentityFile ~/.ssh/id_ed25519"
+            echo "  IdentitiesOnly yes"
+            echo "  StrictHostKeyChecking yes"
+          } > ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+          ssh -o BatchMode=yes deploy-target 'echo ssh_ok'
+
+          # для deploy-all.sh
+          echo "DEPLOY_HOST=deploy-target" >> "$GITHUB_ENV"
+          echo "DEPLOY_USER=${DEPLOY_USER}" >> "$GITHUB_ENV"
+          echo "DEPLOY_PORT=22" >> "$GITHUB_ENV"
+          echo "DEPLOY_APP_PATH=/opt/impuls" >> "$GITHUB_ENV"
+          echo "DEPLOY_ADMIN_PATH=/var/www/admin.impuls.esmolakov.ru" >> "$GITHUB_ENV"
+          echo "NUXT_SITE_URL=https://impuls.esmolakov.ru" >> "$GITHUB_ENV"
+          echo "ADMIN_SITE_URL=https://admin.impuls.esmolakov.ru" >> "$GITHUB_ENV"
+          echo "NUXT_API_URL=http://127.0.0.1:3001" >> "$GITHUB_ENV"
+
+      - name: Deploy
+        run: npm run deploy:all

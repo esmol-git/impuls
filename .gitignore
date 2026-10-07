@@ -30,3 +30,8 @@ apps/api/uploads
 
 .env.deploy
 deploy/secrets/
+
+# Local SSH material (never commit)
+*.pem
+id_ed25519
+id_rsa
