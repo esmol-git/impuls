@@ -16,8 +16,6 @@ const { data: mediaReviews } = await useFetch<ReviewShot[]>('/api/media', {
   key: 'media-reviews',
   query: { type: 'REVIEW' },
   default: () => [],
-  // не брать пустой payload от старого prerender
-  getCachedData: () => undefined,
 })
 
 const shots = computed(() => mediaReviews.value || [])
