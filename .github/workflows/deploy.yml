@@ -28,6 +28,9 @@ jobs:
         run: npm install -g npm@11
 
       - name: Install dependencies
+        env:
+          # нужно только для prisma generate в postinstall (на раннере БД нет)
+          DATABASE_URL: postgresql://impuls:impuls@127.0.0.1:5432/impuls?schema=public
         run: npm ci
 
       - name: Setup SSH
