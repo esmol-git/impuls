@@ -1,13 +1,16 @@
 name: Backup offsite
 
-# VPS не достучится до api.telegram.org — забираем дамп по SSH и
-# кладём копию вне сервера: GitHub Artifact + Telegram с раннера.
+# Local dump on VPS at 03:15 UTC. This job copies it off-box:
+# GitHub Artifact (30d) + Telegram (runner can reach api.telegram.org).
 
 on:
-  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/backup-offsite.yml'
   schedule:
-    # после локального cron 03:15 UTC
     - cron: '30 3 * * *'
+  workflow_dispatch:
 
 concurrency:
   group: backup-offsite
@@ -28,9 +31,10 @@ jobs:
           set -euo pipefail
           DEPLOY_USER="${DEPLOY_USER:-root}"
           DEPLOY_PORT="${DEPLOY_PORT:-22}"
-          : "${DEPLOY_HOST:?}"
-          : "${DEPLOY_SSH_KEY:?}"
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          : "${DEPLOY_HOST:?Set secret DEPLOY_HOST}"
+          : "${DEPLOY_SSH_KEY:?Set secret DEPLOY_SSH_KEY}"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
@@ -79,7 +83,7 @@ jobs:
           curl -4 -sS --connect-timeout 20 --max-time 120 \
             -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F "chat_id=${TELEGRAM_CHAT_ID}" \
-            -F "caption=🗄 Impuls Postgres offsite
+            -F "caption=Impuls Postgres offsite
 ${FILE}
 size=${size}B
 via GitHub Actions" \
