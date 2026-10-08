@@ -145,53 +145,71 @@ body {
 .admin-sidebar__brand {
   flex-shrink: 0;
   padding: 1.1rem 0.75rem 0.85rem;
+  transition: padding 0.2s ease;
 }
 
 .admin-sidebar:not(.admin-sidebar--mini) .admin-sidebar__brand {
   padding: 1.25rem 1.25rem 1rem;
 }
 
-.admin-sidebar__brand-full {
+.admin-sidebar__brand-link {
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  min-width: 0;
+  overflow: hidden;
   text-decoration: none;
   color: inherit;
 }
 
-.admin-sidebar__brand-full:hover .admin-sidebar__name {
+.admin-sidebar--mini .admin-sidebar__brand-link {
+  justify-content: center;
+  gap: 0;
+}
+
+.admin-sidebar__brand-link:hover .admin-sidebar__name {
   color: #1d4ed8;
 }
 
-.admin-sidebar__brand-mini {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.45rem;
-}
-
 .admin-sidebar__logo {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   object-fit: contain;
 }
 
-.admin-sidebar__logo--mini {
-  width: 40px;
-  height: 40px;
-}
-
 .admin-sidebar__brand-text {
   display: flex;
+  min-width: 0;
+  flex: 1;
   flex-direction: column;
   gap: 0.15rem;
   line-height: 1.25;
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    opacity 0.18s ease 0.04s,
+    transform 0.2s ease;
+}
+
+.admin-sidebar--mini .admin-sidebar__brand-text {
+  flex: 0;
+  width: 0;
+  opacity: 0;
+  transform: translateX(-6px);
+  pointer-events: none;
+  transition:
+    opacity 0.12s ease,
+    transform 0.16s ease,
+    width 0s linear 0.16s;
 }
 
 .admin-sidebar__tagline,
 .admin-sidebar__name {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -200,6 +218,19 @@ body {
 
 .admin-sidebar__name {
   transition: color 0.15s ease;
+}
+
+.admin-sidebar__user {
+  opacity: 1;
+  transition: opacity 0.18s ease 0.04s;
+}
+
+.admin-sidebar--mini .admin-sidebar__user {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease, width 0s linear 0.12s;
 }
 
 .admin-sidebar__toggle {
@@ -761,5 +792,63 @@ body {
 
 .admin-table__action--danger:hover {
   background: rgb(239 68 68 / 8%);
+}
+
+/* Mobile: smaller icons everywhere (overrides :size inline styles) */
+@media (max-width: 767px) {
+  :root {
+    --admin-icon-size: 16px;
+  }
+
+  .el-icon {
+    font-size: 16px !important;
+    width: 1em;
+    height: 1em;
+  }
+
+  .el-button .el-icon,
+  .el-button__icon {
+    font-size: 1em !important;
+  }
+
+  .el-icon svg.app-svg-icon,
+  .el-button__icon svg.app-svg-icon,
+  .el-icon .app-icon {
+    width: 1.35em !important;
+    height: 1.35em !important;
+  }
+
+  .el-input__prefix .el-icon,
+  .el-input__suffix .el-icon {
+    font-size: 13px !important;
+  }
+
+  .admin-table__actions {
+    gap: 2px;
+  }
+
+  .admin-table__action {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+
+  .admin-table__action .el-icon {
+    font-size: 16px !important;
+  }
+
+  .admin-header__icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .admin-header__clock-disk {
+    width: 44px;
+    height: 44px;
+  }
+
+  .admin-header__time {
+    font-size: 0.7rem;
+  }
 }
 

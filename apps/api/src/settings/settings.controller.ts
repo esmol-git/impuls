@@ -21,4 +21,9 @@ export class SettingsController {
   listFeatures() {
     return this.settings.listFeatures()
   }
+
+  @Get('maintenance')
+  getMaintenance() {
+    return this.settings.getMaintenance()
+  }
 }

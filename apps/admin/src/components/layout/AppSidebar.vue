@@ -13,24 +13,19 @@ const { collapsed } = useSidebarCollapsed()
 <template>
   <aside class="admin-sidebar" :class="{ 'admin-sidebar--mini': collapsed }">
     <div class="admin-sidebar__brand">
-      <div v-if="collapsed" class="admin-sidebar__brand-mini">
-        <img
-          :src="logoUrl"
-          alt="ФК Импульс"
-          class="admin-sidebar__logo admin-sidebar__logo--mini"
-          width="40"
-          height="40"
-        >
-      </div>
-      <RouterLink v-else to="/" class="admin-sidebar__brand-full">
+      <RouterLink
+        to="/"
+        class="admin-sidebar__brand-link"
+        :title="collapsed ? 'ФК «Импульс» Ярославль' : undefined"
+      >
         <img
           :src="logoUrl"
           alt="ФК Импульс"
           class="admin-sidebar__logo"
-          width="48"
-          height="48"
+          width="40"
+          height="40"
         >
-        <span class="admin-sidebar__brand-text min-w-0">
+        <span class="admin-sidebar__brand-text">
           <span class="admin-sidebar__tagline">Детская футбольная школа</span>
           <span class="admin-sidebar__name">ФК «Импульс» Ярославль</span>
         </span>
@@ -38,7 +33,6 @@ const { collapsed } = useSidebarCollapsed()
     </div>
 
     <el-menu
-      :key="`${activePath}-${collapsed}`"
       :default-active="activePath"
       :collapse="collapsed"
       :collapse-transition="false"
@@ -62,7 +56,7 @@ const { collapsed } = useSidebarCollapsed()
     </el-menu>
 
     <div class="admin-sidebar__footer">
-      <div v-if="!collapsed" class="min-w-0 flex-1">
+      <div class="admin-sidebar__user min-w-0 flex-1">
         <p class="truncate text-sm font-medium text-slate-800">{{ auth.user?.email }}</p>
         <p v-if="auth.roleLabel" class="mt-0.5 truncate text-xs text-slate-500">
           {{ auth.roleLabel }}

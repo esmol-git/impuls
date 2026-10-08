@@ -1,7 +1,9 @@
 import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common'
+import { MediaType, Role } from '@prisma/client'
 import { SkipThrottle } from '@nestjs/throttler'
-import { MediaType } from '@prisma/client'
+import { Roles } from '../auth/decorators/roles.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { RolesGuard } from '../auth/guards/roles.guard'
 import { ReorderHomeBlocksDto } from './dto/reorder-home-blocks.dto'
 import { UpdateHomeBlockDto } from './dto/update-home-block.dto'
 import { UpdateSectionDto } from './dto/update-section.dto'
@@ -46,5 +48,19 @@ export class SettingsAdminController {
   @Patch('features/:key')
   setFeatureEnabled(@Param('key') key: string, @Body() dto: UpdateHomeBlockDto) {
     return this.settings.setFeatureEnabled(key, dto.enabled)
+  }
+
+  @Get('maintenance')
+  @UseGuards(RolesGuard)
+  @Roles(Role.SUPERADMIN)
+  getMaintenance() {
+    return this.settings.getMaintenance()
+  }
+
+  @Patch('maintenance')
+  @UseGuards(RolesGuard)
+  @Roles(Role.SUPERADMIN)
+  setMaintenance(@Body() dto: UpdateHomeBlockDto) {
+    return this.settings.setMaintenance(dto.enabled)
   }
 }

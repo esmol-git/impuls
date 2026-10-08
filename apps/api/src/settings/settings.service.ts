@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common'
 import { MediaType, type SiteSection } from '@prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import {
@@ -8,9 +8,11 @@ import {
   type HomeBlockKey,
 } from './home-blocks'
 import {
+  SHOP_FEATURE_DEFS,
   SITE_FEATURE_DEFS,
+  isShopFeatureKey,
   isSiteFeatureKey,
-  type SiteFeatureKey,
+  type ShopFeatureKey,
 } from './site-features'
 
 const SECTION_KEYS = [MediaType.CATALOG, MediaType.NEWS, MediaType.REVIEW] as const
@@ -38,9 +40,13 @@ export interface HomeBlockStatus {
 }
 
 export interface FeatureStatus {
-  key: SiteFeatureKey
+  key: ShopFeatureKey
   label: string
   description: string
+  enabled: boolean
+}
+
+export interface MaintenanceStatus {
   enabled: boolean
 }
 
@@ -79,7 +85,7 @@ export class SettingsService {
     const rows = await this.prisma.siteFeature.findMany()
     const byKey = new Map(rows.map((row) => [row.key, row.enabled] as const))
 
-    return SITE_FEATURE_DEFS.map((def) => ({
+    return SHOP_FEATURE_DEFS.map((def) => ({
       key: def.key,
       label: def.label,
       description: def.description,
@@ -88,7 +94,10 @@ export class SettingsService {
   }
 
   async setFeatureEnabled(key: string, enabled: boolean): Promise<FeatureStatus[]> {
-    if (!isSiteFeatureKey(key)) {
+    if (key === 'MAINTENANCE') {
+      throw new ForbiddenException('Используйте /admin/settings/maintenance')
+    }
+    if (!isShopFeatureKey(key) || !isSiteFeatureKey(key)) {
       throw new BadRequestException('Неизвестная функция')
     }
 
@@ -98,6 +107,21 @@ export class SettingsService {
       data: { enabled },
     })
     return this.listFeatures()
+  }
+
+  async getMaintenance(): Promise<MaintenanceStatus> {
+    await this.ensureFeatureDefaults()
+    const row = await this.prisma.siteFeature.findUnique({ where: { key: 'MAINTENANCE' } })
+    return { enabled: row?.enabled ?? false }
+  }
+
+  async setMaintenance(enabled: boolean): Promise<MaintenanceStatus> {
+    await this.ensureFeatureDefaults()
+    const row = await this.prisma.siteFeature.update({
+      where: { key: 'MAINTENANCE' },
+      data: { enabled },
+    })
+    return { enabled: row.enabled }
   }
 
   async ensureHomeBlockDefaults() {

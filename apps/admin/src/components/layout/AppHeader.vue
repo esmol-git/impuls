@@ -4,13 +4,11 @@ import { useRoute, useRouter } from 'vue-router'
 import LogoutButton from '@/components/layout/LogoutButton.vue'
 import NotificationBell from '@/components/NotificationBell.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
-import { useSidebarCollapsed } from '@/composables/useSidebarCollapsed'
 import { useNavMenu } from '@/composables/useNavMenu'
 
 const route = useRoute()
 const router = useRouter()
 const { menu, activePath } = useNavMenu()
-const { collapsed, toggleCollapsed } = useSidebarCollapsed()
 
 const now = ref(new Date())
 let timer: ReturnType<typeof setInterval> | undefined
@@ -56,50 +54,39 @@ function onMobileNav(path: string) {
   <header class="admin-header">
     <div class="admin-header__left">
       <!-- Mobile: page nav (sidebar hidden below md) -->
-      <el-dropdown class="md:hidden" trigger="click" @command="onMobileNav">
-        <button
-          type="button"
-          class="admin-header__icon-btn"
-          title="Меню"
-          aria-label="Меню разделов"
-        >
-          <el-icon :size="20"><AppIcon name="menu-2" :size="20" /></el-icon>
-        </button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item
-              v-for="item in menu"
-              :key="item.path"
-              :command="item.path"
-              :class="{ 'is-active': item.path === activePath }"
-            >
-              <span class="inline-flex items-center gap-2">
-                <el-icon :size="20"><component :is="item.icon" /></el-icon>
-                {{ item.label }}
-                <el-badge
-                  v-if="item.badge"
-                  :value="item.badge"
-                  type="danger"
-                  class="menu-badge"
-                />
-              </span>
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-
-      <!-- Desktop: collapse sidebar to mini -->
-      <button
-        type="button"
-        class="admin-header__icon-btn hidden md:inline-flex"
-        :title="collapsed ? 'Развернуть меню' : 'Свернуть меню'"
-        :aria-label="collapsed ? 'Развернуть меню' : 'Свернуть меню'"
-        @click="toggleCollapsed"
-      >
-        <el-icon :size="20">
-          <AppIcon :name="collapsed ? 'menu-unfold' : 'menu-fold'" :size="20" />
-        </el-icon>
-      </button>
+      <div class="admin-header__mobile-nav md:hidden">
+        <el-dropdown trigger="click" @command="onMobileNav">
+          <button
+            type="button"
+            class="admin-header__icon-btn"
+            title="Меню"
+            aria-label="Меню разделов"
+          >
+            <el-icon :size="20"><AppIcon name="menu-2" :size="20" /></el-icon>
+          </button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item
+                v-for="item in menu"
+                :key="item.path"
+                :command="item.path"
+                :class="{ 'is-active': item.path === activePath }"
+              >
+                <span class="inline-flex items-center gap-2">
+                  <el-icon :size="20"><component :is="item.icon" /></el-icon>
+                  {{ item.label }}
+                  <el-badge
+                    v-if="item.badge"
+                    :value="item.badge"
+                    type="danger"
+                    class="menu-badge"
+                  />
+                </span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
 
       <div class="admin-header__clock" :title="`${dateLabel} · ${now.toLocaleString('ru-RU')}`">
         <div class="admin-header__clock-disk">

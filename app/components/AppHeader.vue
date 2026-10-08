@@ -68,7 +68,7 @@ onUnmounted(() => {
             width="56"
             height="56"
           >
-          <span class="font-brand min-w-0">
+          <span class="font-brand hidden min-w-0 sm:block">
             <span class="block truncate text-[13px] font-medium leading-snug tracking-tight text-brand-700 sm:text-sm">
               {{ site.tagline }}
             </span>

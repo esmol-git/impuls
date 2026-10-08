@@ -7,11 +7,13 @@ import { api } from '@/api/client'
 import type { FeatureStatus, HomeBlockStatus, TaxonomyItem, TaxonomyKind } from '@/api/types'
 import { useConfirm } from '@/composables/useConfirm'
 import { useToast } from '@/composables/useToast'
+import { useAuthStore } from '@/stores/auth'
 
 type TabKey = 'HOME' | 'SHOP' | TaxonomyKind
 
 const toast = useToast()
 const { confirm } = useConfirm()
+const auth = useAuthStore()
 
 const activeTab = ref<TabKey>('HOME')
 const items = ref<TaxonomyItem[]>([])
@@ -26,6 +28,9 @@ const dropTargetKey = ref<string | null>(null)
 const homeReady = ref(false)
 const shopReady = ref(false)
 const togglingKeys = ref<Set<string>>(new Set())
+const maintenanceEnabled = ref(false)
+const maintenanceReady = ref(false)
+const maintenanceSaving = ref(false)
 
 const tabs: { key: TabKey; label: string; hint: string; placeholder?: string }[] = [
   {
@@ -106,6 +111,44 @@ async function loadHomeBlocks(options: { silent?: boolean } = {}) {
     requestAnimationFrame(() => {
       homeReady.value = true
     })
+  }
+}
+
+async function loadMaintenance(options: { silent?: boolean } = {}) {
+  if (!auth.isSuperAdmin) return
+  maintenanceReady.value = false
+  try {
+    const status = await api<{ enabled: boolean }>('/api/admin/settings/maintenance')
+    maintenanceEnabled.value = status.enabled
+  } catch (e) {
+    if (!options.silent) {
+      toast.error(e instanceof Error ? e.message : 'Не удалось загрузить режим обслуживания')
+    }
+  } finally {
+    requestAnimationFrame(() => {
+      maintenanceReady.value = true
+    })
+  }
+}
+
+async function onMaintenanceToggle(enabled: boolean) {
+  if (!auth.isSuperAdmin || !maintenanceReady.value) return
+  if (enabled === maintenanceEnabled.value) return
+  if (maintenanceSaving.value) return
+
+  maintenanceSaving.value = true
+  try {
+    const status = await api<{ enabled: boolean }>('/api/admin/settings/maintenance', {
+      method: 'PATCH',
+      body: JSON.stringify({ enabled }),
+    })
+    maintenanceEnabled.value = status.enabled
+    toast.success(enabled ? 'Заглушка включена' : 'Сайт снова открыт')
+  } catch (e) {
+    toast.error(e instanceof Error ? e.message : 'Не удалось обновить')
+    await loadMaintenance({ silent: true })
+  } finally {
+    maintenanceSaving.value = false
   }
 }
 
@@ -288,7 +331,10 @@ watch(activeTab, () => {
   void load()
 })
 
-onMounted(load)
+onMounted(() => {
+  void load()
+  void loadMaintenance()
+})
 </script>
 
 <template>
@@ -297,6 +343,25 @@ onMounted(load)
       title="Настройки"
       description="Блоки главной, функции каталога и справочники для новостей, товаров и тренеров."
     />
+
+    <div
+      v-if="auth.isSuperAdmin"
+      class="feature-row mb-4"
+      :class="{ 'is-off': !maintenanceEnabled, 'is-maintenance-on': maintenanceEnabled }"
+    >
+      <div class="min-w-0 flex-1">
+        <p class="font-semibold text-slate-800">Режим обслуживания</p>
+        <p class="mt-0.5 text-sm text-slate-500">
+          Посетители увидят заглушку вместо сайта. Админка останется доступной.
+        </p>
+      </div>
+      <el-switch
+        :model-value="maintenanceEnabled"
+        :loading="maintenanceSaving"
+        :disabled="!maintenanceReady"
+        @change="(value: boolean) => onMaintenanceToggle(value)"
+      />
+    </div>
 
     <el-tabs v-model="activeTab" class="settings-tabs">
       <el-tab-pane
@@ -503,5 +568,10 @@ onMounted(load)
 
 .feature-row.is-off {
   background: rgb(248 250 252);
+}
+
+.feature-row.is-maintenance-on {
+  border-color: rgb(251 191 36);
+  background: rgb(255 251 235);
 }
 </style>
