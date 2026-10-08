@@ -1,0 +1,70 @@
+name: External uptime
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+
+concurrency:
+  group: external-uptime
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe public endpoints
+        id: probe
+        run: |
+          set +e
+          fail=0
+          report=""
+          check() {
+            local name="$1" url="$2"
+            local code
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' --connect-timeout 15 --max-time 25 "$url" || echo 000)
+            if [[ "$code" != "200" ]]; then
+              echo "::error::$name -> HTTP $code ($url)"
+              report="${report}"$'\n'"FAIL ${name}: HTTP ${code}"
+              fail=1
+            else
+              echo "OK $name -> $code"
+              report="${report}"$'\n'"OK ${name}: HTTP ${code}"
+            fi
+          }
+          check "Site" "https://impuls.esmolakov.ru/"
+          check "Admin" "https://admin.impuls.esmolakov.ru/"
+          check "API health" "https://admin.impuls.esmolakov.ru/api/health"
+          check "Status page" "https://status.esmolakov.ru/"
+
+          {
+            echo "fail=$fail"
+            echo "report<<EOF"
+            echo "$report"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Telegram alert on failure
+        if: steps.probe.outputs.fail == '1'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          REPORT: ${{ steps.probe.outputs.report }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${TELEGRAM_BOT_TOKEN:-}" || -z "${TELEGRAM_CHAT_ID:-}" ]]; then
+            echo "Telegram secrets not set — failing job only"
+            exit 1
+          fi
+          payload=$(jq -n \
+            --arg chat "$TELEGRAM_CHAT_ID" \
+            --arg text "Impuls uptime FAIL
+${REPORT}
+
+https://status.esmolakov.ru" \
+            '{chat_id:$chat, text:$text, disable_web_page_preview:true}')
+          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -H 'Content-Type: application/json' \
+            -d "$payload"
+          exit 1
