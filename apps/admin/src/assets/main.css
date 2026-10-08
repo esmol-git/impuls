@@ -25,6 +25,7 @@
   --el-border-color-hover: #94a3b8;
   --el-fill-color-blank: #fff;
   --el-dialog-padding-primary: 20px 24px;
+  --admin-icon-size: 22px;
 }
 
 html,
@@ -39,6 +40,52 @@ body {
   color: var(--admin-text);
   background: var(--admin-bg);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Default icon size across admin */
+.el-icon {
+  font-size: var(--admin-icon-size);
+  width: 1em;
+  height: 1em;
+}
+
+.el-button .el-icon,
+.el-button__icon {
+  font-size: 1.125em;
+}
+
+/* EP icons fill their box; keep them at 1em */
+.el-icon svg,
+.el-button__icon svg {
+  width: 1em;
+  height: 1em;
+  color: currentColor;
+}
+
+/*
+ * Custom set has large viewBox padding (~40–50% of box) vs EP glyphs (~80%).
+ * Scale only custom icons so they optically match remaining EP ones.
+ */
+.el-icon svg.app-svg-icon,
+.el-button__icon svg.app-svg-icon,
+.el-icon .app-icon {
+  width: 1.65em !important;
+  height: 1.65em !important;
+  overflow: visible;
+}
+
+/* Inside inputs the optical boost looks oversized — keep compact */
+.el-input__prefix .el-icon,
+.el-input__suffix .el-icon {
+  font-size: 14px;
+}
+
+.el-input__prefix svg.app-svg-icon,
+.el-input__suffix svg.app-svg-icon,
+.el-input__prefix .app-icon,
+.el-input__suffix .app-icon {
+  width: 1em !important;
+  height: 1em !important;
 }
 
 .admin-card,
@@ -106,9 +153,14 @@ body {
 
 .admin-sidebar__brand-full {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.7rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.admin-sidebar__brand-full:hover .admin-sidebar__name {
+  color: #1d4ed8;
 }
 
 .admin-sidebar__brand-mini {
@@ -118,16 +170,36 @@ body {
   gap: 0.45rem;
 }
 
-.admin-sidebar__mark {
-  display: grid;
-  place-items: center;
+.admin-sidebar__logo {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.admin-sidebar__logo--mini {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
-  background: rgb(29 78 216 / 10%);
-  color: #1d4ed8;
-  font-size: 1rem;
-  font-weight: 800;
+}
+
+.admin-sidebar__brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  line-height: 1.25;
+}
+
+.admin-sidebar__tagline,
+.admin-sidebar__name {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #1e2d4f;
+}
+
+.admin-sidebar__name {
+  transition: color 0.15s ease;
 }
 
 .admin-sidebar__toggle {
@@ -170,7 +242,30 @@ body {
 .admin-sidebar__menu .el-menu-item {
   margin: 2px 0;
   border-radius: 8px;
-  height: 44px;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.admin-sidebar__menu .el-menu-item .el-icon {
+  font-size: 22px;
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+}
+
+.admin-sidebar__menu.el-menu--collapse .el-menu-item .el-icon {
+  margin-right: 0;
+}
+
+.admin-sidebar__footer .el-button {
+  font-size: 20px;
+}
+
+.admin-sidebar__footer .el-button .el-icon,
+.admin-sidebar__footer .el-button__icon {
+  font-size: 20px;
 }
 
 .admin-sidebar__footer {
@@ -636,7 +731,7 @@ body {
 }
 
 .admin-table__action .el-icon {
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .admin-table__action:hover {

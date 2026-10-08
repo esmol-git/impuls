@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { Delete, EditPen, Hide, Plus, View } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
+import { icons } from '@/icons'
 import { useRouter } from 'vue-router'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import TablePager from '@/components/ui/TablePager.vue'
@@ -179,9 +180,8 @@ onMounted(() => {
                 :aria-label="row.published ? 'Скрыть' : 'Показать'"
                 @click="togglePublished(row)"
               >
-                <el-icon :size="20">
-                  <Hide v-if="row.published" />
-                  <View v-else />
+                <el-icon :size="22">
+                  <component :is="row.published ? icons.lock : icons.unlock" />
                 </el-icon>
               </button>
               <button
@@ -191,7 +191,7 @@ onMounted(() => {
                 aria-label="Редактировать"
                 @click="openEdit(row)"
               >
-                <el-icon :size="20"><EditPen /></el-icon>
+                <el-icon :size="22"><component :is="icons.edit" /></el-icon>
               </button>
               <button
                 type="button"
@@ -200,7 +200,7 @@ onMounted(() => {
                 aria-label="Удалить"
                 @click="removeItem(row)"
               >
-                <el-icon :size="20"><Delete /></el-icon>
+                <el-icon :size="22"><component :is="icons.trash" /></el-icon>
               </button>
             </div>
           </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import { useNotificationsStore } from '@/stores/notifications'
 import { formatDateTime } from '@/utils/format'
 
@@ -20,7 +21,7 @@ function openAll() {
     <template #reference>
       <el-badge :value="notifications.badgeLabel || undefined" :hidden="!notifications.badgeLabel">
         <el-button circle>
-          <el-icon :size="18"><Bell /></el-icon>
+          <el-icon :size="22"><AppIcon name="bell-2" :size="22" /></el-icon>
         </el-button>
       </el-badge>
     </template>

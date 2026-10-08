@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Plus, Delete, Rank } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 import type { UploadFile, UploadRawFile } from 'element-plus'
+import { icons } from '@/icons'
 import { useToast } from '@/composables/useToast'
 import { prepareImageUpload } from '@/utils/image'
 
@@ -129,7 +130,7 @@ function onDrop(index: number, event: DragEvent) {
         <img :src="image.url" alt="" class="multi-upload__img" draggable="false" />
         <span v-if="index === 0" class="multi-upload__badge">Обложка</span>
         <span class="multi-upload__handle" title="Перетащить">
-          <el-icon :size="12"><Rank /></el-icon>
+          <el-icon :size="14"><component :is="icons['drag-move']" /></el-icon>
         </span>
         <button
           type="button"
@@ -138,7 +139,7 @@ function onDrop(index: number, event: DragEvent) {
           @click="removeAt(index)"
           @mousedown.stop
         >
-          <el-icon :size="14"><Delete /></el-icon>
+          <el-icon :size="16"><component :is="icons.trash" /></el-icon>
         </button>
       </div>
 

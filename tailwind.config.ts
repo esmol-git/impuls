@@ -33,6 +33,7 @@ export default {
       },
       fontFamily: {
         sans: ['Manrope', 'system-ui', 'sans-serif'],
+        brand: ['Onest', 'Manrope', 'system-ui', 'sans-serif'],
       },
       maxWidth: {
         site: '1280px',

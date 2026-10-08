@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft } from '@element-plus/icons-vue'
+import { icons } from '@/icons'
 
 defineProps<{
   saving?: boolean
@@ -15,7 +15,7 @@ defineEmits<{
 
 <template>
   <div class="edit-page__actions">
-    <el-button :icon="ArrowLeft" :disabled="saving" @click="$emit('back')">
+    <el-button :icon="icons['arrow-left']" :disabled="saving" @click="$emit('back')">
       {{ backLabel || 'К списку' }}
     </el-button>
     <el-button

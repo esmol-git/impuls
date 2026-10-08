@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { navigation, site } from '~/data/site'
 import { lockBodyScroll, unlockBodyScroll } from '~/utils/scrollLock'
+import logoUrl from '~/assets/img/logo.png'
 
 const route = useRoute()
 const mobileOpen = ref(false)
@@ -60,15 +61,19 @@ onUnmounted(() => {
           class="group flex min-w-0 shrink items-center gap-2.5 sm:gap-3"
           @click="closeMenu"
         >
-          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-base font-extrabold text-white shadow-sm transition group-hover:bg-brand-700 sm:h-10 sm:w-10 sm:text-lg">
-            И
-          </span>
-          <span class="min-w-0">
-            <span class="block truncate text-sm font-bold leading-tight text-brand-600 sm:text-base">
-              {{ site.name }}
-            </span>
-            <span class="hidden truncate text-xs text-brand-400 xs:block">
+          <img
+            :src="logoUrl"
+            alt="ФК Импульс"
+            class="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14"
+            width="56"
+            height="56"
+          >
+          <span class="font-brand min-w-0">
+            <span class="block truncate text-[13px] font-medium leading-snug tracking-tight text-brand-700 sm:text-sm">
               {{ site.tagline }}
+            </span>
+            <span class="mt-0.5 block truncate text-[13px] font-medium leading-snug tracking-tight text-brand-700 sm:text-sm">
+              {{ site.brandLine }}
             </span>
           </span>
         </NuxtLink>

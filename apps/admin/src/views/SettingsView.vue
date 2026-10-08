@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { Delete, Plus, Rank } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
+import { icons } from '@/icons'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import { api } from '@/api/client'
 import type { FeatureStatus, HomeBlockStatus, TaxonomyItem, TaxonomyKind } from '@/api/types'
@@ -333,7 +334,7 @@ onMounted(load)
             @dragend="onHomeDragEnd"
           >
             <span class="home-block__handle" title="Перетащить">
-              <el-icon :size="20"><Rank /></el-icon>
+              <el-icon :size="22"><component :is="icons['drag-move']" /></el-icon>
               <span class="home-block__index">{{ index + 1 }}</span>
             </span>
 
@@ -419,7 +420,7 @@ onMounted(load)
               <el-button
                 text
                 type="danger"
-                :icon="Delete"
+                :icon="icons.trash"
                 title="Удалить"
                 @click="removeItem(item)"
               />

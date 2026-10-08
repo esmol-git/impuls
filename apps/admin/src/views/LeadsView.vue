@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { Check, Delete, RefreshLeft, Search, View } from '@element-plus/icons-vue'
+import { Check } from '@element-plus/icons-vue'
+import { icons } from '@/icons'
 import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import TablePager from '@/components/ui/TablePager.vue'
@@ -233,7 +234,7 @@ watch(
           class="w-56 sm:w-64"
           clearable
           placeholder="Имя, телефон, источник…"
-          :prefix-icon="Search"
+          :prefix-icon="icons.search"
           @update:model-value="onSearchInput"
           @clear="clearSearch"
         />
@@ -306,7 +307,7 @@ watch(
                 aria-label="Открыть"
                 @click="openLead(row)"
               >
-                <el-icon :size="20"><View /></el-icon>
+                <el-icon :size="22"><component :is="icons['zoom-in']" /></el-icon>
               </button>
               <button
                 v-if="row.status === 'NEW'"
@@ -316,7 +317,7 @@ watch(
                 aria-label="Отметить готово"
                 @click="setStatus(row, 'DONE')"
               >
-                <el-icon :size="20"><Check /></el-icon>
+                <el-icon :size="22"><Check /></el-icon>
               </button>
               <button
                 v-else
@@ -326,7 +327,7 @@ watch(
                 aria-label="Вернуть в новые"
                 @click="setStatus(row, 'NEW')"
               >
-                <el-icon :size="20"><RefreshLeft /></el-icon>
+                <el-icon :size="22"><component :is="icons.undo" /></el-icon>
               </button>
               <button
                 v-if="auth.isAdmin"
@@ -336,7 +337,7 @@ watch(
                 aria-label="Удалить"
                 @click="removeLead(row)"
               >
-                <el-icon :size="20"><Delete /></el-icon>
+                <el-icon :size="22"><component :is="icons.trash" /></el-icon>
               </button>
             </div>
           </template>

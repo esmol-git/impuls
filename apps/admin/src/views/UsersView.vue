@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import { Delete, EditPen } from '@element-plus/icons-vue'
+import { icons } from '@/icons'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import TablePager from '@/components/ui/TablePager.vue'
 import { api } from '@/api/client'
@@ -338,7 +338,7 @@ onMounted(load)
                 aria-label="Изменить"
                 @click="openEdit(row)"
               >
-                <el-icon :size="20"><EditPen /></el-icon>
+                <el-icon :size="22"><component :is="icons.edit" /></el-icon>
               </button>
               <button
                 v-if="canManage(row)"
@@ -349,7 +349,7 @@ onMounted(load)
                 :disabled="row.id === auth.user?.id"
                 @click="removeUser(row)"
               >
-                <el-icon :size="20"><Delete /></el-icon>
+                <el-icon :size="22"><component :is="icons.trash" /></el-icon>
               </button>
             </div>
           </template>

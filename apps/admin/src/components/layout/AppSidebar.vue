@@ -1,68 +1,40 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
-import { DArrowLeft, DArrowRight } from '@element-plus/icons-vue'
 import LogoutButton from '@/components/layout/LogoutButton.vue'
-import { useMediaQuery } from '@/composables/useMediaQuery'
+import logoUrl from '@/assets/img/logo.png'
+import { useSidebarCollapsed } from '@/composables/useSidebarCollapsed'
 import { useNavMenu } from '@/composables/useNavMenu'
 import { useAuthStore } from '@/stores/auth'
 
-const STORAGE_KEY = 'admin-sidebar-collapsed'
-
 const auth = useAuthStore()
 const { menu, activePath } = useNavMenu()
-const isNarrow = useMediaQuery('(max-width: 1279px)')
-const collapsed = ref(false)
-
-onMounted(() => {
-  const saved = localStorage.getItem(STORAGE_KEY)
-  if (saved === '1' || saved === '0') {
-    collapsed.value = saved === '1'
-  } else {
-    collapsed.value = isNarrow.value
-  }
-})
-
-watch(isNarrow, (narrow) => {
-  if (localStorage.getItem(STORAGE_KEY) != null) return
-  collapsed.value = narrow
-})
-
-function toggleCollapsed() {
-  collapsed.value = !collapsed.value
-  localStorage.setItem(STORAGE_KEY, collapsed.value ? '1' : '0')
-}
+const { collapsed } = useSidebarCollapsed()
 </script>
 
 <template>
   <aside class="admin-sidebar" :class="{ 'admin-sidebar--mini': collapsed }">
     <div class="admin-sidebar__brand">
       <div v-if="collapsed" class="admin-sidebar__brand-mini">
-        <p class="admin-sidebar__mark" title="Импульс">И</p>
-        <button
-          type="button"
-          class="admin-sidebar__toggle"
-          title="Развернуть меню"
-          aria-label="Развернуть меню"
-          @click="toggleCollapsed"
+        <img
+          :src="logoUrl"
+          alt="ФК Импульс"
+          class="admin-sidebar__logo admin-sidebar__logo--mini"
+          width="40"
+          height="40"
         >
-          <el-icon :size="16"><DArrowRight /></el-icon>
-        </button>
       </div>
-      <div v-else class="admin-sidebar__brand-full">
-        <div class="min-w-0">
-          <p class="text-xs font-semibold uppercase tracking-wider text-brand-500">Импульс</p>
-          <h1 class="mt-1 text-lg font-extrabold text-brand-700">Админка</h1>
-        </div>
-        <button
-          type="button"
-          class="admin-sidebar__toggle"
-          title="Свернуть меню"
-          aria-label="Свернуть меню"
-          @click="toggleCollapsed"
+      <RouterLink v-else to="/" class="admin-sidebar__brand-full">
+        <img
+          :src="logoUrl"
+          alt="ФК Импульс"
+          class="admin-sidebar__logo"
+          width="48"
+          height="48"
         >
-          <el-icon :size="16"><DArrowLeft /></el-icon>
-        </button>
-      </div>
+        <span class="admin-sidebar__brand-text min-w-0">
+          <span class="admin-sidebar__tagline">Детская футбольная школа</span>
+          <span class="admin-sidebar__name">ФК «Импульс» Ярославль</span>
+        </span>
+      </RouterLink>
     </div>
 
     <el-menu
@@ -74,7 +46,7 @@ function toggleCollapsed() {
       class="admin-sidebar__menu"
     >
       <el-menu-item v-for="item in menu" :key="item.path" :index="item.path">
-        <el-icon><component :is="item.icon" /></el-icon>
+        <el-icon :size="22"><component :is="item.icon" /></el-icon>
         <template #title>
           <span class="inline-flex items-center gap-2">
             {{ item.label }}

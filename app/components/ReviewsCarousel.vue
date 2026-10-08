@@ -9,6 +9,25 @@ interface ReviewShot {
   title?: string
 }
 
+interface ReviewFallbackItem {
+  id: string
+  imageUrl: string
+  title: string
+  text: string
+  rating: number
+  author: string
+}
+
+type CarouselItem = ReviewShot | ReviewFallbackItem
+
+function isFallbackItem(item: CarouselItem): item is ReviewFallbackItem {
+  return 'rating' in item && typeof item.rating === 'number'
+}
+
+function itemRating(item: CarouselItem): number {
+  return isFallbackItem(item) ? item.rating : 0
+}
+
 const config = sections.reviews
 const headingId = 'reviews-title'
 
@@ -29,7 +48,7 @@ if (import.meta.server) {
 
 const shots = computed(() => mediaReviews.value || [])
 const useScreenshots = computed(() => shots.value.length > 0)
-const items = computed(() =>
+const items = computed<CarouselItem[]>(() =>
   useScreenshots.value
     ? shots.value
     : fallbackReviews.map((review) => ({
@@ -207,7 +226,7 @@ const trackStyle = computed(() => {
                             v-for="n in 5"
                             :key="n"
                             class="h-4 w-4"
-                            :class="n <= (('rating' in item && item.rating) || 0) ? 'text-amber-400' : 'text-brand-200'"
+                            :class="n <= itemRating(item) ? 'text-amber-400' : 'text-brand-200'"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -215,10 +234,10 @@ const trackStyle = computed(() => {
                           </svg>
                         </div>
                         <blockquote class="text-sm leading-relaxed text-brand-700">
-                          «{{ 'text' in item ? item.text : '' }}»
+                          «{{ isFallbackItem(item) ? item.text : '' }}»
                         </blockquote>
                         <p class="mt-4 text-sm font-semibold text-brand-800">
-                          {{ 'author' in item ? item.author : item.title }}
+                          {{ isFallbackItem(item) ? item.author : item.title }}
                         </p>
                       </div>
                     </div>

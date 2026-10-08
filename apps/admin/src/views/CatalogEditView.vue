@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import { EditPen } from '@element-plus/icons-vue'
+import { icons } from '@/icons'
 import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import EditPageActions from '@/components/ui/EditPageActions.vue'
@@ -336,7 +336,7 @@ onUnmounted(resetGallery)
                 />
                 <el-button
                   v-if="!skuManual"
-                  :icon="EditPen"
+                  :icon="icons.edit"
                   title="Изменить артикул"
                   aria-label="Изменить артикул"
                   @click="enableSkuManual"

@@ -3,6 +3,9 @@ import type { SocialLink } from '~/types'
 export const site = {
   name: 'ФК «Импульс»',
   tagline: 'Детская футбольная школа',
+  city: 'Ярославль',
+  /** Полная вторая строка бренда в шапке */
+  brandLine: 'ФК «Импульс» Ярославль',
   description: 'Детская футбольная школа. Бесплатное пробное занятие для каждого ребёнка.',
   phone: '+7 (981) 683-70-28',
   phoneHoursStart: 9,

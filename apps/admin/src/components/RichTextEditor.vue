@@ -4,7 +4,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
-import { Link as LinkIcon, List, Grid, Picture, RefreshLeft, RefreshRight } from '@element-plus/icons-vue'
+import { icons } from '@/icons'
 import { ElMessageBox } from 'element-plus'
 import { api } from '@/api/client'
 import { Column, Columns } from '@/components/editor/columns'
@@ -222,7 +222,7 @@ function onImageSizeCommand(size: ImageSize) {
             :disabled="!active.undo"
             @click="run(() => editor!.chain().focus().undo().run())"
           >
-            <el-icon :size="16"><RefreshLeft /></el-icon>
+            <el-icon :size="18"><component :is="icons.undo" /></el-icon>
           </button>
         </el-tooltip>
         <el-tooltip content="Вперёд" placement="top" :show-after="400">
@@ -232,7 +232,7 @@ function onImageSizeCommand(size: ImageSize) {
             :disabled="!active.redo"
             @click="run(() => editor!.chain().focus().redo().run())"
           >
-            <el-icon :size="16"><RefreshRight /></el-icon>
+            <el-icon :size="18"><component :is="icons.redo" /></el-icon>
           </button>
         </el-tooltip>
       </div>
@@ -267,7 +267,7 @@ function onImageSizeCommand(size: ImageSize) {
             :class="{ 'is-active': active.link }"
             @click="setLink"
           >
-            <el-icon :size="16"><LinkIcon /></el-icon>
+            <el-icon :size="18"><component :is="icons.links" /></el-icon>
           </button>
         </el-tooltip>
       </div>
@@ -307,7 +307,7 @@ function onImageSizeCommand(size: ImageSize) {
             :class="{ 'is-active': active.bullet }"
             @click="run(() => editor!.chain().focus().toggleBulletList().run())"
           >
-            <el-icon :size="16"><List /></el-icon>
+            <el-icon :size="18"><component :is="icons['bulleted-list']" /></el-icon>
           </button>
         </el-tooltip>
         <el-tooltip content="Нумерованный список" placement="top" :show-after="400">
@@ -332,7 +332,7 @@ function onImageSizeCommand(size: ImageSize) {
             :class="{ 'is-active': active.columns }"
             @click="insertColumns"
           >
-            <el-icon :size="16"><Grid /></el-icon>
+            <el-icon :size="18"><component :is="icons['layout-grid']" /></el-icon>
           </button>
         </el-tooltip>
         <el-tooltip content="Картинка в текст" placement="top" :show-after="400">
@@ -343,7 +343,7 @@ function onImageSizeCommand(size: ImageSize) {
             :disabled="uploading"
             @click="openImagePicker"
           >
-            <el-icon :size="16"><Picture /></el-icon>
+            <el-icon :size="18"><component :is="icons.image" /></el-icon>
           </button>
         </el-tooltip>
         <el-dropdown trigger="click" @command="onImageSizeCommand">

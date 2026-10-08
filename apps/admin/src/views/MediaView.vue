@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import type { UploadFile, UploadRawFile } from 'element-plus'
-import { Delete, EditPen, Hide, Plus, Rank, View } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
+import { icons } from '@/icons'
 import { useRouter } from 'vue-router'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import TablePager from '@/components/ui/TablePager.vue'
@@ -404,7 +405,7 @@ watch(() => props.type, () => {
             </div>
           </div>
           <span class="review-phone__handle" title="Перетащить">
-            <el-icon :size="14"><Rank /></el-icon>
+            <el-icon :size="16"><component :is="icons['drag-move']" /></el-icon>
           </span>
           <button
             type="button"
@@ -413,7 +414,7 @@ watch(() => props.type, () => {
             @click="removeItem(item)"
             @mousedown.stop
           >
-            <el-icon :size="16"><Delete /></el-icon>
+            <el-icon :size="18"><component :is="icons.trash" /></el-icon>
           </button>
         </div>
       </div>
@@ -483,7 +484,7 @@ watch(() => props.type, () => {
                 aria-label="Изменить"
                 @click="openEdit(row)"
               >
-                <el-icon :size="20"><EditPen /></el-icon>
+                <el-icon :size="22"><component :is="icons.edit" /></el-icon>
               </button>
               <button
                 type="button"
@@ -492,9 +493,8 @@ watch(() => props.type, () => {
                 :aria-label="row.published ? 'Скрыть' : 'Показать'"
                 @click="togglePublished(row)"
               >
-                <el-icon :size="20">
-                  <Hide v-if="row.published" />
-                  <View v-else />
+                <el-icon :size="22">
+                  <component :is="row.published ? icons.lock : icons.unlock" />
                 </el-icon>
               </button>
               <button
@@ -504,7 +504,7 @@ watch(() => props.type, () => {
                 aria-label="Удалить"
                 @click="removeItem(row)"
               >
-                <el-icon :size="20"><Delete /></el-icon>
+                <el-icon :size="22"><component :is="icons.trash" /></el-icon>
               </button>
             </div>
           </template>

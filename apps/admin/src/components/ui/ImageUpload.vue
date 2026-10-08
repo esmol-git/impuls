@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Picture, Delete, Plus, RefreshRight } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 import type { UploadFile, UploadRawFile } from 'element-plus'
+import { icons } from '@/icons'
 import { useToast } from '@/composables/useToast'
 import { prepareImageUpload } from '@/utils/image'
 
@@ -78,11 +79,11 @@ function openPicker() {
 
       <div class="image-upload__toolbar">
         <button type="button" class="image-upload__btn" @click="openPicker">
-          <el-icon :size="14"><RefreshRight /></el-icon>
+          <el-icon :size="16"><component :is="icons.redo" /></el-icon>
           <span>Заменить</span>
         </button>
         <button type="button" class="image-upload__btn image-upload__btn--danger" @click="onClear">
-          <el-icon :size="14"><Delete /></el-icon>
+          <el-icon :size="16"><component :is="icons.trash" /></el-icon>
           <span>Удалить</span>
         </button>
       </div>
@@ -99,7 +100,7 @@ function openPicker() {
       :on-change="onChange"
     >
       <div class="image-upload__empty" :class="aspectClass">
-        <el-icon :size="28" class="text-brand-500"><Picture /></el-icon>
+        <el-icon :size="28" class="text-brand-500"><component :is="icons.image" /></el-icon>
         <p class="mt-3 text-sm font-medium text-slate-700">
           Перетащите изображение сюда
         </p>

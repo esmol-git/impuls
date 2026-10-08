@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { SwitchButton } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import { icons } from '@/icons'
 import { useConfirm } from '@/composables/useConfirm'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
@@ -37,7 +37,7 @@ async function onLogout() {
     <el-button
       link
       type="danger"
-      :icon="SwitchButton"
+      :icon="icons['arrow-log-out']"
       class="shrink-0 !text-base"
       aria-label="Выход"
       @click="onLogout"

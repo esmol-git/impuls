@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { footerLinks, navigation, site } from '~/data/site'
+import logoUrl from '~/assets/img/logo.png'
 
 const { visible } = await useManagedSections()
 
@@ -17,13 +18,21 @@ const navItems = computed(() =>
     <div class="container-site section-padding pb-6 sm:pb-8">
       <div class="grid gap-8 sm:gap-10 md:grid-cols-3">
         <div>
-          <div class="mb-4 flex items-center gap-3">
-            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-lg font-extrabold text-brand-600">
-              И
-            </span>
-            <div>
-              <p class="font-bold">{{ site.name }}</p>
-              <p class="text-sm text-white/70">{{ site.tagline }}</p>
+          <div class="font-brand mb-4 flex items-center gap-3">
+            <img
+              :src="logoUrl"
+              alt="ФК Импульс"
+              class="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14"
+              width="56"
+              height="56"
+            >
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium leading-snug tracking-tight text-white/90">
+                {{ site.tagline }}
+              </p>
+              <p class="mt-0.5 truncate text-sm font-medium leading-snug tracking-tight text-white">
+                {{ site.brandLine }}
+              </p>
             </div>
           </div>
           <p class="text-sm leading-relaxed text-white/70">
