@@ -1,0 +1,13 @@
+name: Site watch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: hello
+        run: echo "workflow registration ok"
