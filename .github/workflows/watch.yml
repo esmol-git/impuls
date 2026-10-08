@@ -1,0 +1,56 @@
+name: Watch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe public endpoints
+        id: probe
+        run: |
+          set +e
+          fail=0
+          report=""
+          check() {
+            local name="$1" url="$2"
+            local code
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' --connect-timeout 15 --max-time 25 "$url" || echo 000)
+            if [ "$code" != "200" ]; then
+              echo "FAIL $name -> HTTP $code ($url)"
+              report="${report} | FAIL ${name}: HTTP ${code}"
+              fail=1
+            else
+              echo "OK $name -> $code"
+              report="${report} | OK ${name}: HTTP ${code}"
+            fi
+          }
+          check "Site" "https://impuls.esmolakov.ru/"
+          check "Admin" "https://admin.impuls.esmolakov.ru/"
+          check "API health" "https://admin.impuls.esmolakov.ru/api/health"
+          check "Status page" "https://status.esmolakov.ru/"
+          echo "fail=${fail}" >> "$GITHUB_OUTPUT"
+          echo "report=${report}" >> "$GITHUB_OUTPUT"
+
+      - name: Telegram alert on failure
+        if: steps.probe.outputs.fail == '1'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          REPORT: ${{ steps.probe.outputs.report }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TELEGRAM_BOT_TOKEN}" ] || [ -z "${TELEGRAM_CHAT_ID}" ]; then
+            echo "Telegram secrets missing"
+            exit 1
+          fi
+          curl -4 -sS --connect-timeout 20 --max-time 60 \
+            -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -F "chat_id=${TELEGRAM_CHAT_ID}" \
+            -F "text=Impuls uptime FAIL ${REPORT}" \
+            -F "disable_web_page_preview=true" \
+            | python3 -c 'import sys,json; d=json.load(sys.stdin); assert d.get("ok"), d; print("telegram ok")'
+          exit 1
