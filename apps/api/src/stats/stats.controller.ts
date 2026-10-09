@@ -1,12 +1,15 @@
 import { Controller, Get, Headers, Query, Res, UseGuards } from '@nestjs/common'
+import { SkipThrottle } from '@nestjs/throttler'
 import type { Response } from 'express'
 import { createHash } from 'crypto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { SKIP_ALL_THROTTLES } from '../common/throttle'
 import { StatsSeriesQueryDto } from './dto/stats-series-query.dto'
 import { StatsService } from './stats.service'
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard)
+@SkipThrottle(SKIP_ALL_THROTTLES)
 export class StatsController {
   constructor(private readonly stats: StatsService) {}
 

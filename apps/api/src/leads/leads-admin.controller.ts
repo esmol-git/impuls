@@ -9,15 +9,18 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { Role } from '@prisma/client'
+import { SkipThrottle } from '@nestjs/throttler'
 import { Roles } from '../auth/decorators/roles.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
+import { SKIP_ALL_THROTTLES } from '../common/throttle'
 import { ListLeadsQueryDto } from './dto/list-leads-query.dto'
 import { UpdateLeadDto } from './dto/update-lead.dto'
 import { LeadsService } from './leads.service'
 
 @Controller('admin/leads')
 @UseGuards(JwtAuthGuard)
+@SkipThrottle(SKIP_ALL_THROTTLES)
 export class LeadsAdminController {
   constructor(private readonly leads: LeadsService) {}
 

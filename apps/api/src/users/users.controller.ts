@@ -10,11 +10,13 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { Role } from '@prisma/client'
+import { SkipThrottle } from '@nestjs/throttler'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { Roles } from '../auth/decorators/roles.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
 import type { AuthUser } from '../auth/types'
+import { SKIP_ALL_THROTTLES } from '../common/throttle'
 import { CreateUserDto } from './dto/create-user.dto'
 import { ListUsersQueryDto } from './dto/list-users-query.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
@@ -23,6 +25,7 @@ import { UsersService } from './users.service'
 @Controller('admin/users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
+@SkipThrottle(SKIP_ALL_THROTTLES)
 export class UsersController {
   constructor(private readonly users: UsersService) {}
 

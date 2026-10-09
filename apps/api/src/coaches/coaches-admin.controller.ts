@@ -9,7 +9,9 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common'
+import { SkipThrottle } from '@nestjs/throttler'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { SKIP_ALL_THROTTLES } from '../common/throttle'
 import { CoachesService } from './coaches.service'
 import { CreateCoachDto } from './dto/create-coach.dto'
 import { ListCoachesQueryDto } from './dto/list-coaches-query.dto'
@@ -18,6 +20,7 @@ import { UpdateCoachDto } from './dto/update-coach.dto'
 
 @Controller('admin/coaches')
 @UseGuards(JwtAuthGuard)
+@SkipThrottle(SKIP_ALL_THROTTLES)
 export class CoachesAdminController {
   constructor(private readonly coaches: CoachesService) {}
 

@@ -5,6 +5,11 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { AuditModule } from './audit/audit.module'
 import { AuthModule } from './auth/auth.module'
 import { CoachesModule } from './coaches/coaches.module'
+import {
+  skipAuthThrottleUnlessAuthRoute,
+  skipDefaultThrottleIfAuthed,
+  skipLeadsThrottleUnlessPublicLead,
+} from './common/throttle'
 import { HealthModule } from './health/health.module'
 import { LeadsModule } from './leads/leads.module'
 import { MediaModule } from './media/media.module'
@@ -23,14 +28,21 @@ import { UsersModule } from './users/users.module'
         name: 'default',
         ttl: 60_000,
         limit: 600,
-        // Админка под JWT не должна упираться в общий лимит (много параллельных запросов)
-        skipIf: (ctx) => {
-          const req = ctx.switchToHttp().getRequest<{ headers?: { authorization?: string } }>()
-          return Boolean(req.headers?.authorization)
-        },
+        skipIf: skipDefaultThrottleIfAuthed,
       },
-      { name: 'auth', ttl: 60_000, limit: 10 },
-      { name: 'leads', ttl: 60_000, limit: 8 },
+      // Раньше auth/leads лимиты (8–10/мин) били по всей админке → 429 при переключении разделов
+      {
+        name: 'auth',
+        ttl: 60_000,
+        limit: 10,
+        skipIf: skipAuthThrottleUnlessAuthRoute,
+      },
+      {
+        name: 'leads',
+        ttl: 60_000,
+        limit: 8,
+        skipIf: skipLeadsThrottleUnlessPublicLead,
+      },
     ]),
     StorageModule,
     PrismaModule,

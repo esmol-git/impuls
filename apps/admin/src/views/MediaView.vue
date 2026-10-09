@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import type { UploadFile, UploadRawFile } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Loading, Plus } from '@element-plus/icons-vue'
 import { icons } from '@/icons'
 import { useRouter } from 'vue-router'
 import PageHeader from '@/components/ui/PageHeader.vue'
@@ -34,6 +34,8 @@ const sectionSaving = ref(false)
 const fileInputKey = ref(0)
 const replaceInput = ref<HTMLInputElement | null>(null)
 const replaceTargetId = ref<string | null>(null)
+/** Карточка, на которой крутится локальный спиннер замены */
+const busyItemId = ref<string | null>(null)
 const replacing = ref(false)
 const dragId = ref<string | null>(null)
 const dropTargetId = ref<string | null>(null)
@@ -96,24 +98,45 @@ function buildListQuery() {
   return params.toString()
 }
 
+/** Игнор устаревших ответов при быстром переключении Галерея ↔ Отзывы */
+let loadSeq = 0
+/** Пока сбрасываем page/pageSize — не запускать watch → load */
+let suppressPagerWatch = false
+
+async function withPagerSuppressed(fn: () => void) {
+  suppressPagerWatch = true
+  try {
+    fn()
+  } finally {
+    await nextTick()
+    suppressPagerWatch = false
+  }
+}
+
 async function load(options: { silent?: boolean } = {}) {
+  const seq = ++loadSeq
+  const typeAtStart = props.type
   if (!options.silent) loading.value = true
   try {
     const [media] = await Promise.all([
       api<MediaPage>(`/api/admin/media?${buildListQuery()}`),
       options.silent ? Promise.resolve() : loadSection(),
     ])
+    if (seq !== loadSeq || typeAtStart !== props.type) return
     items.value = media.items
     total.value = media.meta.total
     if (page.value > media.meta.totalPages) {
-      page.value = media.meta.totalPages
+      await withPagerSuppressed(() => {
+        page.value = media.meta.totalPages
+      })
     }
   } catch (e) {
+    if (seq !== loadSeq || typeAtStart !== props.type) return
     if (!options.silent) {
       toast.error(e instanceof Error ? e.message : 'Ошибка загрузки')
     }
   } finally {
-    loading.value = false
+    if (seq === loadSeq) loading.value = false
   }
 }
 
@@ -222,6 +245,7 @@ async function onReplaceFileChange(event: Event) {
 
 async function replaceShotFile(itemId: string, file: File) {
   replacing.value = true
+  busyItemId.value = itemId
   try {
     const body = new FormData()
     body.append('file', file)
@@ -243,6 +267,7 @@ async function replaceShotFile(itemId: string, file: File) {
     toast.error(e instanceof Error ? e.message : 'Не удалось заменить')
   } finally {
     replacing.value = false
+    busyItemId.value = null
     if (replaceInput.value) replaceInput.value.value = ''
   }
 }
@@ -360,22 +385,46 @@ async function removeItem(item: MediaItem) {
 }
 
 watch(pageSize, () => {
-  if (page.value !== 1) page.value = 1
-  else void load()
+  if (suppressPagerWatch) return
+  if (page.value !== 1) {
+    void withPagerSuppressed(() => {
+      page.value = 1
+    }).then(() => load({ silent: isShotGallery.value }))
+  } else {
+    void load({ silent: isShotGallery.value })
+  }
 })
 
 watch(page, () => {
-  void load()
+  if (suppressPagerWatch) return
+  // В галерее не перекрываем сетку белым лоадером при смене страницы
+  void load({ silent: isShotGallery.value })
 })
 
 onMounted(load)
-watch(() => props.type, () => {
-  page.value = 1
-  pageSize.value = isShotGallery.value ? 24 : 10
-  sort.value = 'createdAt'
-  order.value = 'desc'
-  void load()
-})
+watch(
+  () => props.type,
+  async () => {
+    // Router переиспользует MediaView — сразу чистим чужие картинки
+    loadSeq += 1
+    items.value = []
+    total.value = 0
+    section.value = null
+    dragId.value = null
+    dropTargetId.value = null
+    busyItemId.value = null
+    uploading.value = false
+    replacing.value = false
+    reordering.value = false
+    sort.value = 'createdAt'
+    order.value = 'desc'
+    await withPagerSuppressed(() => {
+      page.value = 1
+      pageSize.value = props.type === 'REVIEW' || props.type === 'GALLERY' ? 24 : 10
+    })
+    void load()
+  },
+)
 </script>
 
 <template>
@@ -408,7 +457,11 @@ watch(() => props.type, () => {
     </PageHeader>
 
     <!-- Reviews / gallery: drag&drop image grid -->
-    <div v-if="isShotGallery" v-loading="loading || uploading || replacing || reordering">
+    <div
+      v-if="isShotGallery"
+      v-loading="loading"
+      element-loading-background="transparent"
+    >
       <input
         ref="replaceInput"
         type="file"
@@ -420,7 +473,10 @@ watch(() => props.type, () => {
       <div :class="isPhoneGallery ? 'review-gallery' : 'photo-gallery'">
         <el-upload
           :key="fileInputKey"
-          :class="isPhoneGallery ? 'review-phone review-phone--add' : 'photo-tile photo-tile--add'"
+          :class="[
+            isPhoneGallery ? 'review-phone review-phone--add' : 'photo-tile photo-tile--add',
+            { 'is-busy': uploading },
+          ]"
           drag
           action="#"
           :show-file-list="false"
@@ -433,21 +489,29 @@ watch(() => props.type, () => {
             <div class="review-phone__frame">
               <div class="review-phone__island" aria-hidden="true" />
               <div class="review-phone__screen review-phone__screen--add">
-                <el-icon :size="28" class="text-brand-500"><Plus /></el-icon>
-                <span class="mt-2 text-sm font-medium text-slate-600">Добавить</span>
-                <span class="mt-1 px-3 text-center text-[11px] leading-snug text-slate-400">
-                  {{ pageCopy.uploadHint }}
-                </span>
+                <el-icon v-if="uploading" :size="28" class="shot-spin text-brand-500"><Loading /></el-icon>
+                <template v-else>
+                  <el-icon :size="28" class="text-brand-500"><Plus /></el-icon>
+                  <span class="mt-2 text-sm font-medium text-slate-600">Добавить</span>
+                  <span class="mt-1 px-3 text-center text-[11px] leading-snug text-slate-400">
+                    {{ pageCopy.uploadHint }}
+                  </span>
+                </template>
+                <span v-if="uploading" class="mt-2 text-sm font-medium text-slate-600">Загрузка…</span>
               </div>
             </div>
           </template>
           <template v-else>
             <div class="photo-tile__body photo-tile__body--add">
-              <el-icon :size="28" class="text-brand-500"><Plus /></el-icon>
-              <span class="mt-2 text-sm font-medium text-slate-600">Добавить</span>
-              <span class="mt-1 px-3 text-center text-[11px] leading-snug text-slate-400">
-                {{ pageCopy.uploadHint }}
-              </span>
+              <el-icon v-if="uploading" :size="28" class="shot-spin text-brand-500"><Loading /></el-icon>
+              <template v-else>
+                <el-icon :size="28" class="text-brand-500"><Plus /></el-icon>
+                <span class="mt-2 text-sm font-medium text-slate-600">Добавить</span>
+                <span class="mt-1 px-3 text-center text-[11px] leading-snug text-slate-400">
+                  {{ pageCopy.uploadHint }}
+                </span>
+              </template>
+              <span v-if="uploading" class="mt-2 text-sm font-medium text-slate-600">Загрузка…</span>
             </div>
           </template>
         </el-upload>
@@ -460,6 +524,7 @@ watch(() => props.type, () => {
             {
               'is-dragging': dragId === item.id,
               'is-drop-target': dropTargetId === item.id,
+              'is-busy': busyItemId === item.id,
             },
           ]"
           draggable="true"
@@ -505,6 +570,9 @@ watch(() => props.type, () => {
                 <el-icon :size="16"><component :is="icons.trash" /></el-icon>
               </button>
             </div>
+            <div v-if="busyItemId === item.id" class="shot-busy" aria-hidden="true">
+              <el-icon :size="22" class="shot-spin"><Loading /></el-icon>
+            </div>
           </template>
           <template v-else>
             <div class="photo-tile__body">
@@ -538,6 +606,9 @@ watch(() => props.type, () => {
               >
                 <el-icon :size="16"><component :is="icons.trash" /></el-icon>
               </button>
+            </div>
+            <div v-if="busyItemId === item.id" class="shot-busy" aria-hidden="true">
+              <el-icon :size="22" class="shot-spin"><Loading /></el-icon>
             </div>
           </template>
         </div>
@@ -874,6 +945,38 @@ watch(() => props.type, () => {
 
 .shot-action--danger:hover {
   background: var(--el-color-danger);
+}
+
+.shot-spin {
+  animation: shot-spin 0.7s linear infinite;
+}
+
+@keyframes shot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.shot-busy {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  background: rgb(15 23 42 / 35%);
+  color: #fff;
+  pointer-events: none;
+}
+
+.photo-tile.is-busy,
+.review-phone.is-busy {
+  pointer-events: none;
+}
+
+.photo-tile--add.is-busy,
+.review-phone--add.is-busy {
+  opacity: 0.85;
 }
 
 .photo-gallery {

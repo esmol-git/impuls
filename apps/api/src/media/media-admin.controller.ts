@@ -13,8 +13,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
+import { SkipThrottle } from '@nestjs/throttler'
 import { memoryStorage } from 'multer'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { SKIP_ALL_THROTTLES } from '../common/throttle'
 import { StorageService } from '../storage/storage.service'
 import { CreateMediaDto } from './dto/create-media.dto'
 import { ListMediaQueryDto } from './dto/list-media-query.dto'
@@ -24,6 +26,7 @@ import { MediaService } from './media.service'
 
 @Controller('admin/media')
 @UseGuards(JwtAuthGuard)
+@SkipThrottle(SKIP_ALL_THROTTLES)
 export class MediaAdminController {
   constructor(
     private readonly media: MediaService,
