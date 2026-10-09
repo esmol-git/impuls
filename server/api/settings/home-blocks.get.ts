@@ -27,7 +27,7 @@ export interface HomeBlockStatus {
   description: string
   enabled: boolean
   sortOrder: number
-  contentKey?: 'CATALOG' | 'NEWS' | 'REVIEW'
+  contentKey?: 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
   visible: boolean
 }
 

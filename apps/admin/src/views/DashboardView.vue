@@ -100,6 +100,15 @@ onMounted(async () => {
         <p class="text-sm text-slate-500">Отзывы</p>
         <p class="mt-2 text-3xl font-extrabold text-brand-700">{{ stats.media.reviews }}</p>
       </el-card>
+      <el-card
+        v-if="stats"
+        shadow="hover"
+        class="cursor-pointer"
+        @click="router.push('/gallery')"
+      >
+        <p class="text-sm text-slate-500">Галерея</p>
+        <p class="mt-2 text-3xl font-extrabold text-brand-700">{{ stats.media.gallery }}</p>
+      </el-card>
     </div>
 
     <el-card shadow="never" class="mt-6">

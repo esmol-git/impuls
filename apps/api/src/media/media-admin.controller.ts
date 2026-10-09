@@ -69,7 +69,7 @@ export class MediaAdminController {
 
   @Patch('reorder')
   reorder(@Body() dto: ReorderMediaDto) {
-    return this.media.reorder(dto.type, dto.ids)
+    return this.media.reorder(dto.type, dto.ids, dto.offset ?? 0)
   }
 
   @Patch(':id')

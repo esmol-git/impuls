@@ -2,6 +2,7 @@
 import { reactive, ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
+import logoUrl from '@/assets/img/logo.png'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { rules } from '@/utils/rules'
@@ -45,7 +46,14 @@ async function onSubmit() {
   <div class="login">
     <div class="login__card">
       <header class="login__header">
-        <p class="login__brand">Импульс</p>
+        <img
+          :src="logoUrl"
+          alt="ФК Импульс"
+          class="login__logo"
+          width="64"
+          height="64"
+        >
+        <p class="login__brand">ФК «Импульс»</p>
         <h1 class="login__title">Вход в админку</h1>
         <p class="login__lead">
           Управление каталогом, новостями, отзывами и заявками.
@@ -120,6 +128,15 @@ async function onSubmit() {
 
 .login__header {
   margin-bottom: 2.25rem;
+  text-align: center;
+}
+
+.login__logo {
+  display: block;
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1rem;
+  object-fit: contain;
 }
 
 .login__brand {
@@ -128,6 +145,7 @@ async function onSubmit() {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  text-align: center;
   color: var(--el-color-primary);
 }
 

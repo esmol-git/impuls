@@ -19,7 +19,9 @@ export class CreateMediaDto {
   @IsEnum(MediaType)
   type!: MediaType
 
-  @ValidateIf((o: CreateMediaDto) => o.type !== MediaType.REVIEW)
+  @ValidateIf(
+    (o: CreateMediaDto) => o.type !== MediaType.REVIEW && o.type !== MediaType.GALLERY,
+  )
   @IsString()
   @MinLength(1)
   @MaxLength(200)

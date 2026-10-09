@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, onUnmounted, reactive, ref } from 'vue'
 import type { ModalPayload } from '~/data/modals'
 import { modalCopy } from '~/data/modals'
+import {
+  CHILD_AGE_MAX,
+  CHILD_AGE_MIN,
+  childBirthDateBounds,
+  isValidChildBirthDate,
+} from '~/utils/birthDate'
 import { formatRub } from '~/utils/catalog'
 import { cartLineTotal, cartTotal, formatCartTotal } from '~/utils/commerce'
 
@@ -19,11 +25,14 @@ const emit = defineEmits<{ success: [] }>()
 const { loading, error, submit } = useLeadSubmit()
 const { ensure: ensureGuestId } = useGuestId()
 const { clear: clearCart } = useGuestCart()
+const { active, close } = useModal()
+
+const birthBounds = childBirthDateBounds()
 
 const form = reactive({
   name: '',
   phone: '',
-  age: '',
+  birthDate: '',
   message: '',
   consent: false,
 })
@@ -31,6 +40,7 @@ const form = reactive({
 const submitted = ref(false)
 const isMock = ref(false)
 const errors = reactive<Record<string, string>>({})
+let closeTimer: ReturnType<typeof setTimeout> | undefined
 
 const purchaseItems = computed(() => props.payload?.items ?? [])
 const isCheckout = computed(() => purchaseItems.value.length > 0)
@@ -39,6 +49,11 @@ const orderTotalLabel = computed(() => formatCartTotal(purchaseItems.value))
 function validate() {
   errors.name = form.name.trim() ? '' : 'Введите имя'
   errors.phone = isValidRuPhone(form.phone) ? '' : 'Введите телефон в формате +7 (999) 999-99-99'
+  if (form.birthDate && !isValidChildBirthDate(form.birthDate)) {
+    errors.birthDate = `Укажите дату рождения ребёнка от ${CHILD_AGE_MIN} до ${CHILD_AGE_MAX} лет`
+  } else {
+    errors.birthDate = ''
+  }
   if (props.variant === 'full') {
     errors.consent = form.consent ? '' : 'Необходимо согласие'
   } else {
@@ -65,6 +80,14 @@ function onPhoneFocus() {
   if (!form.phone) form.phone = '+7'
 }
 
+function scheduleAutoClose() {
+  if (closeTimer) clearTimeout(closeTimer)
+  if (!active.value) return
+  closeTimer = setTimeout(() => {
+    close()
+  }, 5000)
+}
+
 async function onSubmit() {
   if (!validate()) return
 
@@ -72,7 +95,7 @@ async function onSubmit() {
     const result = await submit({
       name: form.name.trim(),
       phone: form.phone,
-      age: isCheckout.value ? undefined : (form.age || undefined),
+      age: isCheckout.value ? undefined : (form.birthDate || undefined),
       message: form.message || undefined,
       source: props.payload?.source || props.source,
       location: props.payload?.location,
@@ -87,10 +110,15 @@ async function onSubmit() {
       clearCart()
     }
     emit('success')
+    scheduleAutoClose()
   } catch {
     // error set in composable
   }
 }
+
+onUnmounted(() => {
+  if (closeTimer) clearTimeout(closeTimer)
+})
 
 defineExpose({ reset: () => { submitted.value = false } })
 </script>
@@ -105,12 +133,15 @@ defineExpose({ reset: () => { submitted.value = false } })
     <p class="font-semibold text-brand-600">
       {{ isCheckout ? 'Заявка на покупку отправлена' : 'Заявка отправлена' }}
     </p>
+    <p class="mt-2 text-sm text-brand-600/70">
+      Мы перезвоним вам в ближайшее время.
+    </p>
     <p v-if="isMock" class="mt-2 text-sm text-brand-600/60">
       Telegram не настроен — заявка сохранена локально (mock).
     </p>
   </div>
 
-  <form v-else class="space-y-4" @submit.prevent="onSubmit">
+  <form v-else class="space-y-4" novalidate @submit.prevent="onSubmit">
     <p v-if="payload?.location" class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-600">
       Площадка: <strong>{{ payload.location }}</strong>
     </p>
@@ -181,14 +212,16 @@ defineExpose({ reset: () => { submitted.value = false } })
 
     <template v-if="variant === 'full'">
       <div v-if="!isCheckout">
-        <label class="mb-1.5 block text-sm font-medium text-brand-600">Возраст ребёнка</label>
-        <input
-          v-model="form.age"
-          type="text"
-          class="input-field"
-          placeholder="Необязательно"
+        <label class="mb-1.5 block text-sm font-medium text-brand-600">Дата рождения ребёнка</label>
+        <UiAppDatePicker
+          v-model="form.birthDate"
+          :min="birthBounds.min"
+          :max="birthBounds.max"
           :disabled="loading"
-        >
+          :error="Boolean(errors.birthDate)"
+          @change="errors.birthDate = ''"
+        />
+        <p v-if="errors.birthDate" class="mt-1 text-xs text-accent-500">{{ errors.birthDate }}</p>
       </div>
       <div>
         <label class="mb-1.5 block text-sm font-medium text-brand-600">Комментарий</label>

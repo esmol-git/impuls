@@ -1,3 +1,4 @@
+import { onMounted } from 'vue'
 import type { CatalogItem } from '~/utils/catalog'
 import type { CartLine } from '~/utils/commerce'
 import {
@@ -130,9 +131,10 @@ export function useGuestCart() {
   const totalLabel = computed(() => formatCartTotal(lines.value))
   const isEmpty = computed(() => lines.value.length === 0)
 
-  if (import.meta.client) {
+  // После гидрации — иначе badge в шапке расходится с SSR (пустая корзина)
+  onMounted(() => {
     hydrate()
-  }
+  })
 
   return {
     lines,

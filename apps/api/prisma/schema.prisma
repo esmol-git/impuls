@@ -21,6 +21,7 @@ enum MediaType {
   CATALOG
   NEWS
   REVIEW
+  GALLERY
 }
 
 enum LeadStatus {

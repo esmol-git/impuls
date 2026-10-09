@@ -92,7 +92,11 @@ export default defineEventHandler(async (event) => {
     `Телефон: ${escapeHtml(payload.phone)}`,
   ]
 
-  if (payload.age) lines.push(`Возраст: ${escapeHtml(payload.age)}`)
+  if (payload.age) {
+    const birth = payload.age.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    const ageLabel = birth ? `${birth[3]}.${birth[2]}.${birth[1]}` : payload.age
+    lines.push(`Дата рождения: ${escapeHtml(ageLabel)}`)
+  }
   if (payload.message) lines.push(`Комментарий: ${escapeHtml(payload.message)}`)
   if (payload.program) lines.push(`Группа / заказ: ${escapeHtml(payload.program)}`)
   if (payload.location) lines.push(`Площадка: ${escapeHtml(payload.location)}`)

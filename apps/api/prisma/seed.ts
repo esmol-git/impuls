@@ -70,7 +70,7 @@ async function main() {
     }
   }
 
-  for (const key of [MediaType.CATALOG, MediaType.NEWS, MediaType.REVIEW]) {
+  for (const key of [MediaType.CATALOG, MediaType.NEWS, MediaType.REVIEW, MediaType.GALLERY]) {
     await prisma.siteSection.upsert({
       where: { key },
       create: { key, enabled: true },

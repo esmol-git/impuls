@@ -180,7 +180,7 @@ onMounted(() => {
                 :aria-label="row.published ? 'Скрыть' : 'Показать'"
                 @click="togglePublished(row)"
               >
-                <el-icon :size="22">
+                <el-icon :size="18">
                   <component :is="row.published ? icons.lock : icons.unlock" />
                 </el-icon>
               </button>
@@ -191,7 +191,7 @@ onMounted(() => {
                 aria-label="Редактировать"
                 @click="openEdit(row)"
               >
-                <el-icon :size="22"><component :is="icons.edit" /></el-icon>
+                <el-icon :size="18"><component :is="icons.edit" /></el-icon>
               </button>
               <button
                 type="button"
@@ -200,7 +200,7 @@ onMounted(() => {
                 aria-label="Удалить"
                 @click="removeItem(row)"
               >
-                <el-icon :size="22"><component :is="icons.trash" /></el-icon>
+                <el-icon :size="18"><component :is="icons.trash" /></el-icon>
               </button>
             </div>
           </template>

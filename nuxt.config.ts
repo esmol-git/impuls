@@ -48,7 +48,7 @@ export default defineNuxtConfig({
 
   vite: {
     optimizeDeps: {
-      include: ['gsap', 'gsap/ScrollTrigger'],
+      include: ['gsap', 'gsap/ScrollTrigger', '@vuepic/vue-datepicker', 'date-fns', 'date-fns/locale'],
     },
   },
 

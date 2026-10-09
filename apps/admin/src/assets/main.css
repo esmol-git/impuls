@@ -748,21 +748,21 @@ body {
 
 .admin-table__action {
   display: inline-flex;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 7px;
   background: transparent;
   color: var(--el-color-primary);
   cursor: pointer;
 }
 
 .admin-table__action .el-icon {
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .admin-table__action:hover {

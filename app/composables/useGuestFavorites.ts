@@ -1,3 +1,4 @@
+import { computed, onMounted } from 'vue'
 import type { CatalogItem } from '~/utils/catalog'
 
 const STORAGE_KEY = 'impuls-guest-favorites'
@@ -92,9 +93,10 @@ export function useGuestFavorites() {
   const count = computed(() => items.value.length)
   const isEmpty = computed(() => items.value.length === 0)
 
-  if (import.meta.client) {
+  // После гидрации — иначе badge в шапке расходится с SSR
+  onMounted(() => {
     hydrate()
-  }
+  })
 
   return { items, count, isEmpty, hydrate, has, remove, toggle }
 }

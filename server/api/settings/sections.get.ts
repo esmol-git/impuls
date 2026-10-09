@@ -1,4 +1,4 @@
-type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW'
+type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
 
 interface SectionStatus {
   key: MediaType
@@ -12,6 +12,7 @@ const EMPTY: SectionStatus[] = [
   { key: 'CATALOG', enabled: false, itemCount: 0, canEnable: false, visible: false },
   { key: 'NEWS', enabled: false, itemCount: 0, canEnable: false, visible: false },
   { key: 'REVIEW', enabled: false, itemCount: 0, canEnable: false, visible: false },
+  { key: 'GALLERY', enabled: false, itemCount: 0, canEnable: false, visible: false },
 ]
 
 export default defineEventHandler(async () => {

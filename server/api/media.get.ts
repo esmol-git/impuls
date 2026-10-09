@@ -1,4 +1,4 @@
-type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW'
+type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
 
 interface MediaItem {
   id: string

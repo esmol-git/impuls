@@ -37,7 +37,8 @@ export const sections = {
   gallery: {
     label: 'Галерея',
     title: 'Жизнь школы в кадре',
-    description: 'Тренировки, турниры и праздники — скоро добавим фото.',
+    description: 'Тренировки, турниры и жизнь школы — в кадрах.',
+    action: { label: 'Вся галерея', to: '/gallery' },
   },
   catalog: {
     label: 'Каталог',

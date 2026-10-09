@@ -31,20 +31,13 @@ function itemRating(item: CarouselItem): number {
 const config = sections.reviews
 const headingId = 'reviews-title'
 
-// useState: SSR и клиент видят одни данные (useFetch + default:[] давал hydration mismatch —
-// картинки с сервера мигали и сменялись заглушкой).
-const mediaReviews = useState<ReviewShot[]>('media-reviews-shots', () => [])
-
-if (import.meta.server) {
-  try {
-    const data = await $fetch<ReviewShot[]>('/api/media', {
-      query: { type: 'REVIEW' },
-    })
-    mediaReviews.value = Array.isArray(data) ? data.filter((s) => !!s?.imageUrl) : []
-  } catch {
-    mediaReviews.value = []
-  }
-}
+/** Как у новостей: await useFetch — и SSR, и клиентский переход на главную. */
+const { data: mediaReviews } = await useFetch<ReviewShot[]>('/api/media', {
+  query: { type: 'REVIEW' },
+  key: 'home-review-shots',
+  default: () => [],
+  transform: (rows) => (Array.isArray(rows) ? rows.filter((row) => !!row?.imageUrl) : []),
+})
 
 const shots = computed(() => mediaReviews.value || [])
 const useScreenshots = computed(() => shots.value.length > 0)

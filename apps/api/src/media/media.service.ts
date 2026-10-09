@@ -104,7 +104,8 @@ export class MediaService implements OnModuleInit {
   }
 
   async listPublic(type?: MediaType, limit = 100) {
-    const take = Math.min(100, Math.max(1, limit))
+    const max = type === MediaType.GALLERY ? 300 : 100
+    const take = Math.min(max, Math.max(1, limit ?? max))
     const where: Prisma.MediaItemWhereInput = {
       published: true,
       ...(type ? { type } : {}),
@@ -363,7 +364,9 @@ export class MediaService implements OnModuleInit {
     const title =
       dto.type === MediaType.REVIEW
         ? (dto.title?.trim() || 'Отзыв')
-        : dto.title.trim()
+        : dto.type === MediaType.GALLERY
+          ? (dto.title?.trim() || 'Фото')
+          : dto.title.trim()
 
     const slug =
       dto.type === MediaType.NEWS
@@ -423,7 +426,7 @@ export class MediaService implements OnModuleInit {
     return created
   }
 
-  async reorder(type: MediaType, ids: string[]) {
+  async reorder(type: MediaType, ids: string[], offset = 0) {
     const existing = await this.prisma.mediaItem.findMany({
       where: { type, id: { in: ids } },
       select: { id: true },
@@ -432,16 +435,17 @@ export class MediaService implements OnModuleInit {
       throw new BadRequestException('Некорректный список для сортировки')
     }
 
+    const start = Math.max(0, offset)
     await this.prisma.$transaction(
       ids.map((id, index) =>
         this.prisma.mediaItem.update({
           where: { id },
-          data: { sortOrder: index },
+          data: { sortOrder: start + index },
         }),
       ),
     )
 
-    return this.listAdmin(type)
+    return { ok: true as const }
   }
 
   async update(id: string, dto: UpdateMediaDto) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { NuxtError } from '#app'
+import logoUrl from '~/assets/img/logo.png'
 import { site } from '~/data/site'
 
 const props = defineProps<{
@@ -26,9 +27,13 @@ function handleError() {
 
 <template>
   <div class="flex min-h-screen flex-col items-center justify-center bg-brand-50 px-4 text-center safe-top safe-bottom">
-    <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-2xl font-extrabold text-white">
-      И
-    </div>
+    <img
+      :src="logoUrl"
+      :alt="site.name"
+      class="h-16 w-16 object-contain sm:h-20 sm:w-20"
+      width="80"
+      height="80"
+    >
     <p class="mt-6 text-6xl font-extrabold text-brand-600 sm:text-8xl">{{ error.statusCode }}</p>
     <h1 class="mt-4 text-xl font-bold text-brand-600 sm:text-2xl">{{ message }}</h1>
     <p class="mt-2 max-w-md text-sm text-brand-600/60 sm:text-base">

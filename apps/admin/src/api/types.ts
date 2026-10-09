@@ -1,6 +1,6 @@
 export type Role = 'SUPERADMIN' | 'ADMIN' | 'MANAGER'
 export type Gender = 'MALE' | 'FEMALE'
-export type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW'
+export type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
 export type LeadStatus = 'NEW' | 'DONE'
 
 export interface User {
@@ -248,6 +248,7 @@ export interface DashboardStats {
     catalog: number
     news: number
     reviews: number
+    gallery: number
   }
 }
 

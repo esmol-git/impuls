@@ -28,6 +28,7 @@ export class StatsService {
         catalog: byType[MediaType.CATALOG] ?? 0,
         news: byType[MediaType.NEWS] ?? 0,
         reviews: byType[MediaType.REVIEW] ?? 0,
+        gallery: byType[MediaType.GALLERY] ?? 0,
       },
     }
   }

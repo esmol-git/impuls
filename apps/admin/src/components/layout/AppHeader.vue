@@ -11,16 +11,44 @@ const router = useRouter()
 const { menu, activePath } = useNavMenu()
 
 const now = ref(new Date())
-let timer: ReturnType<typeof setInterval> | undefined
+/** На wrap 59→0 отключаем transition, иначе кольцо «отматывается» назад */
+const ringSnap = ref(false)
+let rafId = 0
+let lastSecond = -1
+let lastPaint = 0
+
+function tickClock(ts: number) {
+  const d = new Date()
+  const sec = d.getSeconds()
+
+  if (lastSecond === 59 && sec === 0) {
+    ringSnap.value = true
+    now.value = d
+    lastSecond = sec
+    lastPaint = ts
+    rafId = requestAnimationFrame((nextTs) => {
+      ringSnap.value = false
+      tickClock(nextTs)
+    })
+    return
+  }
+
+  lastSecond = sec
+  // ~25 fps достаточно для гладкого кольца
+  if (ts - lastPaint >= 40) {
+    now.value = d
+    lastPaint = ts
+  }
+  rafId = requestAnimationFrame(tickClock)
+}
 
 onMounted(() => {
-  timer = setInterval(() => {
-    now.value = new Date()
-  }, 1000)
+  lastSecond = now.value.getSeconds()
+  rafId = requestAnimationFrame(tickClock)
 })
 
 onUnmounted(() => {
-  if (timer) clearInterval(timer)
+  if (rafId) cancelAnimationFrame(rafId)
 })
 
 const timeLabel = computed(() =>
@@ -38,10 +66,17 @@ const dateLabel = computed(() =>
   }).format(now.value),
 )
 
-/** Progress ring for seconds (0–1) */
-const secondProgress = computed(() => now.value.getSeconds() / 60)
+const secondsLabel = computed(() =>
+  String(now.value.getSeconds()).padStart(2, '0'),
+)
 
-const RING_R = 27
+/** Доля минуты с учётом мс — кольцо идёт плавно */
+const secondProgress = computed(() => {
+  const d = now.value
+  return (d.getSeconds() * 1000 + d.getMilliseconds()) / 60_000
+})
+
+const RING_R = 26
 const RING_C = 2 * Math.PI * RING_R
 const ringOffset = computed(() => RING_C * (1 - secondProgress.value))
 
@@ -88,12 +123,22 @@ function onMobileNav(path: string) {
         </el-dropdown>
       </div>
 
-      <div class="admin-header__clock" :title="`${dateLabel} · ${now.toLocaleString('ru-RU')}`">
-        <div class="admin-header__clock-disk">
-          <svg class="admin-header__ring" viewBox="0 0 60 60" aria-hidden="true">
+      <div
+        class="admin-header__clock"
+        :title="`${dateLabel} · ${timeLabel}:${secondsLabel}`"
+      >
+        <div class="admin-header__clock-disk" aria-hidden="true">
+          <svg class="admin-header__ring" viewBox="0 0 60 60">
+            <defs>
+              <linearGradient id="admin-clock-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6" />
+                <stop offset="100%" stop-color="#1d4ed8" />
+              </linearGradient>
+            </defs>
             <circle class="admin-header__ring-track" cx="30" cy="30" :r="RING_R" />
             <circle
               class="admin-header__ring-progress"
+              :class="{ 'is-snap': ringSnap }"
               cx="30"
               cy="30"
               :r="RING_R"
@@ -103,7 +148,9 @@ function onMobileNav(path: string) {
           </svg>
           <time class="admin-header__time" :datetime="now.toISOString()">{{ timeLabel }}</time>
         </div>
-        <span class="admin-header__date">{{ dateLabel }}</span>
+        <div class="admin-header__meta">
+          <span class="admin-header__date">{{ dateLabel }}</span>
+        </div>
       </div>
     </div>
 
@@ -150,22 +197,22 @@ function onMobileNav(path: string) {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.7rem;
 }
 
 .admin-header__clock-disk {
   position: relative;
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
+  width: 54px;
+  height: 54px;
   flex-shrink: 0;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 35% 30%, #fff 0%, #f1f5f9 55%, #e2e8f0 100%);
+    radial-gradient(circle at 32% 28%, #ffffff 0%, #f8fafc 48%, #eef2ff 100%);
   box-shadow:
-    0 0 0 1px rgb(226 232 240 / 90%),
-    0 4px 10px -4px rgb(15 23 42 / 18%);
+    0 0 0 1px rgb(191 219 254 / 70%),
+    0 6px 14px -6px rgb(29 78 216 / 28%);
 }
 
 .admin-header__ring {
@@ -179,17 +226,21 @@ function onMobileNav(path: string) {
 .admin-header__ring-track,
 .admin-header__ring-progress {
   fill: none;
-  stroke-width: 2.5;
+  stroke-width: 3;
 }
 
 .admin-header__ring-track {
-  stroke: rgb(148 163 184 / 28%);
+  stroke: rgb(148 163 184 / 22%);
 }
 
 .admin-header__ring-progress {
-  stroke: #1d4ed8;
+  stroke: url(#admin-clock-ring);
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.35s linear;
+  transition: stroke-dashoffset 80ms linear;
+}
+
+.admin-header__ring-progress.is-snap {
+  transition: none;
 }
 
 .admin-header__time {
@@ -197,17 +248,32 @@ function onMobileNav(path: string) {
   z-index: 1;
   font-size: 0.8rem;
   font-weight: 800;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
   color: #0f172a;
   line-height: 1;
 }
 
+.admin-header__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  line-height: 1.15;
+}
+
 .admin-header__date {
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.78rem;
+  font-weight: 600;
   text-transform: capitalize;
-  color: #64748b;
-  line-height: 1.2;
+  color: #475569;
+}
+
+.admin-header__seconds {
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
 }
 </style>

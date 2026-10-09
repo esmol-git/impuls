@@ -1,4 +1,4 @@
-type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW'
+type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
 
 interface SectionStatus {
   key: MediaType
@@ -21,6 +21,7 @@ export async function useManagedSections() {
       catalog: Boolean(map.CATALOG),
       news: Boolean(map.NEWS),
       reviews: Boolean(map.REVIEW),
+      gallery: Boolean(map.GALLERY),
     }
   })
 

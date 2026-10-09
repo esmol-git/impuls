@@ -50,7 +50,7 @@ export interface HomeBlockStatus {
   description: string
   enabled: boolean
   sortOrder: number
-  contentKey?: 'CATALOG' | 'NEWS' | 'REVIEW'
+  contentKey?: 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
   visible: boolean
 }
 
@@ -94,7 +94,7 @@ const FALLBACK_BLOCKS: HomeBlockStatus[] = [
   { key: 'advantages', label: 'Преимущества', description: '', enabled: false, sortOrder: 11, visible: false },
   { key: 'video', label: 'Видео', description: '', enabled: true, sortOrder: 12, visible: true },
   { key: 'locations', label: 'Адреса', description: '', enabled: true, sortOrder: 13, visible: true },
-  { key: 'gallery', label: 'Галерея', description: '', enabled: true, sortOrder: 14, visible: true },
+  { key: 'gallery', label: 'Галерея', description: '', enabled: true, sortOrder: 14, visible: true, contentKey: 'GALLERY' },
   { key: 'catalog', label: 'Каталог', description: '', enabled: true, sortOrder: 15, visible: true, contentKey: 'CATALOG' },
   { key: 'news', label: 'Новости', description: '', enabled: true, sortOrder: 16, visible: true, contentKey: 'NEWS' },
   { key: 'reviews', label: 'Отзывы', description: '', enabled: true, sortOrder: 17, visible: true, contentKey: 'REVIEW' },

@@ -47,11 +47,14 @@ const debouncedQuery = ref(query.value)
 const debouncedPriceMin = ref(priceMin.value)
 const debouncedPriceMax = ref(priceMax.value)
 
-/** Границы цены уже известны (из URL или с сервера) — можно слать priceMin/Max */
+/** Границы цены уже известны (из URL или с сервера) */
 const priceBoundsReady = ref(
   Number(route.query.priceMin) > 0 && Number(route.query.priceMax) > 0,
 )
 const filtersReady = ref(false)
+/** Полный диапазон с API — чтобы не тащить data внутрь fetchQuery (лишний refetch) */
+const facetPriceMin = ref(0)
+const facetPriceMax = ref(0)
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 let priceTimer: ReturnType<typeof setTimeout> | null = null
@@ -82,18 +85,35 @@ const fetchQuery = computed(() => {
   if (debouncedQuery.value.trim()) params.q = debouncedQuery.value.trim()
   if (onlySale.value) params.onlySale = true
 
+  /**
+   * priceMin/Max только если диапазон сужен (URL / слайдер).
+   * Иначе после первого ответа bounds → новый query → refetch → pending → opacity на карточках.
+   */
   if (priceBoundsReady.value) {
-    params.priceMin = debouncedPriceMin.value
-    params.priceMax = debouncedPriceMax.value
+    const min = debouncedPriceMin.value
+    const max = debouncedPriceMax.value
+    const narrowed =
+      facetPriceMin.value <= 0
+      || facetPriceMax.value <= 0
+      || min > facetPriceMin.value
+      || max < facetPriceMax.value
+    if (narrowed && min > 0 && max > 0) {
+      params.priceMin = min
+      params.priceMax = max
+    }
   }
 
   return params
 })
 
-const { data, pending, status } = await useFetch<CatalogPageResult | null>('/api/catalog', {
+/** Стабильный ключ: computed каждый раз отдаёт новый объект и провоцировал лишний watch */
+const fetchQueryKey = computed(() => JSON.stringify(fetchQuery.value))
+
+const { data, pending, status } = await useFetch<CatalogPageResult>('/api/catalog', {
   query: fetchQuery,
-  default: () => null,
-  watch: [fetchQuery],
+  key: 'catalog-page',
+  default: () => emptyCatalogPage(),
+  watch: [fetchQueryKey],
 })
 
 const facets = computed(() => data.value?.facets ?? emptyCatalogPage().facets)
@@ -101,16 +121,18 @@ const items = computed(() => (data.value?.items || []).map(mapMediaToCatalog))
 const total = computed(() => data.value?.meta.total || 0)
 const pageCount = computed(() => data.value?.meta.totalPages || 1)
 
-/** Ещё нет ответа API — только скелетон, не «пусто» */
-const awaitingData = computed(() => data.value == null)
-const loading = computed(() => pending.value || status.value === 'idle' || awaitingData.value)
-
 const sectionEnabled = computed(() => visible.value.catalog)
 const hasCatalog = computed(() => (data.value?.facets.totalAll ?? 0) > 0)
+/** Первый ответ ещё не пришёл — скелетон; пустой ответ API ≠ loading */
+const awaitingData = computed(
+  () => pending.value && !hasCatalog.value && items.value.length === 0,
+)
+const loading = computed(() => pending.value || status.value === 'idle')
+
 const showBootSkeleton = computed(() => sectionEnabled.value && awaitingData.value)
 const showCatalog = computed(() => sectionEnabled.value && hasCatalog.value)
 const showEmptyCatalog = computed(
-  () => sectionEnabled.value && !awaitingData.value && !pending.value && !hasCatalog.value,
+  () => sectionEnabled.value && !pending.value && !hasCatalog.value,
 )
 const showFilterEmpty = computed(
   () => showCatalog.value && !pending.value && items.value.length === 0,
@@ -123,6 +145,9 @@ watch(
   () => data.value?.facets,
   (next) => {
     if (!next) return
+
+    facetPriceMin.value = next.priceMin
+    facetPriceMax.value = next.priceMax
 
     if (!priceBoundsReady.value) {
       const fromUrlMin = Number(route.query.priceMin)
@@ -253,7 +278,7 @@ function onFiltersReset() {
           <div
             v-else-if="items.length"
             class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-            :class="{ 'opacity-60 transition-opacity': pending }"
+            :class="{ 'opacity-60 transition-opacity': pending && filtersReady }"
           >
             <CatalogCard
               v-for="item in items"

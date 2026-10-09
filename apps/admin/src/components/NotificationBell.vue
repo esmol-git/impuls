@@ -2,7 +2,7 @@
 import { useRouter } from 'vue-router'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import { useNotificationsStore } from '@/stores/notifications'
-import { formatDateTime } from '@/utils/format'
+import { formatDateTime, leadSourceLabel } from '@/utils/format'
 
 const notifications = useNotificationsStore()
 const router = useRouter()
@@ -57,7 +57,7 @@ function openAll() {
         <p class="mt-1 text-sm text-brand-600">{{ item.phone }}</p>
         <p class="mt-1 text-xs text-slate-500">
           {{ formatDateTime(item.createdAt) }}
-          <span v-if="item.source"> · {{ item.source }}</span>
+          <span v-if="item.source"> · {{ leadSourceLabel(item.source) }}</span>
         </p>
       </button>
     </div>

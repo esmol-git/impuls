@@ -338,7 +338,7 @@ onMounted(load)
                 aria-label="Изменить"
                 @click="openEdit(row)"
               >
-                <el-icon :size="22"><component :is="icons.edit" /></el-icon>
+                <el-icon :size="18"><component :is="icons.edit" /></el-icon>
               </button>
               <button
                 v-if="canManage(row)"
@@ -349,7 +349,7 @@ onMounted(load)
                 :disabled="row.id === auth.user?.id"
                 @click="removeUser(row)"
               >
-                <el-icon :size="22"><component :is="icons.trash" /></el-icon>
+                <el-icon :size="18"><component :is="icons.trash" /></el-icon>
               </button>
             </div>
           </template>

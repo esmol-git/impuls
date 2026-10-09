@@ -35,9 +35,5 @@ export function useGuestId() {
     return next
   }
 
-  if (import.meta.client && !token.value) {
-    ensure()
-  }
-
   return { token, ensure }
 }

@@ -63,6 +63,12 @@ export const router = createRouter({
           props: { type: 'REVIEW', title: 'Отзывы' },
         },
         {
+          path: 'gallery',
+          name: 'gallery',
+          component: () => import('@/views/MediaView.vue'),
+          props: { type: 'GALLERY', title: 'Галерея' },
+        },
+        {
           path: 'coaches/new',
           name: 'coaches-create',
           component: () => import('@/views/CoachEditView.vue'),

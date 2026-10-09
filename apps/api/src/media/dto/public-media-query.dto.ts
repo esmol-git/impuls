@@ -7,11 +7,11 @@ export class PublicMediaQueryDto {
   @IsEnum(MediaType)
   type?: MediaType
 
-  /** Жёсткий потолок для публичных списков (новости / отзывы) */
+  /** Жёсткий потолок для публичных списков (галерея до 300) */
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(100)
+  @Max(300)
   limit?: number = 100
 }

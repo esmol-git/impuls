@@ -19,6 +19,7 @@ export const routeBreadcrumbs: Record<string, BreadcrumbItem[]> = {
   '/coaches': trail(pages.coaches.breadcrumb),
   '/contacts': trail(pages.contacts.breadcrumb),
   '/news': trail(pages.news.breadcrumb),
+  '/gallery': trail(pages.gallery.breadcrumb),
   '/education': trail(pages.education.breadcrumb),
   '/privacy': trail(pages.privacy.breadcrumb),
 }

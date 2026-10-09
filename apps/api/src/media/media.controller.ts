@@ -1,4 +1,5 @@
 import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common'
+import { MediaType } from '@prisma/client'
 import { SkipThrottle } from '@nestjs/throttler'
 import { CatalogQueryDto } from './dto/catalog-query.dto'
 import { PublicMediaQueryDto } from './dto/public-media-query.dto'
@@ -12,7 +13,8 @@ export class MediaController {
 
   @Get()
   list(@Query() query: PublicMediaQueryDto) {
-    return this.media.listPublic(query.type, query.limit ?? 100)
+    const fallback = query.type === MediaType.GALLERY ? 300 : 100
+    return this.media.listPublic(query.type, query.limit ?? fallback)
   }
 
   @Get('catalog')

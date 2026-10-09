@@ -15,7 +15,12 @@ import {
   type ShopFeatureKey,
 } from './site-features'
 
-const SECTION_KEYS = [MediaType.CATALOG, MediaType.NEWS, MediaType.REVIEW] as const
+const SECTION_KEYS = [
+  MediaType.CATALOG,
+  MediaType.NEWS,
+  MediaType.REVIEW,
+  MediaType.GALLERY,
+] as const
 
 export interface SectionStatus {
   key: MediaType
@@ -33,8 +38,8 @@ export interface HomeBlockStatus {
   description: string
   enabled: boolean
   sortOrder: number
-  /** Связь с контентным разделом (каталог/новости/отзывы) */
-  contentKey?: 'CATALOG' | 'NEWS' | 'REVIEW'
+  /** Связь с контентным разделом (каталог/новости/отзывы/галерея) */
+  contentKey?: 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
   /** Итоговая видимость на главной с учётом контента */
   visible: boolean
 }
@@ -143,17 +148,19 @@ export class SettingsService {
   async listSections(): Promise<SectionStatus[]> {
     await this.ensureDefaults()
 
-    const [rows, catalogCount, newsCount, reviewCount] = await Promise.all([
+    const [rows, catalogCount, newsCount, reviewCount, galleryCount] = await Promise.all([
       this.prisma.siteSection.findMany(),
       this.prisma.mediaItem.count({ where: { type: MediaType.CATALOG, published: true } }),
       this.prisma.mediaItem.count({ where: { type: MediaType.NEWS, published: true } }),
       this.prisma.mediaItem.count({ where: { type: MediaType.REVIEW, published: true } }),
+      this.prisma.mediaItem.count({ where: { type: MediaType.GALLERY, published: true } }),
     ])
 
     const countMap: Record<MediaType, number> = {
       [MediaType.CATALOG]: catalogCount,
       [MediaType.NEWS]: newsCount,
       [MediaType.REVIEW]: reviewCount,
+      [MediaType.GALLERY]: galleryCount,
     }
 
     return SECTION_KEYS.map((key) => {
@@ -231,7 +238,7 @@ export class SettingsService {
       const sortOrder = block?.sortOrder ?? index
       const contentKey =
         'contentKey' in def
-          ? (def.contentKey as 'CATALOG' | 'NEWS' | 'REVIEW' | undefined)
+          ? (def.contentKey as 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY' | undefined)
           : undefined
       const contentOk = contentKey ? Boolean(contentVisible[contentKey]) : true
 

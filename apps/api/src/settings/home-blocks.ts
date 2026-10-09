@@ -14,7 +14,7 @@ export const HOME_BLOCK_DEFS = [
   { key: 'advantages', label: 'Преимущества', description: 'Почему выбирают нас', defaultEnabled: false },
   { key: 'video', label: 'Видео', description: 'Видео о школе', defaultEnabled: true },
   { key: 'locations', label: 'Адреса', description: 'Филиалы на главной', defaultEnabled: true },
-  { key: 'gallery', label: 'Галерея', description: 'Фото с тренировок', defaultEnabled: true },
+  { key: 'gallery', label: 'Галерея', description: 'Фото с тренировок (нужен контент)', defaultEnabled: true, contentKey: 'GALLERY' },
   { key: 'catalog', label: 'Каталог', description: 'Товары на главной (нужен контент)', defaultEnabled: true, contentKey: 'CATALOG' },
   { key: 'news', label: 'Новости', description: 'Новости на главной (нужен контент)', defaultEnabled: true, contentKey: 'NEWS' },
   { key: 'reviews', label: 'Отзывы', description: 'Скриншоты отзывов (нужен контент)', defaultEnabled: true, contentKey: 'REVIEW' },

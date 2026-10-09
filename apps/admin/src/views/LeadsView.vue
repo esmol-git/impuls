@@ -11,7 +11,7 @@ import { useConfirm } from '@/composables/useConfirm'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
-import { formatDateTime } from '@/utils/format'
+import { formatDateTime, leadAgeLabel, leadSourceLabel } from '@/utils/format'
 
 function leadItems(lead: Lead): LeadPurchaseItem[] {
   return Array.isArray(lead.items) ? lead.items : []
@@ -281,12 +281,12 @@ watch(
         <el-table-column prop="phone" label="Телефон" width="170" sortable="custom">
           <template #default="{ row }">
             <a :href="`tel:${row.phone}`" class="text-brand-600 hover:underline">{{ row.phone }}</a>
-            <p v-if="row.age" class="text-xs text-slate-500">Возраст: {{ row.age }}</p>
+            <p v-if="row.age" class="text-xs text-slate-500">ДР: {{ leadAgeLabel(row.age) }}</p>
           </template>
         </el-table-column>
-        <el-table-column prop="source" label="Источник" width="140" sortable="custom">
+        <el-table-column prop="source" label="Источник" min-width="160" sortable="custom">
           <template #default="{ row }">
-            <p>{{ row.source || '—' }}</p>
+            <p>{{ leadSourceLabel(row.source) }}</p>
             <p v-if="row.program" class="text-xs text-slate-500">{{ row.program }}</p>
           </template>
         </el-table-column>
@@ -307,7 +307,7 @@ watch(
                 aria-label="Открыть"
                 @click="openLead(row)"
               >
-                <el-icon :size="22"><component :is="icons['zoom-in']" /></el-icon>
+                <el-icon :size="18"><component :is="icons['zoom-in']" /></el-icon>
               </button>
               <button
                 v-if="row.status === 'NEW'"
@@ -317,7 +317,7 @@ watch(
                 aria-label="Отметить готово"
                 @click="setStatus(row, 'DONE')"
               >
-                <el-icon :size="22"><Check /></el-icon>
+                <el-icon :size="18"><Check /></el-icon>
               </button>
               <button
                 v-else
@@ -327,7 +327,7 @@ watch(
                 aria-label="Вернуть в новые"
                 @click="setStatus(row, 'NEW')"
               >
-                <el-icon :size="22"><component :is="icons.undo" /></el-icon>
+                <el-icon :size="18"><component :is="icons.undo" /></el-icon>
               </button>
               <button
                 v-if="auth.isAdmin"
@@ -337,7 +337,7 @@ watch(
                 aria-label="Удалить"
                 @click="removeLead(row)"
               >
-                <el-icon :size="22"><component :is="icons.trash" /></el-icon>
+                <el-icon :size="18"><component :is="icons.trash" /></el-icon>
               </button>
             </div>
           </template>
@@ -360,8 +360,8 @@ watch(
           <el-descriptions-item label="Телефон">
             <a :href="`tel:${selected.phone}`" class="text-brand-600">{{ selected.phone }}</a>
           </el-descriptions-item>
-          <el-descriptions-item label="Возраст">{{ selected.age || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="Источник">{{ selected.source || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="Дата рождения">{{ leadAgeLabel(selected.age) }}</el-descriptions-item>
+          <el-descriptions-item label="Источник">{{ leadSourceLabel(selected.source) }}</el-descriptions-item>
           <el-descriptions-item label="Товар / группа">{{ selected.program || '—' }}</el-descriptions-item>
           <el-descriptions-item label="Площадка">{{ selected.location || '—' }}</el-descriptions-item>
           <el-descriptions-item label="Комментарий">
