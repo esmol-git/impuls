@@ -19,13 +19,13 @@ usePageSeo(`${meta.title} — ${site.name}`, meta.description)
         <SectionHeader v-bind="meta.heading" />
       </ScrollReveal>
 
-      <ul class="mt-8 grid list-none gap-6 sm:mt-12 sm:grid-cols-2 lg:grid-cols-3">
-        <li v-for="coach in coaches" :key="coach.id">
-          <ScrollReveal class="h-full">
+      <ScrollReveal>
+        <ul class="mt-8 grid list-none gap-6 sm:mt-12 sm:grid-cols-2 lg:grid-cols-3">
+          <li v-for="coach in coaches" :key="coach.id">
             <CoachCard :coach="coach" />
-          </ScrollReveal>
-        </li>
-      </ul>
+          </li>
+        </ul>
+      </ScrollReveal>
 
       <p v-if="!coaches?.length" class="mt-10 text-center text-sm text-brand-500">
         Скоро здесь появится команда тренеров.
@@ -42,18 +42,18 @@ usePageSeo(`${meta.title} — ${site.name}`, meta.description)
         />
       </ScrollReveal>
 
-      <ul class="mt-8 grid list-none gap-4 sm:mt-10">
-        <li v-for="(point, index) in coachesApproach.points" :key="index">
-          <ScrollReveal>
+      <ScrollReveal>
+        <ul class="mt-8 grid list-none gap-4 sm:mt-10">
+          <li v-for="(point, index) in coachesApproach.points" :key="index">
             <div class="flex gap-4 rounded-xl border border-brand-100 bg-white p-4 sm:p-5">
               <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-50 text-sm font-extrabold text-accent-500">
                 {{ index + 1 }}
               </span>
               <p class="text-sm leading-relaxed text-brand-600/80 sm:text-base">{{ point }}</p>
             </div>
-          </ScrollReveal>
-        </li>
-      </ul>
+          </li>
+        </ul>
+      </ScrollReveal>
     </BaseSection>
 
     <CtaSection

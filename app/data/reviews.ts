@@ -2,11 +2,12 @@ import type { Review } from '~/types'
 
 export type { Review } from '~/types'
 
+/** Заглушки на время наполнения — блок отзывов оставляем на месте */
 export const reviews: Review[] = [
-  { id: '1', author: 'Имя 1', rating: 5, text: 'Текст отзыва будет добавлен позже.' },
-  { id: '2', author: 'Имя 2', rating: 5, text: 'Текст отзыва будет добавлен позже.' },
-  { id: '3', author: 'Имя 3', rating: 4, text: 'Текст отзыва будет добавлен позже.' },
-  { id: '4', author: 'Имя 4', rating: 5, text: 'Текст отзыва будет добавлен позже.' },
+  { id: '1', author: 'Родитель', rating: 5, text: 'Отзыв готовится — скоро появится здесь.' },
+  { id: '2', author: 'Родитель', rating: 5, text: 'Отзыв готовится — скоро появится здесь.' },
+  { id: '3', author: 'Родитель', rating: 4, text: 'Отзыв готовится — скоро появится здесь.' },
+  { id: '4', author: 'Родитель', rating: 5, text: 'Отзыв готовится — скоро появится здесь.' },
 ]
 
 export interface ReviewPlatform {

@@ -1,67 +1,253 @@
 <script setup lang="ts">
-import type { TrainingIcon } from '~/types'
-import { trainingPoints, trainingSection } from '~/data/training'
+import { founderSpeech, trainingSection } from '~/data/training'
 
-const icons: Record<TrainingIcon, string> = {
-  method: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
-  trophy: 'M5 3h14M7 3v2a5 5 0 0010 0V3M5 3v1a3 3 0 003 3m11-4v1a3 3 0 01-3 3M9 21h6M12 17v4',
-  coach: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
-  clipboard: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
-  field: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z',
-  boot: 'M3 21h18M5 21V7l8-4v18M19 21V11l-6-4',
-  jersey: 'M7 20l4-16m2 16l4-16M6 9h14M4 15h14',
-  feedback: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
-}
+const photo = founderSpeech.photos.find((p) => p.id === 'ball')!
+const [lead, ...rest] = founderSpeech.paragraphs
+const closing = rest[rest.length - 1]
+const middle = rest.slice(0, -1)
 </script>
 
 <template>
-  <BaseSection id="training" v-slot="{ headingId }">
-    <ScrollReveal>
-      <p class="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-accent-500 sm:text-sm">
-        {{ trainingSection.label }}
-      </p>
-      <h2
-        :id="headingId"
-        class="text-center text-xl font-extrabold leading-snug text-brand-600 sm:text-2xl lg:text-3xl"
-      >
-        {{ trainingSection.titleBefore }}
-        <span class="text-accent-500">{{ trainingSection.titleAccent }}</span>
-      </h2>
-      <p class="mx-auto mt-3 max-w-xl text-center text-sm text-brand-600/65 sm:text-base">
-        {{ trainingSection.subtitle }}
-      </p>
-    </ScrollReveal>
-
-    <div class="mt-8 grid gap-8 lg:mt-12 lg:grid-cols-[1fr_minmax(0,22rem)] lg:items-start lg:gap-10">
-      <ul class="grid list-none gap-x-6 gap-y-4 sm:grid-cols-2">
-        <li v-for="point in trainingPoints" :key="point.id">
-          <ScrollReveal class="flex h-full gap-3">
-            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-50 text-accent-500">
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" :d="icons[point.icon]" />
-              </svg>
-            </span>
-            <p class="text-sm leading-relaxed text-brand-600/80">{{ point.text }}</p>
-          </ScrollReveal>
-        </li>
-      </ul>
-
-      <ScrollReveal>
-        <div class="space-y-4">
-          <UiMediaPlaceholder label="Фото тренера" aspect="video" />
-          <NuxtLink
-            to="#video"
-            class="card flex items-center gap-3 p-4 transition hover:border-brand-200"
+  <BaseSection
+    id="training"
+    container-class="max-w-none !px-0"
+    aria-label="О школе"
+  >
+    <template #default="{ headingId }">
+      <div class="founder-split">
+        <div class="founder-split__media">
+          <img
+            :src="photo.src"
+            :alt="photo.alt"
+            width="900"
+            height="1350"
+            loading="lazy"
+            decoding="async"
           >
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-500 text-white">
-              <svg class="ml-0.5 h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </span>
-            <span class="text-sm font-semibold text-brand-600">Посмотрите, как обучаются наши тренеры</span>
-          </NuxtLink>
+          <div class="founder-split__media-fade" aria-hidden="true" />
         </div>
-      </ScrollReveal>
-    </div>
+
+        <div class="founder-split__content">
+          <ScrollReveal>
+            <p class="founder-split__label">{{ trainingSection.label }}</p>
+            <h2 :id="headingId" class="founder-split__title">
+              {{ trainingSection.titleBefore }}
+              <span>{{ trainingSection.titleAccent }}</span>
+            </h2>
+
+            <article class="founder-split__speech">
+              <p class="founder-split__lead">{{ lead }}</p>
+              <p
+                v-for="(paragraph, index) in middle"
+                :key="index"
+                class="founder-split__p"
+              >
+                {{ paragraph }}
+              </p>
+              <p class="founder-split__close">{{ closing }}</p>
+              <footer class="founder-split__sign">
+                <strong>{{ founderSpeech.name }}</strong>
+                <span>{{ founderSpeech.role }}</span>
+              </footer>
+            </article>
+          </ScrollReveal>
+        </div>
+      </div>
+    </template>
   </BaseSection>
 </template>
+
+<style scoped>
+.founder-split {
+  display: grid;
+  gap: 0;
+}
+
+@media (min-width: 1024px) {
+  .founder-split {
+    grid-template-columns: minmax(18rem, 0.9fr) minmax(0, 1.1fr);
+    min-height: min(42rem, 88svh);
+    align-items: stretch;
+  }
+}
+
+.founder-split__media {
+  position: relative;
+  background: #1a2744;
+  overflow: hidden;
+  min-height: 22rem;
+}
+
+@media (min-width: 640px) {
+  .founder-split__media {
+    min-height: 28rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .founder-split__media {
+    min-height: 100%;
+    border-radius: 0 1.25rem 1.25rem 0;
+  }
+}
+
+.founder-split__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 12%;
+}
+
+.founder-split__media-fade {
+  position: absolute;
+  inset: auto 0 0;
+  height: 35%;
+  background: linear-gradient(180deg, transparent, rgb(26 39 68 / 0.55));
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .founder-split__media-fade {
+    inset: 0 auto 0 0;
+    width: 28%;
+    height: auto;
+    background: linear-gradient(90deg, rgb(26 39 68 / 0.25), transparent);
+  }
+}
+
+.founder-split__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.75rem 1.25rem 2rem;
+}
+
+@media (min-width: 640px) {
+  .founder-split__content {
+    padding: 2.25rem 2rem 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .founder-split__content {
+    padding: 2.5rem clamp(1.5rem, 4vw, 3.5rem) 2.75rem;
+    max-width: 40rem;
+  }
+}
+
+.founder-split__label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ff2a2a;
+}
+
+.founder-split__title {
+  margin: 0.45rem 0 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #253863;
+}
+
+.founder-split__title span {
+  color: #ff2a2a;
+}
+
+@media (min-width: 640px) {
+  .founder-split__title {
+    font-size: 1.85rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .founder-split__title {
+    font-size: 2.15rem;
+  }
+}
+
+.founder-split__speech {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.founder-split__lead {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #253863;
+}
+
+@media (min-width: 640px) {
+  .founder-split__lead {
+    font-size: 1.15rem;
+  }
+}
+
+.founder-split__p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: rgb(37 56 99 / 0.78);
+}
+
+@media (min-width: 640px) {
+  .founder-split__p {
+    font-size: 1rem;
+  }
+}
+
+.founder-split__close {
+  margin: 0.15rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #253863;
+}
+
+.founder-split__sign {
+  margin-top: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgb(37 56 99 / 0.12);
+}
+
+.founder-split__sign strong {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #253863;
+}
+
+.founder-split__sign span {
+  font-size: 0.8125rem;
+  color: rgb(37 56 99 / 0.55);
+}
+
+:global(html.dark) .founder-split__title,
+:global(html.dark) .founder-split__lead,
+:global(html.dark) .founder-split__close,
+:global(html.dark) .founder-split__sign strong {
+  color: #e8eef8;
+}
+
+:global(html.dark) .founder-split__p {
+  color: rgb(232 238 248 / 0.78);
+}
+
+:global(html.dark) .founder-split__sign {
+  border-top-color: rgb(255 255 255 / 0.12);
+}
+
+:global(html.dark) .founder-split__sign span {
+  color: rgb(232 238 248 / 0.5);
+}
+</style>

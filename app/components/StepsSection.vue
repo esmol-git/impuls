@@ -6,15 +6,15 @@ const config = sections.steps
 </script>
 
 <template>
-  <BaseSection id="steps" alt v-slot="{ headingId }">
+  <BaseSection id="steps" v-slot="{ headingId }">
     <SectionHeader
       v-bind="config"
       :title-id="headingId"
     />
 
-    <ol class="mt-8 grid list-none gap-5 sm:mt-12 sm:gap-6 lg:grid-cols-3 lg:gap-8">
-      <li v-for="step in enrollmentSteps" :key="step.step" class="relative">
-        <ScrollReveal class="h-full">
+    <ScrollReveal>
+      <ol class="mt-8 grid list-none gap-5 sm:mt-12 sm:gap-6 lg:grid-cols-3 lg:gap-8">
+        <li v-for="step in enrollmentSteps" :key="step.step" class="relative">
           <article class="card relative flex h-full flex-col p-5 sm:p-6">
             <span
               class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white sm:h-12 sm:w-12 sm:text-lg"
@@ -29,11 +29,9 @@ const config = sections.steps
               {{ step.description }}
             </p>
           </article>
-        </ScrollReveal>
-      </li>
-    </ol>
+        </li>
+      </ol>
 
-    <ScrollReveal>
       <div class="mt-8 flex justify-center sm:mt-10">
         <ModalTrigger
           type="lead"

@@ -156,13 +156,19 @@ export interface SectionStatus {
   visible: boolean
 }
 
-export type SiteFeatureKey = 'CART' | 'FAVORITES'
+export type SiteFeatureKey = 'CART' | 'FAVORITES' | 'SECTION_EDGES'
 
 export interface FeatureStatus {
   key: SiteFeatureKey
   label: string
   description: string
   enabled: boolean
+}
+
+export type ThemeMode = 'light' | 'dark' | 'system'
+
+export interface ThemeStatus {
+  mode: ThemeMode
 }
 
 export type HomeBlockKey =

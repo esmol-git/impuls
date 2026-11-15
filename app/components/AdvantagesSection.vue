@@ -11,10 +11,14 @@ const config = sections.advantages
       v-bind="config"
       :title-id="headingId"
     />
-    <div class="mt-8 grid gap-6 sm:mt-12 sm:grid-cols-2 lg:grid-cols-4">
-      <ScrollReveal v-for="item in advantages" :key="item.title">
-        <FeatureCard v-bind="item" />
-      </ScrollReveal>
-    </div>
+    <ScrollReveal>
+      <div class="mt-8 grid gap-6 sm:mt-12 sm:grid-cols-2 lg:grid-cols-4">
+        <FeatureCard
+          v-for="item in advantages"
+          :key="item.title"
+          v-bind="item"
+        />
+      </div>
+    </ScrollReveal>
   </BaseSection>
 </template>

@@ -2,6 +2,25 @@
 import { computed, ref, watch } from 'vue'
 import { reviewPlatforms, reviews as fallbackReviews } from '~/data/reviews'
 import { sections } from '~/data/sections'
+import { decorFor, decosOf, glowsOf } from '~/data/sectionDecor'
+import reviewsPattern from '~/assets/img/pattern-stage.webp'
+import {
+  SECTION_SURFACE,
+  type SectionEdge,
+  type SectionTone,
+} from '~/utils/sectionSurface'
+
+const props = withDefaults(defineProps<{
+  tone?: SectionTone
+  edge?: SectionEdge
+  flipWave?: boolean
+  wave?: boolean
+}>(), {
+  tone: 'mist',
+  edge: 'slant',
+  flipWave: false,
+  wave: true,
+})
 
 interface ReviewShot {
   id: string
@@ -30,6 +49,10 @@ function itemRating(item: CarouselItem): number {
 
 const config = sections.reviews
 const headingId = 'reviews-title'
+const reviewsSurface = computed(() => SECTION_SURFACE[props.tone])
+const decor = decorFor('reviews')
+const decos = decosOf(decor)
+const glows = glowsOf(decor)
 
 /** Как у новостей: await useFetch — и SSR, и клиентский переход на главную. */
 const { data: mediaReviews } = await useFetch<ReviewShot[]>('/api/media', {
@@ -122,18 +145,43 @@ const trackStyle = computed(() => {
   <section
     id="reviews"
     class="reviews-section section-padding"
+    :class="{ 'reviews-section--edge': wave }"
     :aria-labelledby="headingId"
+    :style="{ '--section-surface': reviewsSurface, backgroundColor: reviewsSurface }"
   >
-    <div class="container-site">
-      <div class="reviews-panel">
-        <!-- сюда позже можно положить фоновые картинки -->
+    <SectionWave
+      v-if="wave"
+      :fill="reviewsSurface"
+      :flip="flipWave"
+      :variant="edge"
+    />
+    <SectionAmbient :glows="glows" />
+    <SectionWash
+      v-if="decor?.wash"
+      v-bind="decor.wash"
+    />
+    <SectionDeco
+      v-for="(item, i) in decos"
+      :key="i"
+      v-bind="item"
+    />
+    <div class="container-site relative z-[2]">
+      <div
+        class="reviews-panel"
+        :style="{ '--reviews-pattern': `url(${reviewsPattern})` }"
+      >
         <div class="reviews-panel__bg" aria-hidden="true" />
+        <div class="reviews-panel__scrim" aria-hidden="true" />
+        <div class="accent-bloom accent-bloom--corner" aria-hidden="true" />
 
         <div class="reviews-layout">
           <div class="reviews-copy">
             <h2 :id="headingId" class="reviews-title">
               {{ config.title }}
             </h2>
+            <p class="reviews-lead">
+              Реальные отзывы родителей — листайте скриншоты с Яндекса и 2ГИС.
+            </p>
 
             <div class="reviews-badges" aria-label="Рейтинги на площадках">
               <component
@@ -259,18 +307,53 @@ const trackStyle = computed(() => {
 
 <style scoped>
 .reviews-section {
-  background: #eef2f7;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.reviews-section--edge {
+  padding-bottom: 5rem;
+}
+
+@media (min-width: 640px) {
+  .reviews-section--edge {
+    padding-bottom: 6rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .reviews-section--edge {
+    padding-top: calc(3.25rem + 0.75rem);
+    padding-bottom: 6.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .reviews-section--edge {
+    padding-top: calc(4rem + 1rem);
+    padding-bottom: 7.5rem;
+  }
 }
 
 .reviews-panel {
   position: relative;
   overflow: hidden;
   border-radius: 1.5rem;
-  background: #fff;
+  background-color: #253863;
   box-shadow:
     0 1px 2px rgb(15 23 42 / 4%),
-    0 18px 48px rgb(15 23 42 / 8%);
+    0 18px 48px rgb(15 23 42 / 12%);
   padding: 1.75rem 1.25rem;
+}
+
+:global(html.dark .reviews-panel) {
+  background-color: #121c30;
+  box-shadow:
+    0 0 0 1px rgb(148 163 184 / 0.28),
+    0 18px 48px rgb(0 0 0 / 0.45);
 }
 
 @media (min-width: 640px) {
@@ -286,12 +369,46 @@ const trackStyle = computed(() => {
   }
 }
 
+/* Растягиваем паттерн на всю плашку */
 .reviews-panel__bg {
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
-  /* место под фоновые изображения */
-  background: transparent;
+  background-image: var(--reviews-pattern);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+}
+
+/* Тёмный brand поверх паттерна */
+.reviews-panel__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      115deg,
+      rgb(37 56 99 / 0.92) 0%,
+      rgb(37 56 99 / 0.82) 45%,
+      rgb(30 45 79 / 0.72) 100%
+    );
+}
+
+:global(html.dark .reviews-panel__bg) {
+  opacity: 0.7;
+  filter: brightness(0.7) contrast(1.05);
+}
+
+:global(html.dark .reviews-panel__scrim) {
+  background:
+    linear-gradient(
+      115deg,
+      rgb(14 22 38 / 0.95) 0%,
+      rgb(18 28 48 / 0.9) 45%,
+      rgb(10 16 28 / 0.88) 100%
+    );
 }
 
 .reviews-layout {
@@ -318,7 +435,15 @@ const trackStyle = computed(() => {
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: #0b2a5b;
+  color: #fff;
+}
+
+.reviews-lead {
+  margin-top: 0.9rem;
+  max-width: 26rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.75);
 }
 
 .reviews-badges {
@@ -389,10 +514,10 @@ const trackStyle = computed(() => {
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
-  border: 1.5px solid #0b2a5b;
+  border: 1.5px solid rgb(255 255 255 / 0.55);
   border-radius: 999px;
-  background: rgb(255 255 255 / 70%);
-  color: #0b2a5b;
+  background: rgb(255 255 255 / 0.14);
+  color: #fff;
   backdrop-filter: blur(6px);
   transition:
     background 0.15s ease,
@@ -401,8 +526,8 @@ const trackStyle = computed(() => {
 }
 
 .reviews-nav:hover {
-  background: #0b2a5b;
-  color: #fff;
+  background: #fff;
+  color: #253863;
 }
 
 .reviews-nav:active {

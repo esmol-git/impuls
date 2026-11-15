@@ -75,13 +75,7 @@ const modalPayload = computed(() => ({
             </ModalTrigger>
           </div>
 
-          <div class="relative overflow-hidden rounded-2xl bg-brand-50/80 p-3 sm:p-4 lg:p-5">
-            <div
-              class="pointer-events-none absolute inset-0 opacity-[0.07]"
-              aria-hidden="true"
-              style="background-image: radial-gradient(circle at 20% 50%, #253863 0%, transparent 50%), radial-gradient(circle at 80% 50%, #b0191b 0%, transparent 50%)"
-            />
-
+          <div class="programs-panel relative overflow-hidden rounded-2xl p-3 sm:p-4 lg:p-5">
             <div class="relative grid gap-3 sm:gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-stretch lg:gap-5">
               <ProgramLevelCard
                 :level="activeProgram.levels[0]"
@@ -110,13 +104,13 @@ const modalPayload = computed(() => ({
             v-if="showDetails"
             class="mt-4 grid gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-4"
           >
-            <div class="rounded-xl border border-brand-100 bg-white p-4 sm:p-5">
+            <div class="card p-4 sm:p-5">
               <p class="text-xs font-semibold uppercase tracking-wider text-accent-500">Расписание</p>
               <p class="mt-2 text-sm leading-relaxed text-brand-600/80 sm:text-base">
                 {{ activeProgram.schedule }}
               </p>
             </div>
-            <div class="rounded-xl border border-brand-100 bg-white p-4 sm:p-5">
+            <div class="card p-4 sm:p-5">
               <p class="text-xs font-semibold uppercase tracking-wider text-accent-500">Запись</p>
               <p class="mt-2 text-sm leading-relaxed text-brand-600/80 sm:text-base">
                 Первое занятие бесплатно. Подберём группу по возрасту и уровню подготовки.
@@ -135,3 +129,30 @@ const modalPayload = computed(() => ({
     </div>
   </div>
 </template>
+
+<style scoped>
+.programs-panel {
+  background: var(--soft-bg);
+}
+
+:global(html.dark .programs-panel) {
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+:global(html.dark .tab-btn) {
+  border-color: rgb(255 255 255 / 0.12) !important;
+}
+
+:global(html.dark .tab-btn[aria-selected='false']) {
+  background: rgb(255 255 255 / 0.04) !important;
+  color: #fff !important;
+}
+
+:global(html.dark .tab-btn[aria-selected='true']) {
+  background: #ff3333 !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+</style>

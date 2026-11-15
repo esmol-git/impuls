@@ -4,7 +4,14 @@ import { Plus } from '@element-plus/icons-vue'
 import { icons } from '@/icons'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import { api } from '@/api/client'
-import type { FeatureStatus, HomeBlockStatus, TaxonomyItem, TaxonomyKind } from '@/api/types'
+import type {
+  FeatureStatus,
+  HomeBlockStatus,
+  TaxonomyItem,
+  TaxonomyKind,
+  ThemeMode,
+  ThemeStatus,
+} from '@/api/types'
 import { useConfirm } from '@/composables/useConfirm'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
@@ -31,12 +38,21 @@ const togglingKeys = ref<Set<string>>(new Set())
 const maintenanceEnabled = ref(false)
 const maintenanceReady = ref(false)
 const maintenanceSaving = ref(false)
+const themeMode = ref<ThemeMode>('system')
+const themeReady = ref(false)
+const themeSaving = ref(false)
+
+const themeOptions: { value: ThemeMode; label: string; hint: string }[] = [
+  { value: 'light', label: 'Светлая', hint: 'Всегда светлый сайт' },
+  { value: 'dark', label: 'Тёмная', hint: 'Всегда тёмный сайт' },
+  { value: 'system', label: 'Системная', hint: 'Как в настройках устройства' },
+]
 
 const tabs: { key: TabKey; label: string; hint: string; placeholder?: string }[] = [
   {
     key: 'HOME',
     label: 'Главная',
-    hint: 'Включайте блоки главной страницы и перетаскивайте строки, чтобы менять порядок на сайте.',
+    hint: 'Волны между блоками, состав главной и порядок секций.',
   },
   {
     key: 'SHOP',
@@ -66,6 +82,12 @@ const tabs: { key: TabKey; label: string; hint: string; placeholder?: string }[]
 const currentTab = computed(() => tabs.find((tab) => tab.key === activeTab.value) || tabs[0])
 const isHomeTab = computed(() => activeTab.value === 'HOME')
 const isShopTab = computed(() => activeTab.value === 'SHOP')
+const sectionEdgesFeature = computed(
+  () => features.value.find((row) => row.key === 'SECTION_EDGES') ?? null,
+)
+const shopFeatures = computed(() =>
+  features.value.filter((row) => row.key === 'CART' || row.key === 'FAVORITES'),
+)
 
 async function loadTaxonomy() {
   if (activeTab.value === 'HOME' || activeTab.value === 'SHOP') return
@@ -131,6 +153,50 @@ async function loadMaintenance(options: { silent?: boolean } = {}) {
   }
 }
 
+async function loadTheme(options: { silent?: boolean } = {}) {
+  themeReady.value = false
+  try {
+    const status = await api<ThemeStatus>('/api/admin/settings/theme')
+    themeMode.value = status.mode
+  } catch (e) {
+    if (!options.silent) {
+      toast.error(e instanceof Error ? e.message : 'Не удалось загрузить тему')
+    }
+  } finally {
+    requestAnimationFrame(() => {
+      themeReady.value = true
+    })
+  }
+}
+
+async function onThemeChange(mode: ThemeMode | string | number | boolean | undefined) {
+  if (!themeReady.value || themeSaving.value) return
+  if (typeof mode !== 'string') return
+  if (mode !== 'light' && mode !== 'dark' && mode !== 'system') return
+  if (mode === themeMode.value) return
+
+  themeSaving.value = true
+  try {
+    const status = await api<ThemeStatus>('/api/admin/settings/theme', {
+      method: 'PATCH',
+      body: JSON.stringify({ mode }),
+    })
+    themeMode.value = status.mode
+    toast.success(
+      status.mode === 'light'
+        ? 'Светлая тема'
+        : status.mode === 'dark'
+          ? 'Тёмная тема'
+          : 'Системная тема',
+    )
+  } catch (e) {
+    toast.error(e instanceof Error ? e.message : 'Не удалось обновить тему')
+    await loadTheme({ silent: true })
+  } finally {
+    themeSaving.value = false
+  }
+}
+
 async function onMaintenanceToggle(enabled: boolean) {
   if (!auth.isSuperAdmin || !maintenanceReady.value) return
   if (enabled === maintenanceEnabled.value) return
@@ -153,7 +219,9 @@ async function onMaintenanceToggle(enabled: boolean) {
 }
 
 async function load() {
-  if (isHomeTab.value) await loadHomeBlocks()
+  if (isHomeTab.value) {
+    await Promise.all([loadHomeBlocks(), loadFeatures({ silent: true })])
+  }
   else if (isShopTab.value) await loadFeatures()
   else await loadTaxonomy()
 }
@@ -334,6 +402,7 @@ watch(activeTab, () => {
 onMounted(() => {
   void load()
   void loadMaintenance()
+  void loadTheme()
 })
 </script>
 
@@ -363,6 +432,29 @@ onMounted(() => {
       />
     </div>
 
+    <div class="feature-row mb-4 !items-start sm:!items-center">
+      <div class="min-w-0 flex-1">
+        <p class="font-semibold text-slate-800">Тема сайта</p>
+        <p class="mt-0.5 text-sm text-slate-500">
+          Светлая, тёмная или как на устройстве посетителя. Базовые поверхности уже переключаются.
+        </p>
+      </div>
+      <el-radio-group
+        :model-value="themeMode"
+        :disabled="!themeReady || themeSaving"
+        class="theme-radios shrink-0"
+        @change="onThemeChange"
+      >
+        <el-radio-button
+          v-for="opt in themeOptions"
+          :key="opt.value"
+          :label="opt.value"
+        >
+          {{ opt.label }}
+        </el-radio-button>
+      </el-radio-group>
+    </div>
+
     <el-tabs v-model="activeTab" class="settings-tabs">
       <el-tab-pane
         v-for="tab in tabs"
@@ -377,6 +469,22 @@ onMounted(() => {
 
       <!-- Home blocks -->
       <div v-if="isHomeTab" v-loading="loading || reordering">
+        <div
+          v-if="sectionEdgesFeature"
+          class="feature-row mb-4"
+          :class="{ 'is-off': !sectionEdgesFeature.enabled }"
+        >
+          <div class="min-w-0 flex-1">
+            <p class="font-semibold text-slate-800">{{ sectionEdgesFeature.label }}</p>
+            <p class="mt-0.5 text-xs text-slate-500">{{ sectionEdgesFeature.description }}</p>
+          </div>
+          <el-switch
+            :model-value="sectionEdgesFeature.enabled"
+            :disabled="togglingKeys.has(sectionEdgesFeature.key)"
+            @change="(value: boolean) => sectionEdgesFeature && onFeatureToggle(sectionEdgesFeature, value)"
+          />
+        </div>
+
         <p class="mb-4 text-xs text-slate-400">
           Для каталога, новостей и отзывов на главной также нужен контент и свитч «На сайте» в соответствующем разделе.
         </p>
@@ -433,7 +541,7 @@ onMounted(() => {
       <div v-else-if="isShopTab" v-loading="loading">
         <ul class="space-y-2">
           <li
-            v-for="feature in features"
+            v-for="feature in shopFeatures"
             :key="feature.key"
             class="feature-row"
             :class="{ 'is-off': !feature.enabled }"

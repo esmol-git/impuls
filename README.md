@@ -50,6 +50,8 @@ npm run dev                   # http://localhost:3000
 
 Переменная `NUXT_API_URL=http://localhost:3001` нужна сайту, чтобы сохранять заявки в Nest (по умолчанию уже так).
 
+Карта площадок: ключ JS API Яндекс.Карт в `NUXT_PUBLIC_YANDEX_MAPS_API_KEY` (кабинет: https://developer.tech.yandex.ru/). Без ключа блок карты покажет заглушку со ссылкой на Яндекс.Карты.
+
 Загрузки: админка шлёт файл на `POST /api/admin/media/upload` → API конвертирует в **WebP** (sharp) и кладёт в **MinIO**. Отдача на сайт/админку — через `GET /uploads/:key` (прокси API, старые локальные файлы тоже отдаются).
 
 ## Админка

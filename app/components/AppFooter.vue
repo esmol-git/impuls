@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { footerLinks, navigation, site } from '~/data/site'
-import logoUrl from '~/assets/img/logo.png'
+import logoUrl from '~/assets/img/logo.webp'
 
 const { visible } = await useManagedSections()
 

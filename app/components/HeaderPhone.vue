@@ -8,7 +8,7 @@ withDefaults(defineProps<{
   variant: 'inline',
 })
 
-const { isOpen, statusText } = useBusinessHours()
+const { isOpen } = useBusinessHours()
 
 const phoneHref = computed(() => `tel:${site.phone.replace(/[\s()-]/g, '')}`)
 
@@ -48,17 +48,16 @@ const statusAria = computed(() => {
 
     <span class="min-w-0 text-left">
       <span
-        class="block font-bold leading-tight text-brand-600 group-hover:text-brand-700"
+        class="header-phone__num block font-bold leading-tight"
         :class="variant === 'bar' ? 'text-[15px] tracking-tight' : 'text-sm'"
       >
         {{ site.phone }}
       </span>
       <span
-        class="block truncate leading-snug text-brand-400"
+        class="header-phone__meta block truncate leading-snug"
         :class="variant === 'bar' ? 'text-[11px]' : 'text-[11px] sm:text-xs'"
       >
         {{ site.phoneHours }}
-        <span v-if="isOpen !== null" class="text-brand-400"> · {{ statusText }}</span>
       </span>
     </span>
 
@@ -74,3 +73,13 @@ const statusAria = computed(() => {
     </svg>
   </a>
 </template>
+
+<style scoped>
+.header-phone__num {
+  color: var(--header-fg, #253863);
+}
+
+.header-phone__meta {
+  color: var(--header-fg-muted, rgb(37 56 99 / 0.72));
+}
+</style>

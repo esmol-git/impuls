@@ -14,6 +14,12 @@ import {
   isSiteFeatureKey,
   type ShopFeatureKey,
 } from './site-features'
+import {
+  THEME_DEFAULT,
+  THEME_SETTING_KEY,
+  isThemeMode,
+  type ThemeMode,
+} from './theme'
 
 const SECTION_KEYS = [
   MediaType.CATALOG,
@@ -55,6 +61,10 @@ export interface MaintenanceStatus {
   enabled: boolean
 }
 
+export interface ThemeStatus {
+  mode: ThemeMode
+}
+
 @Injectable()
 export class SettingsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -71,6 +81,36 @@ export class SettingsService {
     )
     await this.ensureHomeBlockDefaults()
     await this.ensureFeatureDefaults()
+    await this.ensureThemeDefault()
+  }
+
+  async ensureThemeDefault() {
+    await this.prisma.siteSetting.upsert({
+      where: { key: THEME_SETTING_KEY },
+      create: { key: THEME_SETTING_KEY, value: THEME_DEFAULT },
+      update: {},
+    })
+  }
+
+  async getTheme(): Promise<ThemeStatus> {
+    await this.ensureThemeDefault()
+    const row = await this.prisma.siteSetting.findUnique({
+      where: { key: THEME_SETTING_KEY },
+    })
+    const value = row?.value ?? THEME_DEFAULT
+    return { mode: isThemeMode(value) ? value : THEME_DEFAULT }
+  }
+
+  async setTheme(mode: ThemeMode): Promise<ThemeStatus> {
+    if (!isThemeMode(mode)) {
+      throw new BadRequestException('Неизвестный режим темы')
+    }
+    await this.prisma.siteSetting.upsert({
+      where: { key: THEME_SETTING_KEY },
+      create: { key: THEME_SETTING_KEY, value: mode },
+      update: { value: mode },
+    })
+    return { mode }
   }
 
   async ensureFeatureDefaults() {

@@ -123,6 +123,8 @@ export interface ProgramFeature {
 
 export interface ProgramLevel {
   id: string
+  /** Например: «Начальный уровень» */
+  eyebrow?: string
   title: string
   features: ProgramFeature[]
   buttonVariant: 'brand' | 'accent'
@@ -179,6 +181,8 @@ export interface Location {
   id: string
   name: string
   address: string
+  /** [широта, долгота] для Яндекс.Карт */
+  coords?: [number, number]
 }
 
 export interface EducationSection {

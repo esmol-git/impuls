@@ -24,25 +24,14 @@ const showDetails = false
         class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
         loading="lazy"
       >
-      <div
+      <UiMediaPlaceholder
         v-else
-        class="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center"
-      >
-        <svg
-          class="h-9 w-9 text-brand-300"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="1.5"
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-          />
-        </svg>
-      </div>
+        label="Фото тренера"
+        hint="Скоро добавим"
+        aspect="auto"
+        :rounded="false"
+        class="absolute inset-0"
+      />
     </div>
 
     <div class="flex flex-1 flex-col p-4 sm:p-5">

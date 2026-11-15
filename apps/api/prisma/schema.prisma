@@ -184,6 +184,13 @@ model SiteFeature {
   updatedAt DateTime @updatedAt
 }
 
+/// Произвольные настройки сайта (ключ → строка), напр. тема
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 enum TaxonomyKind {
   NEWS_TOPIC
   CATALOG_CATEGORY

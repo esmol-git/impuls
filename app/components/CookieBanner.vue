@@ -32,8 +32,8 @@ function accept() {
       <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <p class="text-xs text-brand-600/70 sm:text-sm">
           Мы используем cookies для работы сайта.
-          <NuxtLink to="/privacy" class="font-medium text-brand-600 underline-offset-2 hover:text-accent-500 hover:underline">
-            Политика конфиденциальности
+          <NuxtLink to="/legal#policy" class="font-medium text-brand-600 underline-offset-2 hover:text-accent-500 hover:underline">
+            Политика обработки персональных данных
           </NuxtLink>
         </p>
         <button type="button" class="btn-primary shrink-0 !py-2.5 text-xs sm:!w-auto" @click="accept">

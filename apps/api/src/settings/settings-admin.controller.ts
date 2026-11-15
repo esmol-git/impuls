@@ -7,6 +7,7 @@ import { RolesGuard } from '../auth/guards/roles.guard'
 import { ReorderHomeBlocksDto } from './dto/reorder-home-blocks.dto'
 import { UpdateHomeBlockDto } from './dto/update-home-block.dto'
 import { UpdateSectionDto } from './dto/update-section.dto'
+import { UpdateThemeDto } from './dto/update-theme.dto'
 import { SettingsService } from './settings.service'
 
 @Controller('admin/settings')
@@ -62,5 +63,15 @@ export class SettingsAdminController {
   @Roles(Role.SUPERADMIN)
   setMaintenance(@Body() dto: UpdateHomeBlockDto) {
     return this.settings.setMaintenance(dto.enabled)
+  }
+
+  @Get('theme')
+  getTheme() {
+    return this.settings.getTheme()
+  }
+
+  @Patch('theme')
+  setTheme(@Body() dto: UpdateThemeDto) {
+    return this.settings.setTheme(dto.mode)
   }
 }

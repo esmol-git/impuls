@@ -1,4 +1,4 @@
-export type SiteFeatureKey = 'CART' | 'FAVORITES'
+export type SiteFeatureKey = 'CART' | 'FAVORITES' | 'SECTION_EDGES'
 
 export interface FeatureStatus {
   key: SiteFeatureKey
@@ -7,7 +7,7 @@ export interface FeatureStatus {
   enabled: boolean
 }
 
-/** Флаги функций сайта из админки (корзина, избранное). */
+/** Флаги функций сайта из админки. */
 export function useSiteFeatures() {
   const { data } = useFetch<FeatureStatus[]>('/api/settings/features', {
     key: 'site-features',
@@ -24,6 +24,12 @@ export function useSiteFeatures() {
         description: '',
         enabled: true,
       },
+      {
+        key: 'SECTION_EDGES',
+        label: 'Волны и скосы',
+        description: '',
+        enabled: true,
+      },
     ],
   })
 
@@ -32,6 +38,7 @@ export function useSiteFeatures() {
     return {
       cart: map.CART !== false,
       favorites: map.FAVORITES !== false,
+      sectionEdges: map.SECTION_EDGES !== false,
     }
   })
 

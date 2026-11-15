@@ -11,11 +11,16 @@ import { conditionCards, conditionsSection } from '~/data/conditions'
       </h2>
     </ScrollReveal>
 
-    <ul class="mt-8 grid list-none gap-5 sm:mt-10 lg:grid-cols-3 lg:gap-6">
-      <li v-for="card in conditionCards" :key="card.step">
-        <ScrollReveal class="h-full">
+    <ScrollReveal>
+      <ul class="mt-8 grid list-none gap-5 sm:mt-10 lg:grid-cols-3 lg:gap-6">
+        <li v-for="card in conditionCards" :key="card.step">
           <article class="card flex h-full flex-col overflow-hidden">
-            <UiMediaPlaceholder :label="`Фото ${card.step}`" aspect="video" :rounded="false" />
+            <UiMediaPlaceholder
+              :label="`Фото · ${card.step}`"
+              hint="Скоро добавим"
+              aspect="video"
+              :rounded="false"
+            />
             <div class="flex flex-1 flex-col p-5 sm:p-6">
               <span class="text-sm font-extrabold text-accent-500">{{ card.step }}</span>
               <h3 class="mt-2 text-base font-bold leading-snug text-brand-600 sm:text-lg">
@@ -26,8 +31,8 @@ import { conditionCards, conditionsSection } from '~/data/conditions'
               </p>
             </div>
           </article>
-        </ScrollReveal>
-      </li>
-    </ul>
+        </li>
+      </ul>
+    </ScrollReveal>
   </BaseSection>
 </template>

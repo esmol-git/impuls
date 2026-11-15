@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import logoUrl from '~/assets/img/logo.png'
+import logoUrl from '~/assets/img/logo.webp'
 import { site } from '~/data/site'
 
 definePageMeta({

@@ -23,8 +23,14 @@ const modalPayload = computed(() => ({
 </script>
 
 <template>
-  <article class="flex h-full flex-col rounded-xl border border-brand-100 bg-white p-4 shadow-card sm:p-5">
-    <h3 class="text-sm font-bold leading-snug text-brand-600 sm:text-base">
+  <article class="program-card card flex h-full flex-col p-4 sm:p-5">
+    <p v-if="level.eyebrow" class="program-card__eyebrow text-[11px] font-semibold uppercase tracking-wide sm:text-xs">
+      {{ level.eyebrow }}
+    </p>
+    <h3
+      class="program-card__title text-sm font-bold leading-snug sm:text-base"
+      :class="{ 'mt-1': level.eyebrow }"
+    >
       {{ level.title }}
     </h3>
 
@@ -32,10 +38,10 @@ const modalPayload = computed(() => ({
       <li
         v-for="feature in level.features"
         :key="feature.text"
-        class="flex items-start gap-2.5 text-xs leading-snug text-brand-600/75 sm:text-sm"
+        class="program-card__row flex items-start gap-2.5 text-xs leading-snug sm:text-sm"
       >
         <svg
-          class="mt-0.5 h-4 w-4 shrink-0 text-brand-400"
+          class="program-card__icon mt-0.5 h-4 w-4 shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -48,7 +54,7 @@ const modalPayload = computed(() => ({
       </li>
     </ul>
 
-    <div class="mt-4 flex items-center gap-2 border-t border-brand-100 pt-3 sm:mt-5">
+    <div class="program-card__foot mt-4 flex items-center gap-2 pt-3 sm:mt-5">
       <ModalTrigger
         type="lead"
         :payload="modalPayload"
@@ -59,7 +65,7 @@ const modalPayload = computed(() => ({
       </ModalTrigger>
       <button
         type="button"
-        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-200 text-brand-400 transition hover:border-brand-300 hover:text-brand-600"
+        class="program-card__info flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition"
         :aria-label="`Подробнее о ${level.title}`"
       >
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -69,3 +75,40 @@ const modalPayload = computed(() => ({
     </div>
   </article>
 </template>
+
+<style scoped>
+.program-card__eyebrow {
+  color: rgb(var(--c-accent-500));
+}
+
+.program-card__title {
+  color: var(--page-fg);
+}
+
+.program-card__row {
+  color: rgb(var(--c-brand-600) / 0.78);
+}
+
+.program-card__icon {
+  color: rgb(var(--c-brand-400));
+}
+
+.program-card__foot {
+  border-top: 1px solid var(--card-border);
+}
+
+.program-card__info {
+  border: 1px solid var(--card-border);
+  color: rgb(var(--c-brand-400));
+}
+
+.program-card__info:hover {
+  border-color: var(--outline-border-hover);
+  color: var(--page-fg);
+}
+
+:global(html.dark .program-card) {
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: none;
+}
+</style>

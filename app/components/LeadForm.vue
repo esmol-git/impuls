@@ -49,8 +49,14 @@ const orderTotalLabel = computed(() => formatCartTotal(purchaseItems.value))
 function validate() {
   errors.name = form.name.trim() ? '' : 'Введите имя'
   errors.phone = isValidRuPhone(form.phone) ? '' : 'Введите телефон в формате +7 (999) 999-99-99'
-  if (form.birthDate && !isValidChildBirthDate(form.birthDate)) {
-    errors.birthDate = `Укажите дату рождения ребёнка от ${CHILD_AGE_MIN} до ${CHILD_AGE_MAX} лет`
+  if (props.variant === 'full' && !isCheckout.value) {
+    if (!form.birthDate) {
+      errors.birthDate = 'Укажите дату рождения ребёнка'
+    } else if (!isValidChildBirthDate(form.birthDate)) {
+      errors.birthDate = `Укажите дату рождения ребёнка от ${CHILD_AGE_MIN} до ${CHILD_AGE_MAX} лет`
+    } else {
+      errors.birthDate = ''
+    }
   } else {
     errors.birthDate = ''
   }
@@ -143,7 +149,7 @@ defineExpose({ reset: () => { submitted.value = false } })
 
   <form v-else class="space-y-4" novalidate @submit.prevent="onSubmit">
     <p v-if="payload?.location" class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-600">
-      Площадка: <strong>{{ payload.location }}</strong>
+      Предпочитаемый адрес: <strong>{{ payload.location }}</strong>
     </p>
 
     <div
@@ -223,13 +229,13 @@ defineExpose({ reset: () => { submitted.value = false } })
         />
         <p v-if="errors.birthDate" class="mt-1 text-xs text-accent-500">{{ errors.birthDate }}</p>
       </div>
-      <div>
+      <div v-if="isCheckout">
         <label class="mb-1.5 block text-sm font-medium text-brand-600">Комментарий</label>
         <textarea
           v-model="form.message"
           rows="2"
           class="input-field resize-none"
-          :placeholder="isCheckout ? 'Пожелания по заказу (необязательно)' : 'Необязательно'"
+          placeholder="Пожелания по заказу (необязательно)"
           :disabled="loading"
         />
       </div>
@@ -256,7 +262,24 @@ defineExpose({ reset: () => { submitted.value = false } })
           </svg>
         </span>
         <span class="consent__text">
-          Согласие на обработку персональных данных (текст политики будет добавлен)
+          Оставляя заявку на сайте, я подтверждаю ознакомление и даю
+          <NuxtLink
+            to="/legal#consent"
+            class="consent__link"
+            target="_blank"
+            @click.stop
+          >
+            Согласие на обработку моих персональных данных
+          </NuxtLink>
+          в порядке и на условиях, указанных в
+          <NuxtLink
+            to="/legal#policy"
+            class="consent__link"
+            target="_blank"
+            @click.stop
+          >
+            Политике обработки персональных данных
+          </NuxtLink>
         </span>
       </label>
       <p v-if="errors.consent" class="text-xs text-accent-500">{{ errors.consent }}</p>
@@ -350,6 +373,17 @@ defineExpose({ reset: () => { submitted.value = false } })
   font-size: 0.75rem;
   line-height: 1.5;
   color: rgb(37 56 99 / 70%);
+}
+
+.consent__link {
+  font-weight: 600;
+  color: rgb(37 56 99 / 90%);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.consent__link:hover {
+  color: #b0191b;
 }
 
 .consent__input:disabled + .consent__box,

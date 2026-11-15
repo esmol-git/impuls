@@ -9,11 +9,11 @@ withDefaults(defineProps<{
   light?: boolean
   titleId?: string
   action?: SectionAction
+  /** По умолчанию без отдельного reveal — секции анимируют контент целиком */
   reveal?: boolean
 }>(), {
-  reveal: true,
-})
-</script>
+  reveal: false,
+})</script>
 
 <template>
   <component :is="reveal ? 'ScrollReveal' : 'div'">

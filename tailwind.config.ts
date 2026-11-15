@@ -1,7 +1,13 @@
 import type { Config } from 'tailwindcss'
 
+/**
+ * Цвета через CSS-переменные (каналы R G B).
+ * html.dark переопределяет переменные → все text-brand-* / bg-accent-*
+ * сразу становятся читаемыми без сотен оверрайдов.
+ */
 export default {
   content: [],
+  darkMode: 'class',
   theme: {
     extend: {
       screens: {
@@ -9,26 +15,26 @@ export default {
       },
       colors: {
         brand: {
-          50: '#eef2f8',
-          100: '#dce4f0',
-          200: '#b9c9e1',
-          300: '#8aa3c9',
-          400: '#5a7aad',
-          500: '#3d5d91',
-          600: '#253863',
-          700: '#1e2d4f',
-          800: '#17233d',
-          900: '#101929',
+          50: 'rgb(var(--c-brand-50) / <alpha-value>)',
+          100: 'rgb(var(--c-brand-100) / <alpha-value>)',
+          200: 'rgb(var(--c-brand-200) / <alpha-value>)',
+          300: 'rgb(var(--c-brand-300) / <alpha-value>)',
+          400: 'rgb(var(--c-brand-400) / <alpha-value>)',
+          500: 'rgb(var(--c-brand-500) / <alpha-value>)',
+          600: 'rgb(var(--c-brand-600) / <alpha-value>)',
+          700: 'rgb(var(--c-brand-700) / <alpha-value>)',
+          800: 'rgb(var(--c-brand-800) / <alpha-value>)',
+          900: 'rgb(var(--c-brand-900) / <alpha-value>)',
         },
         accent: {
-          50: '#fdf2f2',
-          100: '#fce4e4',
-          200: '#f9caca',
-          300: '#f2a0a0',
-          400: '#d4282a',
-          500: '#b0191b',
-          600: '#951416',
-          700: '#7a1113',
+          50: 'rgb(var(--c-accent-50) / <alpha-value>)',
+          100: 'rgb(var(--c-accent-100) / <alpha-value>)',
+          200: 'rgb(var(--c-accent-200) / <alpha-value>)',
+          300: 'rgb(var(--c-accent-300) / <alpha-value>)',
+          400: 'rgb(var(--c-accent-400) / <alpha-value>)',
+          500: 'rgb(var(--c-accent-500) / <alpha-value>)',
+          600: 'rgb(var(--c-accent-600) / <alpha-value>)',
+          700: 'rgb(var(--c-accent-700) / <alpha-value>)',
         },
       },
       fontFamily: {

@@ -30,6 +30,16 @@ export default defineNuxtConfig({
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
       ],
+      // Синхронно до CSS — иначе system+OS dark даёт тёмный фон без html.dark.
+      script: [
+        {
+          src: '/theme-boot.js',
+          key: 'impuls-theme-boot',
+          tagPriority: 'critical',
+          // блокирующий — до первого paint
+          tagPosition: 'head',
+        },
+      ],
       link: [
         { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
         { rel: 'icon', type: 'image/png', href: '/favicon-32.png', sizes: '32x32' },
@@ -57,7 +67,8 @@ export default defineNuxtConfig({
     telegramChatId: '',
     apiUrl: process.env.NUXT_API_URL || 'http://localhost:3001',
     public: {
-      yandexMapEmbedUrl: '',
+      /** Ключ JS API: https://developer.tech.yandex.ru/ */
+      yandexMapsApiKey: process.env.NUXT_PUBLIC_YANDEX_MAPS_API_KEY || '',
     },
   },
 

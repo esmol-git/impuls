@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { navigation, site } from '~/data/site'
 import { lockBodyScroll, unlockBodyScroll } from '~/utils/scrollLock'
-import logoUrl from '~/assets/img/logo.png'
+import logoUrl from '~/assets/img/logo.webp'
 
 const route = useRoute()
 const mobileOpen = ref(false)
@@ -68,11 +68,11 @@ onUnmounted(() => {
             width="56"
             height="56"
           >
-          <span class="font-brand hidden min-w-0 sm:block">
-            <span class="block truncate text-[13px] font-medium leading-snug tracking-tight text-brand-700 sm:text-sm">
+          <span class="font-brand app-header__brand hidden min-w-0 sm:block">
+            <span class="app-header__brand-line block truncate text-[13px] font-medium leading-snug tracking-tight sm:text-sm">
               {{ site.tagline }}
             </span>
-            <span class="mt-0.5 block truncate text-[13px] font-medium leading-snug tracking-tight text-brand-700 sm:text-sm">
+            <span class="app-header__brand-line mt-0.5 block truncate text-[13px] font-medium leading-snug tracking-tight sm:text-sm">
               {{ site.brandLine }}
             </span>
           </span>
@@ -265,19 +265,23 @@ onUnmounted(() => {
 
 <style scoped>
 .app-header {
-  border-bottom: 1px solid rgb(226 232 240 / 0.9);
-  background: rgb(255 255 255 / 0.96);
+  border-bottom: 1px solid var(--header-border);
+  background: var(--header-bg);
   box-shadow: 0 1px 0 rgb(15 23 42 / 0.03), 0 8px 24px rgb(15 23 42 / 0.04);
   backdrop-filter: blur(12px);
 }
 
 .app-header__top {
-  background: linear-gradient(180deg, #fff 0%, rgb(248 250 252 / 0.55) 100%);
+  background: var(--header-bg-top);
+}
+
+.app-header__brand-line {
+  color: var(--header-fg);
 }
 
 .app-header__nav {
-  border-top: 1px solid rgb(226 232 240 / 0.85);
-  background: rgb(248 250 252 / 0.72);
+  border-top: 1px solid var(--header-border);
+  background: var(--header-bg-nav);
 }
 
 .app-header__nav-list {
@@ -297,7 +301,7 @@ onUnmounted(() => {
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: rgb(30 58 95 / 0.78);
+  color: var(--header-link);
   transition:
     color 0.15s ease,
     background 0.15s ease;
@@ -316,16 +320,32 @@ onUnmounted(() => {
 }
 
 .app-header__nav-link:hover {
-  color: rgb(30 58 95);
+  color: var(--header-link-hover);
   background: rgb(255 255 255 / 0.7);
+}
+
+:global(html.dark .app-header__nav-link:hover) {
+  background: rgb(255 255 255 / 0.08);
 }
 
 .app-header__nav-link.is-active {
   color: #b0191b;
 }
 
+:global(html.dark .app-header__nav-link) {
+  color: #ffffff;
+}
+
+:global(html.dark .app-header__nav-link.is-active) {
+  color: #ff4242;
+}
+
+:global(html.dark .app-header__brand-line) {
+  color: #ffffff;
+}
+
 .app-header__nav-link.is-active::after {
-  background: #b0191b;
+  background: currentColor;
 }
 
 .header-icon-btn {
@@ -334,10 +354,10 @@ onUnmounted(() => {
   width: 2.5rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgb(226 232 240);
+  border: 1px solid var(--header-icon-border);
   border-radius: 0.5rem;
-  background: #fff;
-  color: rgb(30 58 95);
+  background: var(--header-icon-bg);
+  color: var(--header-fg);
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
@@ -345,7 +365,11 @@ onUnmounted(() => {
 }
 
 .header-icon-btn:hover {
-  border-color: rgb(203 213 225);
-  background: rgb(248 250 252);
+  filter: brightness(0.97);
+}
+
+:global(html.dark .header-icon-btn:hover) {
+  filter: brightness(1.15);
+  color: #fff;
 }
 </style>

@@ -7,10 +7,10 @@ export const site = {
   /** Полная вторая строка бренда в шапке */
   brandLine: 'ФК «Импульс» Ярославль',
   description: 'Детская футбольная школа. Бесплатное пробное занятие для каждого ребёнка.',
-  phone: '+7 (981) 683-70-28',
-  phoneHoursStart: 9,
-  phoneHoursEnd: 21,
-  phoneHours: 'Звоните с 9:00 до 21:00',
+  phone: '+7 (920) 130-72-40',
+  phoneHoursStart: 10,
+  phoneHoursEnd: 20,
+  phoneHours: 'Мы на связи с 10:00 до 20:00',
   email: 'info@example.com',
   legal: 'Юридическая информация будет добавлена позже',
 } as const
@@ -22,16 +22,16 @@ export const socialLinks: SocialLink[] = [
 ]
 
 export const navigation = [
-  { label: 'Каталог', to: '/catalog', section: 'catalog' as const },
-  { label: 'Новости', to: '/news', section: 'news' as const },
-  { label: 'Адреса', to: '/contacts' },
   { label: 'О школе', to: '/about' },
+  { label: 'Новости', to: '/news', section: 'news' as const },
   { label: 'Тренеры', to: '/coaches' },
+  { label: 'Группы', to: '/programs' },
+  { label: 'Адреса', to: '/contacts' },
 ] as const
 
 export type NavSectionKey = 'catalog' | 'news'
 
 export const footerLinks = [
   { label: 'Сведения об организации', to: '/education' },
-  { label: 'Политика конфиденциальности', to: '/privacy' },
+  { label: 'Правовая информация', to: '/legal' },
 ] as const

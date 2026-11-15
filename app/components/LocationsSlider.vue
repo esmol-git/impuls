@@ -4,12 +4,18 @@ import type { Location } from '~/types'
 
 const props = withDefaults(defineProps<{
   items: Location[]
-  source?: string
   ariaLabel?: string
+  activeId?: string | null
+  selectable?: boolean
 }>(), {
-  source: 'location',
   ariaLabel: 'Площадки',
+  activeId: null,
+  selectable: false,
 })
+
+const emit = defineEmits<{
+  select: [id: string]
+}>()
 
 const track = ref<HTMLElement>()
 const canScrollPrev = ref(false)
@@ -44,6 +50,14 @@ function onTouchEnd(e: TouchEvent) {
   if (Math.abs(diff) > 50) scrollStep(diff > 0 ? 1 : -1)
 }
 
+function scrollToActive(id: string | null | undefined) {
+  if (!id || !track.value) return
+  const card = track.value.querySelector<HTMLElement>(`[data-location-id="${id}"]`)
+  if (!card) return
+  card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+  window.setTimeout(updateButtons, 350)
+}
+
 onMounted(() => {
   const el = track.value
   if (!el) return
@@ -51,12 +65,17 @@ onMounted(() => {
   el.addEventListener('scroll', updateButtons, { passive: true })
   window.addEventListener('resize', updateButtons)
   updateButtons()
+  if (props.activeId) scrollToActive(props.activeId)
 })
 
 onUnmounted(() => {
   const el = track.value
   if (el) el.removeEventListener('scroll', updateButtons)
   window.removeEventListener('resize', updateButtons)
+})
+
+watch(() => props.activeId, (id) => {
+  scrollToActive(id)
 })
 </script>
 
@@ -74,9 +93,16 @@ onUnmounted(() => {
           v-for="loc in items"
           :key="loc.id"
           data-location-card
+          :data-location-id="loc.id"
           class="w-[min(100%,20rem)] shrink-0 snap-start sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] xl:w-[calc(25%-0.75rem)]"
         >
-          <LocationCard :location="loc" :source="source" compact />
+          <LocationCard
+            :location="loc"
+            :active="activeId === loc.id"
+            :selectable="selectable"
+            compact
+            @select="emit('select', $event)"
+          />
         </div>
       </div>
 
@@ -105,7 +131,7 @@ onUnmounted(() => {
     </div>
 
     <p class="mt-3 text-center text-xs text-brand-400 sm:hidden">
-      Свайпните для просмотра
+      Свайпните · нажмите карточку — точка на карте
     </p>
   </div>
 </template>

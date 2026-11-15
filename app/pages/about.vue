@@ -33,20 +33,26 @@ usePageSeo(`${meta.title} — ${site.name}`, meta.description)
         </ScrollReveal>
 
         <ScrollReveal>
-          <UiMediaPlaceholder label="Фото школы на тренировке" aspect="video" />
+          <UiMediaPlaceholder
+            label="Фото школы на тренировке"
+            hint="Скоро добавим"
+            aspect="video"
+          />
         </ScrollReveal>
       </div>
 
       <ScrollReveal class="mt-8 sm:mt-10">
-        <aside class="relative overflow-hidden rounded-2xl bg-brand-600 px-6 py-8 sm:px-8 sm:py-10">
-          <div class="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent-500/20 blur-2xl" aria-hidden="true" />
-          <p class="text-sm font-semibold uppercase tracking-wider text-accent-300">
-            {{ aboutHighlight.label }}
-          </p>
-          <h2 class="mt-2 text-xl font-bold text-white sm:text-2xl">{{ aboutHighlight.name }}</h2>
-          <p class="mt-4 text-sm leading-relaxed text-white/80 sm:text-base">
-            {{ aboutHighlight.text }}
-          </p>
+        <aside class="surface-brand relative overflow-hidden rounded-2xl bg-brand-600 px-6 py-8 sm:px-8 sm:py-10">
+          <div class="accent-bloom accent-bloom--corner" aria-hidden="true" />
+          <div class="relative z-[1]">
+            <p class="text-sm font-semibold uppercase tracking-wider text-accent-300">
+              {{ aboutHighlight.label }}
+            </p>
+            <h2 class="mt-2 text-xl font-bold text-white sm:text-2xl">{{ aboutHighlight.name }}</h2>
+            <p class="mt-4 text-sm leading-relaxed text-white/80 sm:text-base">
+              {{ aboutHighlight.text }}
+            </p>
+          </div>
         </aside>
       </ScrollReveal>
     </BaseSection>
@@ -57,13 +63,13 @@ usePageSeo(`${meta.title} — ${site.name}`, meta.description)
       <ScrollReveal>
         <SectionHeader v-bind="aboutValuesHeading" />
       </ScrollReveal>
-      <ul class="mt-8 grid list-none gap-6 sm:mt-12 md:grid-cols-3">
-        <li v-for="value in aboutValues" :key="value.title">
-          <ScrollReveal class="h-full">
+      <ScrollReveal>
+        <ul class="mt-8 grid list-none gap-6 sm:mt-12 md:grid-cols-3">
+          <li v-for="value in aboutValues" :key="value.title">
             <FeatureCard v-bind="value" />
-          </ScrollReveal>
-        </li>
-      </ul>
+          </li>
+        </ul>
+      </ScrollReveal>
     </BaseSection>
 
     <BaseSection id="history" alt container-class="max-w-3xl">
@@ -74,28 +80,30 @@ usePageSeo(`${meta.title} — ${site.name}`, meta.description)
           align="center"
         />
       </ScrollReveal>
-      <ol class="relative mt-8 list-none space-y-0 sm:mt-10">
-        <li
-          v-for="(item, index) in aboutMilestones"
-          :key="item.year"
-          class="relative flex gap-4 pb-8 last:pb-0 sm:gap-6"
-        >
-          <div
-            v-if="index < aboutMilestones.length - 1"
-            class="absolute left-[0.6875rem] top-8 h-[calc(100%-2rem)] w-px bg-brand-200 sm:left-3"
-            aria-hidden="true"
-          />
-          <ScrollReveal class="flex w-full gap-4 sm:gap-6">
-            <span class="relative z-10 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-500 ring-4 ring-white sm:h-7 sm:w-7">
-              <span class="h-2 w-2 rounded-full bg-white" aria-hidden="true" />
-            </span>
-            <div class="min-w-0 flex-1 rounded-xl border border-brand-100 bg-white p-4 sm:p-5">
-              <p class="text-sm font-extrabold text-accent-500">{{ item.year }}</p>
-              <p class="mt-1 text-sm leading-relaxed text-brand-600/80 sm:text-base">{{ item.text }}</p>
+      <ScrollReveal>
+        <ol class="relative mt-8 list-none space-y-0 sm:mt-10">
+          <li
+            v-for="(item, index) in aboutMilestones"
+            :key="item.year"
+            class="relative flex gap-4 pb-8 last:pb-0 sm:gap-6"
+          >
+            <div
+              v-if="index < aboutMilestones.length - 1"
+              class="absolute left-[0.6875rem] top-8 h-[calc(100%-2rem)] w-px bg-brand-200 sm:left-3"
+              aria-hidden="true"
+            />
+            <div class="flex w-full gap-4 sm:gap-6">
+              <span class="relative z-10 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-500 ring-4 ring-white sm:h-7 sm:w-7">
+                <span class="h-2 w-2 rounded-full bg-white" aria-hidden="true" />
+              </span>
+              <div class="min-w-0 flex-1 rounded-xl border border-brand-100 bg-white p-4 sm:p-5">
+                <p class="text-sm font-extrabold text-accent-500">{{ item.year }}</p>
+                <p class="mt-1 text-sm leading-relaxed text-brand-600/80 sm:text-base">{{ item.text }}</p>
+              </div>
             </div>
-          </ScrollReveal>
-        </li>
-      </ol>
+          </li>
+        </ol>
+      </ScrollReveal>
     </BaseSection>
 
     <CtaSection

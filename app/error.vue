@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { NuxtError } from '#app'
-import logoUrl from '~/assets/img/logo.png'
+import logoUrl from '~/assets/img/logo.webp'
 import { site } from '~/data/site'
 
 const props = defineProps<{

@@ -13,16 +13,16 @@ const icons: Record<PainPointIcon, string> = {
 </script>
 
 <template>
-  <BaseSection id="pain-points" alt container-class="max-w-5xl">
+  <BaseSection id="pain-points" container-class="max-w-5xl">
     <ScrollReveal>
       <h2 class="text-center text-2xl font-extrabold text-brand-600 sm:text-3xl">
         {{ painPointsSection.title }}
       </h2>
     </ScrollReveal>
 
-    <ul class="mt-6 grid list-none gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-      <li v-for="point in painPoints" :key="point.id">
-        <ScrollReveal class="h-full">
+    <ScrollReveal>
+      <ul class="mt-6 grid list-none gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+        <li v-for="point in painPoints" :key="point.id">
           <article class="card flex h-full gap-3 p-4 sm:gap-4 sm:p-5">
             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-50 text-accent-500 sm:h-10 sm:w-10">
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
@@ -33,17 +33,18 @@ const icons: Record<PainPointIcon, string> = {
               {{ point.text }}
             </p>
           </article>
-        </ScrollReveal>
-      </li>
-    </ul>
+        </li>
+      </ul>
+    </ScrollReveal>
 
     <ScrollReveal>
-      <div class="relative mt-6 overflow-hidden rounded-2xl bg-brand-600 sm:mt-8">
+      <div class="surface-brand relative mt-6 overflow-hidden rounded-2xl bg-brand-600 sm:mt-8">
         <div
           class="absolute inset-0 bg-gradient-to-r from-brand-700/90 via-brand-600/85 to-brand-600/70"
           aria-hidden="true"
         />
-        <div class="relative px-5 py-8 text-center sm:px-8 sm:py-10">
+        <div class="accent-bloom accent-bloom--corner" aria-hidden="true" />
+        <div class="relative z-[1] px-5 py-8 text-center sm:px-8 sm:py-10">
           <h3 class="text-xl font-bold text-white sm:text-2xl">
             {{ painPointsSection.joinTitle }}
           </h3>

@@ -22,6 +22,7 @@ export const routeBreadcrumbs: Record<string, BreadcrumbItem[]> = {
   '/gallery': trail(pages.gallery.breadcrumb),
   '/education': trail(pages.education.breadcrumb),
   '/privacy': trail(pages.privacy.breadcrumb),
+  '/legal': trail(pages.legal.breadcrumb),
 }
 
 export function newsArticleBreadcrumbs(title: string): BreadcrumbItem[] {

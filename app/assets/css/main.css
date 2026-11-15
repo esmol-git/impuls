@@ -6,6 +6,102 @@
   :root {
     /* Mobile / tablet: single-row header */
     --header-h: 3.5rem;
+    /* Высота стыка секций (волна/скос), desktop */
+    --section-edge-h: 5rem;
+    /* Tailwind brand / accent (каналы для rgb(var(--c-*) / <alpha>)) */
+    --c-brand-50: 238 242 248;
+    --c-brand-100: 220 228 240;
+    --c-brand-200: 185 201 225;
+    --c-brand-300: 138 163 201;
+    --c-brand-400: 90 122 173;
+    --c-brand-500: 61 93 145;
+    --c-brand-600: 37 56 99;
+    --c-brand-700: 30 45 79;
+    --c-brand-800: 23 35 61;
+    --c-brand-900: 16 25 41;
+    --c-accent-50: 253 242 242;
+    --c-accent-100: 252 228 228;
+    --c-accent-200: 249 202 202;
+    --c-accent-300: 242 160 160;
+    --c-accent-400: 212 40 42;
+    --c-accent-500: 176 25 27;
+    --c-accent-600: 149 20 22;
+    --c-accent-700: 122 17 19;
+    /* Поверхности секций (светлая тема) */
+    --surface-paper: #ffffff;
+    --surface-mist: #eef2f7;
+    --page-bg: #eef2f8;
+    --page-fg: #17233d;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --outline-border: #94a3b8;
+    --outline-border-hover: #64748b;
+    --soft-bg: rgb(238 242 248 / 0.85);
+    --skeleton-bg: #dce4f0;
+    --skeleton-shine: #eef2f8;
+    /* Хедер */
+    --header-bg: rgb(255 255 255 / 0.96);
+    --header-bg-top: linear-gradient(180deg, #fff 0%, rgb(248 250 252 / 0.55) 100%);
+    --header-bg-nav: rgb(248 250 252 / 0.72);
+    --header-border: rgb(226 232 240 / 0.9);
+    --header-fg: #253863;
+    --header-fg-muted: rgb(37 56 99 / 0.72);
+    --header-link: rgb(30 58 95 / 0.78);
+    --header-link-hover: #1e3a5f;
+    --header-icon-bg: #fff;
+    --header-icon-border: #e2e8f0;
+  }
+
+  html.dark {
+    /* Текст/акцент — через те же утилиты Tailwind */
+    --c-brand-50: 36 53 82;
+    --c-brand-100: 36 53 82;
+    --c-brand-200: 70 90 120;
+    --c-brand-300: 180 196 220;
+    --c-brand-400: 210 222 236;
+    --c-brand-500: 230 236 245;
+    --c-brand-600: 255 255 255;
+    --c-brand-700: 255 255 255;
+    --c-brand-800: 255 255 255;
+    --c-brand-900: 255 255 255;
+    --c-accent-50: 80 20 24;
+    --c-accent-100: 100 24 28;
+    --c-accent-200: 140 30 36;
+    --c-accent-300: 255 100 100;
+    --c-accent-400: 255 66 66;
+    --c-accent-500: 255 42 42;
+    --c-accent-600: 230 30 30;
+    --c-accent-700: 200 24 24;
+    --surface-paper: #1c2a44;
+    --surface-mist: #141f33;
+    --page-bg: #101827;
+    --page-fg: #ffffff;
+    --card-bg: #243552;
+    --card-border: rgb(255 255 255 / 0.08);
+    --outline-border: rgb(255 255 255 / 0.14);
+    --outline-border-hover: rgb(255 255 255 / 0.22);
+    --soft-bg: rgb(255 255 255 / 0.04);
+    --skeleton-bg: #243552;
+    --skeleton-shine: #314866;
+    --header-bg: rgb(20 30 48 / 0.97);
+    --header-bg-top: linear-gradient(180deg, #141f33 0%, rgb(28 42 68 / 0.96) 100%);
+    --header-bg-nav: rgb(28 42 68 / 0.95);
+    --header-border: rgb(255 255 255 / 0.1);
+    --header-fg: #ffffff;
+    --header-fg-muted: rgb(255 255 255 / 0.86);
+    --header-link: #ffffff;
+    --header-link-hover: #ffffff;
+    --header-icon-bg: rgb(36 53 82 / 0.9);
+    --header-icon-border: rgb(255 255 255 / 0.12);
+    color-scheme: dark;
+  }
+
+  /* Preflight Tailwind: border-color #e5e7eb → в dark даёт «светлые рамки» */
+  html.dark,
+  html.dark *,
+  html.dark *::before,
+  html.dark *::after {
+    border-color: rgb(255 255 255 / 0.1);
   }
 
   @media (min-width: 640px) {
@@ -18,6 +114,7 @@
     :root {
       /* Desktop two-tier: top 4rem + nav ~2.75rem */
       --header-h: 6.75rem;
+      --section-edge-h: 5.5rem;
     }
   }
 
@@ -27,8 +124,21 @@
   }
 
   body {
-    @apply bg-brand-50 text-brand-800 antialiased;
+    @apply antialiased;
+    background-color: var(--page-bg);
+    color: var(--page-fg);
     overflow-x: hidden;
+  }
+
+  /*
+   * antialiased на тёмном фоне «серит» белый текст (macOS).
+   * subpixel / auto возвращает контраст.
+   */
+  html.dark,
+  html.dark body {
+    color: #ffffff;
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
   }
 
   html.scroll-locked body {
@@ -52,7 +162,25 @@
   }
 
   .btn-outline {
-    @apply inline-flex min-h-[44px] items-center justify-center rounded-lg border-2 border-brand-600 px-5 py-2.5 text-sm font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white active:scale-[0.98] sm:px-6 sm:py-3;
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-lg border-2 px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] sm:px-6 sm:py-3;
+    border-color: var(--outline-border);
+    color: var(--page-fg);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--outline-border-hover);
+    background: var(--soft-bg);
+  }
+
+  html.dark .btn-outline {
+    border-color: rgb(148 163 184 / 0.58);
+    color: rgb(226 232 240 / 0.95);
+  }
+
+  html.dark .btn-outline:hover {
+    border-color: rgb(203 213 225 / 0.75);
+    background: rgb(148 163 184 / 0.16);
+    color: #fff;
   }
 
   .section-padding {
@@ -60,11 +188,80 @@
   }
 
   .section-alt {
-    @apply bg-white;
+    background-color: var(--surface-paper);
+  }
+
+  .section-soft {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--surface-mist);
   }
 
   .card {
-    @apply rounded-2xl border border-brand-100 bg-white shadow-card transition hover:shadow-lg;
+    @apply rounded-2xl border shadow-card transition hover:shadow-lg;
+    border-color: var(--card-border);
+    background-color: var(--card-bg);
+  }
+
+  html.dark .card {
+    border-color: rgb(255 255 255 / 0.08);
+    box-shadow: 0 12px 28px rgb(0 0 0 / 0.28);
+  }
+
+  /* Тёмные brand-блоки (видео, баннеры) — читаемая кромка на тёмной секции */
+  .surface-brand {
+    border: 1px solid transparent;
+  }
+
+  /**
+   * Красное «вкрапление»-свечение (как в экосистеме).
+   * Класть absolute inset-0 внутри relative overflow-hidden.
+   */
+  /* Свечение brand-блоков — заметнее в тёмной теме; на светлой тише */
+  .accent-bloom {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.12;
+    background-image:
+      radial-gradient(ellipse 72% 58% at 28% 16%, #b0191b 0%, transparent 55%),
+      radial-gradient(ellipse 55% 48% at 86% 82%, #3d5d91 0%, transparent 48%);
+  }
+
+  .accent-bloom--soft {
+    opacity: 0.08;
+  }
+
+  .accent-bloom--corner {
+    opacity: 0.14;
+    background-image:
+      radial-gradient(ellipse 80% 70% at 12% 8%, #b0191b 0%, transparent 52%);
+  }
+
+  html.dark .accent-bloom {
+    opacity: 0.32;
+  }
+
+  html.dark .accent-bloom--soft {
+    opacity: 0.2;
+  }
+
+  html.dark .accent-bloom--corner {
+    opacity: 0.4;
+  }
+
+  html.dark .surface-brand {
+    border-color: rgb(255 255 255 / 0.1);
+    box-shadow: 0 12px 36px rgb(0 0 0 / 0.45);
+  }
+
+  html.dark .bg-brand-600 {
+    background-color: #243552;
+  }
+
+  html.dark .bg-brand-700 {
+    background-color: #1c2a44;
   }
 
   .page-top {
@@ -205,4 +402,59 @@
 .page-leave-to {
   opacity: 0;
   transform: translateY(8px);
+}
+
+/*
+ * Тёмная тема — надёжные селекторы по подстроке класса.
+ * (точечные .text-brand-600\/80 часто не матчятся с тем, что эмитит Tailwind)
+ */
+html.dark,
+html.dark body {
+  color: #ffffff !important;
+}
+
+html.dark [class*='text-brand'],
+html.dark [class*='text-white'] {
+  color: #ffffff !important;
+}
+
+html.dark [class*='text-accent'] {
+  color: #ff4242 !important;
+}
+
+html.dark .btn-primary,
+html.dark [class*='bg-accent-500'],
+html.dark [class*='bg-accent-600'] {
+  background-color: #ff2a2a !important;
+  color: #ffffff !important;
+}
+
+html.dark .btn-primary:hover,
+html.dark [class*='hover:bg-accent-600']:hover {
+  background-color: #e61f1f !important;
+}
+
+html.dark [class*='bg-brand-50'],
+html.dark [class*='bg-white'] {
+  background-color: var(--card-bg) !important;
+}
+
+html.dark [class*='border-brand'],
+html.dark .border {
+  border-color: rgb(255 255 255 / 0.1) !important;
+}
+
+html.dark .card {
+  border-color: rgb(255 255 255 / 0.08) !important;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.28);
+}
+
+html.dark .ring-1,
+html.dark [class*='ring-brand'] {
+  --tw-ring-color: rgb(255 255 255 / 0.1);
+}
+
+html.dark .programs-panel {
+  background: transparent !important;
+  box-shadow: none;
 }

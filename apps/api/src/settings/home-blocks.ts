@@ -8,7 +8,7 @@ export const HOME_BLOCK_DEFS = [
   { key: 'childBenefits', label: 'Польза для ребёнка', description: 'Что получает ребёнок', defaultEnabled: true },
   { key: 'steps', label: 'Как начать', description: 'Шаги до первой тренировки', defaultEnabled: true },
   { key: 'progression', label: 'Прогрессия', description: 'Путь развития игрока', defaultEnabled: true },
-  { key: 'trainingQuality', label: 'Качество тренировок', description: 'Как устроены занятия', defaultEnabled: true },
+  { key: 'trainingQuality', label: 'О школе', description: 'О школе и прямая речь основателя', defaultEnabled: true },
   { key: 'conditions', label: 'Условия', description: 'Условия занятий', defaultEnabled: true },
   { key: 'ecosystem', label: 'Экосистема', description: 'Что входит в школу', defaultEnabled: true },
   { key: 'advantages', label: 'Преимущества', description: 'Почему выбирают нас', defaultEnabled: false },

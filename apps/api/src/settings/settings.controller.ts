@@ -26,4 +26,9 @@ export class SettingsController {
   getMaintenance() {
     return this.settings.getMaintenance()
   }
+
+  @Get('theme')
+  getTheme() {
+    return this.settings.getTheme()
+  }
 }

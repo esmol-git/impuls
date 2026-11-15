@@ -1,74 +1,157 @@
-import type { AgeProgram } from '~/types'
+import type { AgeProgram, ProgramFeature } from '~/types'
 
 export type { AgeProgram } from '~/types'
 
 export const programsSection = {
   titleBefore: 'Занятия для детей',
-  titleAccent: 'от 4 до 16 лет',
+  titleAccent: 'от 4 до 15 лет',
 } as const
 
-export const ageTabs = ['4–6 лет', '7–9 лет', '10–12 лет', '12–16 лет'] as const
+export const ageTabs = ['4–6 лет', '7–9 лет', '10–12 лет', '13–15 лет'] as const
 
-const baseFeatures = {
-  beginner: [
-    { icon: 'clock' as const, text: '1–2 тренировки в неделю' },
-    { icon: 'game' as const, text: 'Игровой формат занятий' },
-    { icon: 'users' as const, text: 'Для любого уровня подготовки' },
-    { icon: 'trophy' as const, text: 'Участие в турнирах' },
-    { icon: 'ball' as const, text: 'Мини-футбол в упражнениях' },
-  ],
-  advanced: [
-    { icon: 'clock' as const, text: '2–3 тренировки в неделю' },
-    { icon: 'calendar' as const, text: 'Расширенная программа' },
-    { icon: 'users' as const, text: 'Для мотивированных игроков' },
-    { icon: 'trophy' as const, text: 'Регулярные соревнования' },
-    { icon: 'ball' as const, text: 'Техника и тактика' },
-  ],
+function features(items: Array<[ProgramFeature['icon'], string]>): ProgramFeature[] {
+  return items.map(([icon, text]) => ({ icon, text }))
 }
 
 export const agePrograms: AgeProgram[] = [
   {
     id: '4-6',
     tabLabel: '4–6 лет',
-    groupLabel: 'Младшая группа 4–6 лет',
-    description: 'Первые шаги в футболе через игру. Развиваем координацию, учимся работать в команде и полюбить спорт без давления.',
-    schedule: '2–3 раза в неделю, утро и вечер. Точное расписание по филиалам.',
+    groupLabel: 'Младшая группа (4–6 лет)',
+    description: 'Первые шаги в футболе через игру: мяч, координация и внутренние турниры без давления.',
+    schedule: 'Базовые группы — 2 тренировки в неделю. Сборные команды — 3 тренировки в неделю.',
     levels: [
-      { id: '4-6-beginner', title: 'Группы начальной подготовки', features: baseFeatures.beginner, buttonVariant: 'brand' },
-      { id: '4-6-advanced', title: 'Группы продвинутой подготовки', features: baseFeatures.advanced, buttonVariant: 'accent' },
+      {
+        id: '4-6-beginner',
+        eyebrow: 'Начальный уровень',
+        title: 'Базовые группы',
+        buttonVariant: 'brand',
+        features: features([
+          ['clock', '2 тренировки в неделю'],
+          ['game', 'Игровой формат занятий'],
+          ['ball', 'Знакомство с мячом'],
+          ['users', 'Развитие координации и ловкости'],
+          ['trophy', 'Участие во внутренних турнирах'],
+        ]),
+      },
+      {
+        id: '4-6-advanced',
+        eyebrow: 'Продвинутый уровень',
+        title: 'Сборные команды',
+        buttonVariant: 'accent',
+        features: features([
+          ['clock', '3 тренировки в неделю'],
+          ['calendar', 'Лучшие площадки для занятий'],
+          ['game', 'Усложнённые игровые задания'],
+          ['ball', 'Техника и тактика'],
+          ['trophy', 'Турниры и выезды'],
+        ]),
+      },
     ],
   },
   {
     id: '7-9',
     tabLabel: '7–9 лет',
-    groupLabel: 'Средняя группа 7–9 лет',
-    description: 'Отработка базовой техники, первые элементы тактики и регулярные игровые форматы на тренировках.',
-    schedule: '3 раза в неделю. Группы в будни и в выходные.',
+    groupLabel: 'Группы начальной подготовки (7–9 лет)',
+    description: 'Базовая техника и тактика, развитие координации и путь в сборные команды.',
+    schedule: 'Базовые группы — 2 тренировки в неделю. Сборные команды — 3–4 тренировки в неделю.',
     levels: [
-      { id: '7-9-beginner', title: 'Группы начальной подготовки', features: baseFeatures.beginner, buttonVariant: 'brand' },
-      { id: '7-9-advanced', title: 'Группы продвинутой подготовки', features: baseFeatures.advanced, buttonVariant: 'accent' },
+      {
+        id: '7-9-beginner',
+        eyebrow: 'Начальный уровень',
+        title: 'Базовые группы',
+        buttonVariant: 'brand',
+        features: features([
+          ['clock', '2 тренировки в неделю'],
+          ['ball', 'Базовая техника и тактика'],
+          ['users', 'Развитие координации и выносливости'],
+          ['trophy', 'Участие во внутренних турнирах'],
+          ['game', 'Возможность перехода в Сборные команды'],
+        ]),
+      },
+      {
+        id: '7-9-advanced',
+        eyebrow: 'Продвинутый уровень',
+        title: 'Сборные команды',
+        buttonVariant: 'accent',
+        features: features([
+          ['clock', '3–4 тренировки в неделю'],
+          ['calendar', 'Лучшие площадки для занятий'],
+          ['ball', 'Углублённая техника и тактика'],
+          ['trophy', 'Регулярные выездные соревнования и сборы'],
+          ['users', 'Разбор игр и индивидуальный план развития'],
+        ]),
+      },
     ],
   },
   {
     id: '10-12',
     tabLabel: '10–12 лет',
-    groupLabel: 'Группа 10–12 лет',
-    description: 'Углублённая работа над техникой, физической подготовкой и игровым мышлением. Подготовка к турнирам.',
-    schedule: '3–4 тренировки в неделю. Расписание зависит от уровня группы.',
+    groupLabel: 'Группы подготовки (10–12 лет)',
+    description: 'Техника, тактика и игровая практика с выходом на турниры и сборные команды.',
+    schedule: 'Базовые группы — 2–3 тренировки в неделю. Сборные команды — 3–4 тренировки в неделю.',
     levels: [
-      { id: '10-12-beginner', title: 'Группы начальной подготовки', features: baseFeatures.beginner, buttonVariant: 'brand' },
-      { id: '10-12-advanced', title: 'Группы продвинутой подготовки', features: baseFeatures.advanced, buttonVariant: 'accent' },
+      {
+        id: '10-12-beginner',
+        eyebrow: 'Начальный уровень',
+        title: 'Базовые группы',
+        buttonVariant: 'brand',
+        features: features([
+          ['clock', '2–3 тренировки в неделю'],
+          ['ball', 'Техника, тактика и игровая практика'],
+          ['users', 'Развитие выносливости и скорости'],
+          ['trophy', 'Внутренние турниры и товарищеские матчи'],
+          ['game', 'Возможность перехода в Сборные команды'],
+        ]),
+      },
+      {
+        id: '10-12-advanced',
+        eyebrow: 'Продвинутый уровень',
+        title: 'Сборные команды',
+        buttonVariant: 'accent',
+        features: features([
+          ['clock', '3–4 тренировки в неделю'],
+          ['calendar', 'Лучшие площадки для занятий'],
+          ['ball', 'Углублённая тактическая и физическая подготовка'],
+          ['trophy', 'Регулярные выездные соревнования и сборы'],
+          ['users', 'Разбор игр и индивидуальный план развития'],
+        ]),
+      },
     ],
   },
   {
-    id: '12-16',
-    tabLabel: '12–16 лет',
-    groupLabel: 'Группа 12–16 лет',
-    description: 'Интенсивные тренировки для тех, кто хочет расти в футболе: техника, тактика, анализ игры и участие в соревнованиях.',
-    schedule: '4 тренировки в неделю для продвинутых групп. Индивидуальный график по запросу.',
+    id: '13-15',
+    tabLabel: '13–15 лет',
+    groupLabel: 'Группы подготовки (13–15 лет)',
+    description: 'Подготовка подростков: от комфортного темпа в базовых группах до интенсивной работы в сборных.',
+    schedule: 'Базовые группы — 2–3 тренировки в неделю. Сборные команды — 3–4 тренировки в неделю.',
     levels: [
-      { id: '12-16-beginner', title: 'Группы начальной подготовки', features: baseFeatures.beginner, buttonVariant: 'brand' },
-      { id: '12-16-advanced', title: 'Группы продвинутой подготовки', features: baseFeatures.advanced, buttonVariant: 'accent' },
+      {
+        id: '13-15-beginner',
+        eyebrow: 'Начальный уровень',
+        title: 'Базовые группы',
+        buttonVariant: 'brand',
+        features: features([
+          ['clock', '2–3 тренировки в неделю'],
+          ['ball', 'Техника, тактика и игровая практика'],
+          ['users', 'Развитие физических качеств'],
+          ['trophy', 'Участие в турнирах «Импульс в футбол»'],
+          ['game', 'Дружная команда и комфортный темп'],
+        ]),
+      },
+      {
+        id: '13-15-advanced',
+        eyebrow: 'Продвинутый уровень',
+        title: 'Сборные команды',
+        buttonVariant: 'accent',
+        features: features([
+          ['clock', '3–4 тренировки в неделю'],
+          ['ball', 'Интенсивная профессиональная подготовка'],
+          ['trophy', 'Городские и выездные турниры'],
+          ['calendar', 'Регулярные выездные сборы'],
+          ['users', 'Разборы игр и индивидуальный план развития'],
+        ]),
+      },
     ],
   },
 ]

@@ -1,31 +1,81 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-
+/**
+ * Один reveal на блок/сетку. Не оборачивайте каждую карточку —
+ * иначе при скролле они всплывают по одной и кажется, что «тормозит».
+ */
 const el = ref<HTMLElement>()
 
-onMounted(async () => {
-  if (!el.value) return
+let observer: IntersectionObserver | null = null
 
-  const { gsap } = await import('gsap')
-  const { ScrollTrigger } = await import('gsap/ScrollTrigger')
-  gsap.registerPlugin(ScrollTrigger)
+onMounted(() => {
+  const node = el.value
+  if (!node) return
 
-  gsap.from(el.value, {
-    y: 32,
-    opacity: 0,
-    duration: 0.6,
-    ease: 'power2.out',
-    scrollTrigger: {
-      trigger: el.value,
-      start: 'top 88%',
-      once: true,
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (reduced || typeof IntersectionObserver === 'undefined') {
+    node.classList.add('is-revealed')
+    return
+  }
+
+  // Уже в кадре или чуть ниже фолда — показать сразу
+  const rect = node.getBoundingClientRect()
+  if (rect.top < window.innerHeight + 80 && rect.bottom > 0) {
+    node.classList.add('is-revealed')
+    return
+  }
+
+  node.classList.add('is-pending')
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return
+      node.classList.add('is-revealed')
+      node.classList.remove('is-pending')
+      observer?.disconnect()
+      observer = null
     },
-  })
+    {
+      // Срабатывает до входа во вьюпорт — к моменту просмотра уже видно
+      rootMargin: '0px 0px 20% 0px',
+      threshold: 0,
+    },
+  )
+
+  observer.observe(node)
+})
+
+onUnmounted(() => {
+  observer?.disconnect()
+  observer = null
 })
 </script>
 
 <template>
-  <div ref="el">
+  <div ref="el" class="scroll-reveal">
     <slot />
   </div>
 </template>
+
+<style scoped>
+.scroll-reveal.is-pending {
+  opacity: 0;
+  transform: translate3d(0, 0.5rem, 0);
+}
+
+.scroll-reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.25s ease-out,
+    transform 0.25s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal.is-pending,
+  .scroll-reveal.is-revealed {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+</style>

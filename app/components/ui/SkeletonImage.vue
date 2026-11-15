@@ -10,25 +10,36 @@ withDefaults(defineProps<{
 
 <template>
   <div
-    class="relative overflow-hidden bg-brand-100"
+    class="skeleton-image relative overflow-hidden"
     :class="[
       rounded ? 'rounded-xl' : '',
       aspect === 'square' ? 'aspect-square' : '',
       aspect === 'video' ? 'aspect-video' : '',
     ]"
   >
-    <div class="absolute inset-0 animate-pulse bg-gradient-to-r from-brand-100 via-brand-50 to-brand-100 bg-[length:200%_100%]" />
+    <div class="skeleton-image__pulse absolute inset-0" aria-hidden="true" />
     <slot />
   </div>
 </template>
 
 <style scoped>
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+.skeleton-image {
+  background-color: var(--skeleton-bg, #dce4f0);
 }
 
-.animate-pulse {
-  animation: shimmer 1.5s ease-in-out infinite;
+.skeleton-image__pulse {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-bg, #dce4f0) 0%,
+    var(--skeleton-shine, #eef2f8) 50%,
+    var(--skeleton-bg, #dce4f0) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 </style>

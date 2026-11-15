@@ -1,7 +1,8 @@
-export const SITE_FEATURE_KEYS = ['CART', 'FAVORITES', 'MAINTENANCE'] as const
+export const SITE_FEATURE_KEYS = ['CART', 'FAVORITES', 'SECTION_EDGES', 'MAINTENANCE'] as const
 
 export type SiteFeatureKey = (typeof SITE_FEATURE_KEYS)[number]
 
+/** Публичные переключаемые функции (не maintenance). */
 export type ShopFeatureKey = Exclude<SiteFeatureKey, 'MAINTENANCE'>
 
 export interface SiteFeatureDef {
@@ -25,6 +26,12 @@ export const SITE_FEATURE_DEFS: SiteFeatureDef[] = [
     defaultEnabled: true,
   },
   {
+    key: 'SECTION_EDGES',
+    label: 'Волны и скосы',
+    description: 'Плавные переходы (волна / скос) между блоками на главной. На мобильных всегда выключены.',
+    defaultEnabled: true,
+  },
+  {
     key: 'MAINTENANCE',
     label: 'Режим обслуживания',
     description: 'Публичный сайт показывает заглушку вместо обычных страниц.',
@@ -41,5 +48,5 @@ export function isSiteFeatureKey(value: string): value is SiteFeatureKey {
 }
 
 export function isShopFeatureKey(value: string): value is ShopFeatureKey {
-  return value === 'CART' || value === 'FAVORITES'
+  return value === 'CART' || value === 'FAVORITES' || value === 'SECTION_EDGES'
 }

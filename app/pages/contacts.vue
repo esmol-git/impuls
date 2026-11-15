@@ -16,6 +16,17 @@ const contactsFaqHeading = {
 definePageMeta({ breadcrumb: meta.breadcrumb })
 
 usePageSeo(`${meta.title} — ${site.name}`, meta.description)
+
+const { focusId, select } = useLocationMapFocus('contacts-locations-focus')
+
+function onSelectFromCard(id: string) {
+  select(id)
+  document.getElementById('contacts-map')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+}
+
+function onSelectFromMap(id: string) {
+  select(id)
+}
 </script>
 
 <template>
@@ -28,14 +39,22 @@ usePageSeo(`${meta.title} — ${site.name}`, meta.description)
 
       <div class="mt-8 sm:mt-12">
         <ScrollReveal>
-          <LocationsSlider :items="locations" source="contacts-location" />
+          <LocationsSlider
+            :items="locations"
+            selectable
+            :active-id="focusId"
+            @select="onSelectFromCard"
+          />
         </ScrollReveal>
       </div>
 
-      <div class="mt-8 sm:mt-12">
-        <ScrollReveal>
-          <MapSection />
-        </ScrollReveal>
+      <div id="contacts-map" class="mt-8 scroll-mt-24 sm:mt-12">
+        <MapSection
+          :items="locations"
+          :focus-id="focusId"
+          source="contacts-map"
+          @select="onSelectFromMap"
+        />
       </div>
     </BaseSection>
 

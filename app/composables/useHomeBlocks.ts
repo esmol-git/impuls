@@ -88,7 +88,7 @@ const FALLBACK_BLOCKS: HomeBlockStatus[] = [
   { key: 'childBenefits', label: 'Польза', description: '', enabled: true, sortOrder: 5, visible: true },
   { key: 'steps', label: 'Как начать', description: '', enabled: true, sortOrder: 6, visible: true },
   { key: 'progression', label: 'Прогрессия', description: '', enabled: true, sortOrder: 7, visible: true },
-  { key: 'trainingQuality', label: 'Тренировки', description: '', enabled: true, sortOrder: 8, visible: true },
+  { key: 'trainingQuality', label: 'О школе', description: '', enabled: true, sortOrder: 8, visible: true },
   { key: 'conditions', label: 'Условия', description: '', enabled: true, sortOrder: 9, visible: true },
   { key: 'ecosystem', label: 'Экосистема', description: '', enabled: true, sortOrder: 10, visible: true },
   { key: 'advantages', label: 'Преимущества', description: '', enabled: false, sortOrder: 11, visible: false },
@@ -109,9 +109,10 @@ export async function useHomeBlocks() {
     default: () => [],
   })
 
+  const statusList = computed(() => (data.value?.length ? data.value : FALLBACK_BLOCKS))
+
   const blocks = computed(() => {
-    const list = data.value?.length ? data.value : FALLBACK_BLOCKS
-    return list
+    return statusList.value
       .filter((row) => row.visible)
       .map((row) => ({
         ...row,
@@ -120,5 +121,10 @@ export async function useHomeBlocks() {
       .filter((row) => row.component)
   })
 
-  return { blocks, raw: data }
+  function isBlockVisible(key: HomeBlockKey) {
+    const row = statusList.value.find((item) => item.key === key)
+    return row?.visible ?? false
+  }
+
+  return { blocks, raw: data, isBlockVisible, statusList }
 }
