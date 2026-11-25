@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
+import AdminSurface from '@/components/ui/AdminSurface.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import TablePager from '@/components/ui/TablePager.vue'
 import { api } from '@/api/client'
 import type { AuditLog, AuditPage } from '@/api/types'
+import { DEFAULT_PAGE_SIZES } from '@/composables/usePagedResource'
 import { useToast } from '@/composables/useToast'
+import { getErrorMessage } from '@/utils/apiError'
 import { formatDateTime } from '@/utils/format'
 
 const toast = useToast()
@@ -13,10 +16,11 @@ const items = ref<AuditLog[]>([])
 const loading = ref(false)
 const page = ref(1)
 const pageSize = ref(10)
-const pageSizes = [10, 20, 30, 50, 100]
+const pageSizes = [...DEFAULT_PAGE_SIZES]
 const total = ref(0)
 const actorEmail = ref('')
 const entity = ref('')
+let emailDebounce: ReturnType<typeof setTimeout> | undefined
 
 const entityOptions = [
   { label: 'Все', value: '' },
@@ -51,20 +55,29 @@ async function load(options: { silent?: boolean } = {}) {
     }
   } catch (e) {
     if (!options.silent) {
-      toast.error(e instanceof Error ? e.message : 'Не удалось загрузить журнал')
+      toast.error(getErrorMessage(e, 'Не удалось загрузить журнал'))
     }
   } finally {
     loading.value = false
   }
 }
 
-watch([page, pageSize], () => load())
-watch([actorEmail, entity], () => {
+function reloadFromFilters() {
   if (page.value !== 1) page.value = 1
   else void load()
+}
+
+watch([page, pageSize], () => load())
+watch(entity, () => reloadFromFilters())
+watch(actorEmail, () => {
+  if (emailDebounce) clearTimeout(emailDebounce)
+  emailDebounce = setTimeout(() => reloadFromFilters(), 300)
 })
 
 onMounted(load)
+onUnmounted(() => {
+  if (emailDebounce) clearTimeout(emailDebounce)
+})
 </script>
 
 <template>
@@ -74,7 +87,7 @@ onMounted(load)
       description="Кто и что менял в админке: пользователи, товары, заявки, настройки."
     />
 
-    <el-card shadow="never" v-loading="loading">
+    <AdminSurface padded v-loading="loading">
       <div class="mb-4 flex flex-wrap gap-3">
         <el-input
           v-model="actorEmail"
@@ -127,6 +140,6 @@ onMounted(load)
         :total="total"
         :page-sizes="pageSizes"
       />
-    </el-card>
+    </AdminSurface>
   </div>
 </template>

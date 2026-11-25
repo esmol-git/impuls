@@ -1,9 +1,10 @@
 import { Controller, Get } from '@nestjs/common'
 import { SkipThrottle } from '@nestjs/throttler'
+import { SKIP_ALL_THROTTLES } from '../common/throttle'
 import { SettingsService } from './settings.service'
 
 @Controller('settings')
-@SkipThrottle({ default: true, auth: true, leads: true })
+@SkipThrottle(SKIP_ALL_THROTTLES)
 export class SettingsController {
   constructor(private readonly settings: SettingsService) {}
 
@@ -30,5 +31,10 @@ export class SettingsController {
   @Get('theme')
   getTheme() {
     return this.settings.getTheme()
+  }
+
+  @Get('contacts')
+  getContacts() {
+    return this.settings.getContacts()
   }
 }

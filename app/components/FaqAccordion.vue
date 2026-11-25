@@ -3,12 +3,7 @@ import { computed, ref } from 'vue'
 import type { FaqItem, SectionHeading } from '~/types'
 import { faqItems as defaultItems } from '~/data/faq'
 import { sections } from '~/data/sections'
-import { decorFor, decosOf, glowsOf } from '~/data/sectionDecor'
-import {
-  SECTION_SURFACE,
-  type SectionEdge,
-  type SectionTone,
-} from '~/utils/sectionSurface'
+import type { SectionEdge, SectionTone } from '~/utils/sectionSurface'
 
 const props = withDefaults(defineProps<{
   items?: FaqItem[]
@@ -30,11 +25,6 @@ const props = withDefaults(defineProps<{
 })
 
 const config = computed(() => props.heading ?? sections.faq)
-const headingId = computed(() => `${props.sectionId}-title`)
-const faqSurface = computed(() => SECTION_SURFACE[props.tone])
-const decor = computed(() => decorFor(props.sectionId))
-const decos = computed(() => decosOf(decor.value))
-const glows = computed(() => glowsOf(decor.value))
 const openId = ref<string | null>(props.items[0]?.id ?? null)
 
 function toggle(id: string) {
@@ -43,31 +33,15 @@ function toggle(id: string) {
 </script>
 
 <template>
-  <section
+  <BaseSection
     :id="sectionId"
-    class="faq-section section-padding relative"
-    :class="{ 'faq-section--edge': wave }"
-    :aria-labelledby="headingId"
-    :style="{ '--section-surface': faqSurface, backgroundColor: faqSurface }"
+    :tone="tone"
+    :edge="edge"
+    :flip-wave="flipWave"
+    :wave="wave"
+    :decor-key="sectionId"
   >
-    <SectionWave
-      v-if="wave"
-      :fill="faqSurface"
-      :flip="flipWave"
-      :variant="edge"
-    />
-    <SectionAmbient :glows="glows" />
-    <SectionWash
-      v-if="decor?.wash"
-      v-bind="decor.wash"
-    />
-    <SectionDeco
-      v-for="(item, i) in decos"
-      :key="i"
-      v-bind="item"
-    />
-
-    <div class="container-site relative z-[2]">
+    <template #default="{ headingId }">
       <SectionHeader
         v-bind="config"
         :title-id="headingId"
@@ -121,39 +95,6 @@ function toggle(id: string) {
           </div>
         </div>
       </ScrollReveal>
-    </div>
-  </section>
+    </template>
+  </BaseSection>
 </template>
-
-<style scoped>
-.faq-section {
-  z-index: 0;
-  isolation: isolate;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-
-.faq-section--edge {
-  padding-bottom: 5rem;
-}
-
-@media (min-width: 640px) {
-  .faq-section--edge {
-    padding-bottom: 6rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .faq-section--edge {
-    padding-top: calc(3.25rem + 0.75rem);
-    padding-bottom: 6.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .faq-section--edge {
-    padding-top: calc(4rem + 1rem);
-    padding-bottom: 7.5rem;
-  }
-}
-</style>

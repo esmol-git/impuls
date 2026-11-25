@@ -5,13 +5,9 @@ import { cartLineTotal, orderProgramLabel } from '~/utils/commerce'
 const { open, hide, onAfterLeave } = useCartDrawer()
 const { lines, totalLabel, isEmpty, setQty, remove } = useGuestCart()
 const { open: openModal } = useModal()
+const panelRef = ref<HTMLElement>()
 
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && open.value) hide()
-}
-
-onMounted(() => document.addEventListener('keydown', onKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+useFocusTrap(panelRef, open, { onEscape: hide })
 
 function checkout() {
   if (isEmpty.value) return
@@ -26,7 +22,7 @@ function checkout() {
 </script>
 
 <template>
-  <Teleport to="body">
+  <Teleport to="body" defer>
     <Transition
       name="drawer"
       :duration="{ enter: 350, leave: 350 }"
@@ -36,7 +32,9 @@ function checkout() {
         <div class="drawer-backdrop absolute inset-0 bg-brand-900/50" @click="hide" />
 
         <aside
-          class="drawer-panel absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-2xl safe-top safe-bottom"
+          ref="panelRef"
+          tabindex="-1"
+          class="drawer-panel absolute right-0 top-0 flex h-full w-full max-w-md flex-col shadow-2xl safe-top safe-bottom"
           role="dialog"
           aria-modal="true"
           aria-label="Корзина"
@@ -95,7 +93,7 @@ function checkout() {
                   <div class="mt-2 flex items-center gap-2">
                     <button
                       type="button"
-                      class="cart-qty-btn"
+                      class="btn-soft btn-soft--icon"
                       aria-label="Уменьшить"
                       @click="setQty(line.mediaId, line.qty - 1)"
                     >
@@ -104,7 +102,7 @@ function checkout() {
                     <span class="w-6 text-center text-sm font-semibold text-brand-700">{{ line.qty }}</span>
                     <button
                       type="button"
-                      class="cart-qty-btn"
+                      class="btn-soft btn-soft--icon"
                       aria-label="Увеличить"
                       @click="setQty(line.mediaId, line.qty + 1)"
                     >
@@ -140,9 +138,3 @@ function checkout() {
     </Transition>
   </Teleport>
 </template>
-
-<style scoped>
-.cart-qty-btn {
-  @apply flex h-8 w-8 items-center justify-center rounded-lg border border-brand-200 bg-white text-base font-semibold text-brand-600 transition hover:border-brand-300 hover:bg-brand-50;
-}
-</style>

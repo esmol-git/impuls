@@ -11,13 +11,48 @@ interface LeadBody {
   variant?: string
   guestToken?: string
   items?: CartLine[]
+  /** Honeypot — боты заполняют «website» */
+  website?: string
+  consent?: boolean
+  /** Client timestamp when form opened (ms) */
+  openedAt?: number
 }
+
+const RATE_WINDOW_MS = 60_000
+const RATE_MAX = 5
+const rateBuckets = new Map<string, number[]>()
 
 function escapeHtml(text: string) {
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+}
+
+function phoneDigits(value: string) {
+  return value.replace(/\D/g, '')
+}
+
+function isValidRuPhone(value: string) {
+  const digits = phoneDigits(value)
+  return digits.length === 11 && digits.startsWith('7')
+}
+
+function clientIp(event: Parameters<typeof getRequestHeader>[0]) {
+  const forwarded = getRequestHeader(event, 'x-forwarded-for')
+  if (forwarded) return forwarded.split(',')[0]?.trim() || 'unknown'
+  return getRequestHeader(event, 'x-real-ip') || 'unknown'
+}
+
+function assertRateLimit(ip: string) {
+  const now = Date.now()
+  const prev = rateBuckets.get(ip) || []
+  const recent = prev.filter((t) => now - t < RATE_WINDOW_MS)
+  if (recent.length >= RATE_MAX) {
+    throw createError({ statusCode: 429, statusMessage: 'Слишком много заявок. Подождите минуту.' })
+  }
+  recent.push(now)
+  rateBuckets.set(ip, recent)
 }
 
 function sanitizeItems(items: unknown): CartLine[] | undefined {
@@ -36,7 +71,7 @@ function sanitizeItems(items: unknown): CartLine[] | undefined {
       sku: typeof row.sku === 'string' ? row.sku.trim().slice(0, 64) || undefined : undefined,
       category: typeof row.category === 'string' ? row.category.trim().slice(0, 120) || undefined : undefined,
       description: typeof row.description === 'string' ? row.description.trim().slice(0, 500) || undefined : undefined,
-      imageUrl: typeof row.imageUrl === 'string' ? row.imageUrl.slice(0, 500) : undefined,
+      imageUrl: typeof row.imageUrl === 'string' ? publicImageUrl(row.imageUrl.slice(0, 500)) || undefined : undefined,
       unitPrice: Math.max(0, Math.round(unitPrice)),
       qty: Math.min(99, Math.max(1, Math.round(qty))),
     })
@@ -47,21 +82,42 @@ function sanitizeItems(items: unknown): CartLine[] | undefined {
 export default defineEventHandler(async (event) => {
   const body = await readBody<LeadBody>(event)
 
-  if (!body.name?.trim() || !body.phone?.trim()) {
-    throw createError({ statusCode: 400, statusMessage: 'Заполните обязательные поля' })
+  // Honeypot: silently accept so bots think it worked
+  if (typeof body.website === 'string' && body.website.trim()) {
+    return { ok: true, mock: true }
   }
+
+  const openedAt = typeof body.openedAt === 'number' ? body.openedAt : 0
+  if (openedAt > 0 && Date.now() - openedAt < 1200) {
+    return { ok: true, mock: true }
+  }
+
+  const name = body.name?.trim() || ''
+  const phone = body.phone?.trim() || ''
+
+  if (!name || name.length < 2 || name.length > 80) {
+    throw createError({ statusCode: 400, statusMessage: 'Укажите имя' })
+  }
+  if (!isValidRuPhone(phone)) {
+    throw createError({ statusCode: 400, statusMessage: 'Укажите телефон в формате +7…' })
+  }
+  if (body.consent !== true) {
+    throw createError({ statusCode: 400, statusMessage: 'Нужно согласие на обработку данных' })
+  }
+
+  assertRateLimit(clientIp(event))
 
   const config = useRuntimeConfig()
   const items = sanitizeItems(body.items)
   const payload = {
-    name: body.name.trim(),
-    phone: body.phone.trim(),
-    age: body.age,
-    message: body.message,
-    source: body.source,
-    location: body.location,
-    program: body.program,
-    variant: body.variant,
+    name,
+    phone,
+    age: typeof body.age === 'string' ? body.age.slice(0, 32) : undefined,
+    message: typeof body.message === 'string' ? body.message.trim().slice(0, 1000) || undefined : undefined,
+    source: typeof body.source === 'string' ? body.source.slice(0, 120) : undefined,
+    location: typeof body.location === 'string' ? body.location.slice(0, 200) : undefined,
+    program: typeof body.program === 'string' ? body.program.slice(0, 200) : undefined,
+    variant: typeof body.variant === 'string' ? body.variant.slice(0, 32) : undefined,
     guestToken: typeof body.guestToken === 'string' ? body.guestToken.slice(0, 64) : undefined,
     items,
   }
@@ -143,6 +199,10 @@ export default defineEventHandler(async (event) => {
   }
 
   if (!saved && !telegramSent) {
+    // В prod не притворяемся успехом — иначе спам/тихие потери заявок
+    if (!import.meta.dev) {
+      throw createError({ statusCode: 502, statusMessage: 'Не удалось обработать заявку' })
+    }
     if (!token || !chatId) {
       console.warn('[api/lead] Telegram не настроен — заявка принята в mock-режиме')
       return { ok: true, mock: true }

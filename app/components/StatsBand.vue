@@ -10,7 +10,7 @@ defineProps<{
   wave?: boolean
 }>()
 
-const { enabled: features } = useSiteFeatures()
+const { enabled: features } = await useSiteFeatures()
 </script>
 
 <template>
@@ -25,7 +25,7 @@ const { enabled: features } = useSiteFeatures()
           <li
             v-for="stat in heroStats"
             :key="stat.label"
-            class="text-center sm:text-left"
+            class="text-center"
           >
             <p class="text-2xl font-extrabold text-brand-600 sm:text-3xl lg:text-4xl">
               {{ stat.value }}

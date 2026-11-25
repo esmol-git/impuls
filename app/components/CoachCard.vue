@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { Coach } from '~/types'
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     coach: Coach
     /** Для слайдера на главной — короче, без био */
@@ -12,16 +13,20 @@ withDefaults(
 
 /** Пока на карточке только фото + ФИО; роль/стаж/теги/био оставлены ниже */
 const showDetails = false
+const safeBio = computed(() => sanitizeHtml(props.coach.bio))
 </script>
 
 <template>
-  <article class="card group flex h-full flex-col overflow-hidden transition hover:border-brand-200">
-    <div class="relative aspect-square shrink-0 overflow-hidden bg-brand-50">
+  <NuxtLink
+    :to="`/coaches/${coach.id}`"
+    class="card group flex h-full flex-col overflow-hidden transition hover:border-brand-200"
+  >
+    <div class="relative aspect-[3/4] shrink-0 overflow-hidden bg-brand-50">
       <img
         v-if="coach.imageSrc"
         :src="coach.imageSrc"
         :alt="coach.imageAlt || coach.name"
-        class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+        class="h-full w-full object-cover object-[center_20%] transition duration-300 group-hover:scale-[1.02]"
         loading="lazy"
       >
       <UiMediaPlaceholder
@@ -43,11 +48,17 @@ const showDetails = false
       </h3>
 
       <template v-if="showDetails">
-        <p class="mt-1 text-sm font-medium text-accent-500">
+        <p
+          v-if="coach.role"
+          class="mt-1 text-sm font-medium text-accent-500"
+        >
           {{ coach.role }}
         </p>
 
-        <p class="mt-2 text-xs font-semibold text-brand-400">
+        <p
+          v-if="coach.experience"
+          class="mt-2 text-xs font-semibold text-brand-400"
+        >
           Стаж {{ coach.experience }}
         </p>
 
@@ -64,13 +75,12 @@ const showDetails = false
           </li>
         </ul>
 
-        <p
-          v-if="!compact"
-          class="mt-3 line-clamp-3 flex-1 text-sm leading-relaxed text-brand-600/70"
-        >
-          {{ coach.bio }}
-        </p>
+        <div
+          v-if="!compact && safeBio"
+          class="coach-card__bio mt-3 line-clamp-3 flex-1 text-sm leading-relaxed text-brand-600/70"
+          v-html="safeBio"
+        />
       </template>
     </div>
-  </article>
+  </NuxtLink>
 </template>

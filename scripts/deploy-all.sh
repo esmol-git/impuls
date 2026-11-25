@@ -29,7 +29,13 @@ echo "→ Сборка админки..."
 npm run build:admin
 
 echo "→ Сборка витрины (Nuxt Node, не generate)..."
-NUXT_SITE_URL="$NUXT_SITE_URL" NUXT_API_URL="$NUXT_API_URL" npm run build
+if [[ -z "${NUXT_PUBLIC_YANDEX_MAPS_API_KEY:-}" ]]; then
+  echo "⚠ NUXT_PUBLIC_YANDEX_MAPS_API_KEY пуст — карта на проде покажет заглушку" >&2
+fi
+NUXT_SITE_URL="$NUXT_SITE_URL" \
+  NUXT_API_URL="$NUXT_API_URL" \
+  NUXT_PUBLIC_YANDEX_MAPS_API_KEY="${NUXT_PUBLIC_YANDEX_MAPS_API_KEY:-}" \
+  npm run build
 
 echo "→ Синхронизация приложения → ${DEPLOY_APP_PATH}"
 "${SSH[@]}" "mkdir -p '${DEPLOY_APP_PATH}' '${DEPLOY_ADMIN_PATH}'"
@@ -64,6 +70,25 @@ echo "→ Синхронизация приложения → ${DEPLOY_APP_PATH}
 echo "→ Статика админки → ${DEPLOY_ADMIN_PATH}"
 "${RSYNC[@]}" \
   apps/admin/dist/ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_ADMIN_PATH}/"
+
+echo "→ Runtime env витрины (карта и URL)..."
+# Public-ключ карт нужен и в сборке, и в runtime Nuxt Node
+"${SSH[@]}" bash -s <<EOF
+set -euo pipefail
+umask 077
+cat > '${DEPLOY_APP_PATH}/.env.site' <<'ENV'
+NUXT_SITE_URL=${NUXT_SITE_URL}
+NUXT_API_URL=${NUXT_API_URL}
+NUXT_PUBLIC_YANDEX_MAPS_API_KEY=${NUXT_PUBLIC_YANDEX_MAPS_API_KEY:-}
+ENV
+chown www-data:www-data '${DEPLOY_APP_PATH}/.env.site' 2>/dev/null || true
+chmod 640 '${DEPLOY_APP_PATH}/.env.site'
+# подтянуть unit с EnvironmentFile, если ещё старый
+if [[ -f '${DEPLOY_APP_PATH}/deploy/systemd/impuls-site.service' ]]; then
+  cp '${DEPLOY_APP_PATH}/deploy/systemd/impuls-site.service' /etc/systemd/system/impuls-site.service
+  systemctl daemon-reload
+fi
+EOF
 
 echo "→ Установка зависимостей и миграции на сервере..."
 "${SSH[@]}" bash -s <<EOF

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, useId, watch } from 'vue'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
 import { ru } from 'date-fns/locale'
 import '@vuepic/vue-datepicker/dist/main.css'
@@ -13,6 +13,9 @@ const props = withDefaults(
     disabled?: boolean
     placeholder?: string
     error?: boolean
+    inputId?: string
+    describedBy?: string
+    ariaLabel?: string
   }>(),
   {
     placeholder: 'Необязательно',
@@ -23,11 +26,29 @@ const emit = defineEmits<{
   change: [value: string]
 }>()
 
+const autoId = useId()
+const resolvedId = computed(() => props.inputId || `date-${autoId}`)
+
 /** Только после mount — иначе SSR/клиент расходятся. */
 const ready = ref(false)
 onMounted(() => {
   ready.value = true
 })
+
+watch(
+  [ready, () => props.describedBy, () => props.error, resolvedId],
+  async () => {
+    if (!ready.value) return
+    await nextTick()
+    const input = document.getElementById(resolvedId.value)
+    if (!input) return
+    if (props.describedBy) input.setAttribute('aria-describedby', props.describedBy)
+    else input.removeAttribute('aria-describedby')
+    if (props.error) input.setAttribute('aria-invalid', 'true')
+    else input.removeAttribute('aria-invalid')
+  },
+  { flush: 'post' },
+)
 
 const minDate = computed(() => (props.min ? new Date(`${props.min}T00:00:00`) : undefined))
 const maxDate = computed(() => (props.max ? new Date(`${props.max}T00:00:00`) : undefined))
@@ -75,6 +96,8 @@ const pickerValue = computed({
       :auto-apply="true"
       :clearable="true"
       :teleport="true"
+      :aria-labels="{ input: ariaLabel || placeholder }"
+      :input-attrs="{ id: resolvedId }"
     />
     <div
       v-else

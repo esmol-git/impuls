@@ -1,20 +1,7 @@
-import { Type } from 'class-transformer'
-import { IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator'
+import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator'
+import { SortOrderQueryDto } from '../../common/dto/pagination-query.dto'
 
-export class ListAuditQueryDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  limit?: number
-
+export class ListAuditQueryDto extends SortOrderQueryDto {
   @IsOptional()
   @IsString()
   @MaxLength(80)
@@ -33,8 +20,4 @@ export class ListAuditQueryDto {
   @IsOptional()
   @IsIn(['createdAt'])
   sort?: 'createdAt'
-
-  @IsOptional()
-  @IsIn(['asc', 'desc'])
-  order?: 'asc' | 'desc'
 }

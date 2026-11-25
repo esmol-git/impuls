@@ -60,7 +60,7 @@ useHead(computed(() => ({
         <NuxtLink
           v-if="item.to"
           :to="item.to"
-          class="inline-flex min-h-[32px] items-center gap-1.5 rounded-md px-1 text-xs font-medium text-brand-500 transition hover:bg-white hover:text-brand-600 sm:text-sm"
+          class="inline-flex min-h-[32px] items-center gap-1.5 rounded-md px-1 text-xs font-medium text-brand-500 transition hover:bg-[var(--card-bg)] hover:text-brand-600 sm:text-sm"
         >
           <svg
             v-if="index === 0"

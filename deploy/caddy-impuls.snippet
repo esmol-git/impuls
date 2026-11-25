@@ -21,8 +21,20 @@
 # DNS (Cloudflare):
 #   api.impuls → A 185.219.43.126  (DNS only / серое облако — как admin.impuls)
 
+# Общие security headers (CSP не жёсткий: maps/fonts/telegram через Nuxt)
+(impuls_headers) {
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}
+
 # Витрина (Nuxt Node) + картинки с Nest
 impuls.esmolakov.ru {
+	import impuls_headers
 	encode gzip zstd
 
 	# Картинки/файлы всегда с Nest (MinIO proxy)
@@ -38,6 +50,7 @@ impuls.esmolakov.ru {
 
 # Публичный Nest API (браузер/интеграции/curl)
 api.impuls.esmolakov.ru {
+	import impuls_headers
 	encode gzip zstd
 
 	handle /uploads/* {
@@ -51,6 +64,7 @@ api.impuls.esmolakov.ru {
 
 # Админка (SPA) → Nest API напрямую
 admin.impuls.esmolakov.ru {
+	import impuls_headers
 	encode gzip zstd
 
 	handle /api/* {

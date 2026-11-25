@@ -10,12 +10,13 @@ export class StatsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async dashboard() {
-    const [newLeads, mediaCounts] = await Promise.all([
+    const [newLeads, mediaCounts, coaches] = await Promise.all([
       this.prisma.lead.count({ where: { status: LeadStatus.NEW } }),
       this.prisma.mediaItem.groupBy({
         by: ['type'],
         _count: { _all: true },
       }),
+      this.prisma.coach.count(),
     ])
 
     const byType = Object.fromEntries(
@@ -24,6 +25,7 @@ export class StatsService {
 
     return {
       newLeads,
+      coaches,
       media: {
         catalog: byType[MediaType.CATALOG] ?? 0,
         news: byType[MediaType.NEWS] ?? 0,

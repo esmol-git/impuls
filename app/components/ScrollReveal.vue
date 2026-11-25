@@ -6,6 +6,7 @@
 const el = ref<HTMLElement>()
 
 let observer: IntersectionObserver | null = null
+let cancelled = false
 
 onMounted(() => {
   const node = el.value
@@ -17,34 +18,47 @@ onMounted(() => {
     return
   }
 
-  // Уже в кадре или чуть ниже фолда — показать сразу
-  const rect = node.getBoundingClientRect()
-  if (rect.top < window.innerHeight + 80 && rect.bottom > 0) {
-    node.classList.add('is-revealed')
-    return
-  }
-
+  // Клиент: сначала прячем — SSR остаётся видимым без JS
   node.classList.add('is-pending')
 
-  observer = new IntersectionObserver(
-    (entries) => {
-      if (!entries.some((entry) => entry.isIntersecting)) return
-      node.classList.add('is-revealed')
-      node.classList.remove('is-pending')
-      observer?.disconnect()
-      observer = null
-    },
-    {
-      // Срабатывает до входа во вьюпорт — к моменту просмотра уже видно
-      rootMargin: '0px 0px 20% 0px',
-      threshold: 0,
-    },
-  )
+  const reveal = () => {
+    if (cancelled) return
+    node.classList.add('is-revealed')
+    node.classList.remove('is-pending')
+    observer?.disconnect()
+    observer = null
+  }
 
-  observer.observe(node)
+  // Двойной rAF: браузер обязан отрисовать opacity:0 до старта transition
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (cancelled) return
+
+      const rect = node.getBoundingClientRect()
+      const inView = rect.top < window.innerHeight * 0.92 && rect.bottom > 0
+      if (inView) {
+        reveal()
+        return
+      }
+
+      // threshold 0: у высоких блоков (сетка тренеров) 0.12 никогда не набирается
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((entry) => entry.isIntersecting)) return
+          reveal()
+        },
+        {
+          rootMargin: '0px 0px -6% 0px',
+          threshold: 0,
+        },
+      )
+      observer.observe(node)
+    })
+  })
 })
 
 onUnmounted(() => {
+  cancelled = true
   observer?.disconnect()
   observer = null
 })
@@ -57,20 +71,26 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.scroll-reveal {
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .scroll-reveal.is-pending {
   opacity: 0;
-  transform: translate3d(0, 0.5rem, 0);
+  transform: translate3d(0, 1.25rem, 0);
+  will-change: opacity, transform;
 }
 
 .scroll-reveal.is-revealed {
   opacity: 1;
   transform: none;
-  transition:
-    opacity 0.25s ease-out,
-    transform 0.25s ease-out;
+  will-change: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .scroll-reveal,
   .scroll-reveal.is-pending,
   .scroll-reveal.is-revealed {
     opacity: 1;

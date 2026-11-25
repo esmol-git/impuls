@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import EditPageActions from '@/components/ui/EditPageActions.vue'
+import EditPublishSwitch from '@/components/ui/EditPublishSwitch.vue'
 import ImageUpload from '@/components/ui/ImageUpload.vue'
 import RichTextEditor from '@/components/RichTextEditor.vue'
 import { api } from '@/api/client'
 import type { MediaItem, TaxonomyItem } from '@/api/types'
 import { useSavingIndicator } from '@/composables/useSavingIndicator'
 import { useToast } from '@/composables/useToast'
+import { getErrorMessage } from '@/utils/apiError'
 import { rules } from '@/utils/rules'
+import { uploadMediaFile } from '@/utils/uploadMedia'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,6 +29,7 @@ const isCreate = computed(() => !newsId.value)
 const loading = ref(false)
 const formRef = ref<FormInstance>()
 const newsTopics = ref<string[]>([])
+const current = ref<MediaItem | null>(null)
 
 const form = reactive({
   title: '',
@@ -53,30 +57,58 @@ const formRules = computed<FormRules>(() => ({
   file: rules.imageOptionalWhenExisting(() => Boolean(form.existingImageUrl)),
 }))
 
-const pageTitle = computed(() => (isCreate.value ? 'Новая новость' : 'Редактирование новости'))
+const pageTitle = computed(() =>
+  isCreate.value ? 'Новая новость' : current.value?.title || 'Редактирование новости',
+)
+
+const pageDescription = computed(() =>
+  isCreate.value
+    ? 'Заполните поля и текст — обложка слева для быстрого превью.'
+    : 'Редактирование новости. Обложка слева, публикация — в блоке основного.',
+)
+
+function resetForm() {
+  if (form.preview && form.preview.startsWith('blob:')) URL.revokeObjectURL(form.preview)
+  form.title = ''
+  form.topic = ''
+  form.body = ''
+  form.published = true
+  form.file = null
+  form.preview = ''
+  form.existingImageUrl = ''
+  current.value = null
+}
 
 async function load() {
   loading.value = true
   try {
     await loadTopics()
-    if (!newsId.value) return
+    if (!newsId.value) {
+      if (!newsTopics.value.length) {
+        toast.error('Сначала добавьте темы в разделе «Настройки»')
+        await router.replace({ name: 'news' })
+      }
+      return
+    }
     const item = await api<MediaItem>(`/api/admin/media/${newsId.value}`)
     if (item.type !== 'NEWS') {
       toast.error('Это не новость')
       await router.replace({ name: 'news' })
       return
     }
+    current.value = item
     form.title = item.title
     form.topic = item.topic || ''
     form.body = item.body || ''
     form.published = item.published
     form.existingImageUrl = item.imageUrl
     form.preview = item.imageUrl
+    form.file = null
     if (form.topic && !newsTopics.value.includes(form.topic)) {
       newsTopics.value = [...newsTopics.value, form.topic]
     }
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось загрузить')
+    toast.error(getErrorMessage(e, 'Не удалось загрузить'))
     await router.replace({ name: 'news' })
   } finally {
     loading.value = false
@@ -93,19 +125,14 @@ function onFileChange(file: File | null) {
 function onFileRemove() {
   form.file = null
   if (form.preview && form.preview.startsWith('blob:')) URL.revokeObjectURL(form.preview)
-  form.preview = form.existingImageUrl
+  form.preview = ''
+  form.existingImageUrl = ''
   formRef.value?.validateField('file')
 }
 
 async function uploadIfNeeded() {
   if (!form.file) return form.existingImageUrl
-  const body = new FormData()
-  body.append('file', form.file)
-  const uploaded = await api<{ url: string }>('/api/admin/media/upload', {
-    method: 'POST',
-    body,
-  })
-  return uploaded.url
+  return uploadMediaFile(form.file)
 }
 
 async function save() {
@@ -130,22 +157,29 @@ async function save() {
     }
 
     if (newsId.value) {
-      await api<MediaItem>(`/api/admin/media/${newsId.value}`, {
+      const updated = await api<MediaItem>(`/api/admin/media/${newsId.value}`, {
         method: 'PATCH',
         body: JSON.stringify(payload),
       })
+      current.value = updated
+      form.existingImageUrl = updated.imageUrl
+      form.preview = updated.imageUrl
+      form.file = null
       toast.success('Сохранено')
     } else {
-      await api<MediaItem>('/api/admin/media', {
+      const created = await api<MediaItem>('/api/admin/media', {
         method: 'POST',
         body: JSON.stringify(payload),
       })
+      current.value = created
+      form.existingImageUrl = created.imageUrl
+      form.preview = created.imageUrl
+      form.file = null
       toast.success('Новость создана')
+      await router.replace({ name: 'news-edit', params: { id: created.id } })
     }
-
-    await router.push({ name: 'news' })
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось сохранить')
+    toast.error(getErrorMessage(e, 'Не удалось сохранить'))
   } finally {
     await stopSaving()
   }
@@ -155,6 +189,12 @@ function goBack() {
   router.push({ name: 'news' })
 }
 
+watch(newsId, (id) => {
+  if (id && current.value?.id === id) return
+  resetForm()
+  void load()
+})
+
 onMounted(load)
 onUnmounted(() => {
   if (form.preview && form.preview.startsWith('blob:')) URL.revokeObjectURL(form.preview)
@@ -163,7 +203,7 @@ onUnmounted(() => {
 
 <template>
   <div v-loading="loading" class="edit-page news-edit">
-    <PageHeader :title="pageTitle" description="Заполните поля и текст — обложка слева для быстрого превью.">
+    <PageHeader :title="pageTitle" :description="pageDescription">
       <template #actions>
         <EditPageActions
           :saving="saving"
@@ -227,17 +267,7 @@ onUnmounted(() => {
               </el-form-item>
 
               <el-form-item label="Публикация" class="!mb-0">
-                <div class="edit-page__publish">
-                  <el-switch v-model="form.published" />
-                  <div class="min-w-0">
-                    <p class="text-sm font-semibold text-slate-800">
-                      {{ form.published ? 'Опубликовано' : 'Скрыто' }}
-                    </p>
-                    <p class="text-xs text-slate-500">
-                      {{ form.published ? 'Новость видна на сайте' : 'Только в админке' }}
-                    </p>
-                  </div>
-                </div>
+                <EditPublishSwitch v-model="form.published" />
               </el-form-item>
             </div>
           </div>

@@ -8,11 +8,12 @@ interface SectionStatus {
   visible: boolean
 }
 
-const EMPTY: SectionStatus[] = [
-  { key: 'CATALOG', enabled: false, itemCount: 0, canEnable: false, visible: false },
-  { key: 'NEWS', enabled: false, itemCount: 0, canEnable: false, visible: false },
-  { key: 'REVIEW', enabled: false, itemCount: 0, canEnable: false, visible: false },
-  { key: 'GALLERY', enabled: false, itemCount: 0, canEnable: false, visible: false },
+/** Fail-open: при недоступности Nest не прячем пункты меню / секции */
+const FAIL_OPEN: SectionStatus[] = [
+  { key: 'CATALOG', enabled: true, itemCount: 1, canEnable: true, visible: true },
+  { key: 'NEWS', enabled: true, itemCount: 1, canEnable: true, visible: true },
+  { key: 'REVIEW', enabled: true, itemCount: 1, canEnable: true, visible: true },
+  { key: 'GALLERY', enabled: true, itemCount: 1, canEnable: true, visible: true },
 ]
 
 export default defineEventHandler(async () => {
@@ -20,7 +21,7 @@ export default defineEventHandler(async () => {
   const apiUrl = (config.apiUrl as string | undefined)?.replace(/\/$/, '')
 
   if (!apiUrl) {
-    return EMPTY
+    return FAIL_OPEN
   }
 
   try {
@@ -30,6 +31,6 @@ export default defineEventHandler(async () => {
     })
   } catch (error) {
     console.warn('[api/settings/sections] не удалось загрузить настройки из Nest', error)
-    return EMPTY
+    return FAIL_OPEN
   }
 })

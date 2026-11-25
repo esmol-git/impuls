@@ -6,6 +6,7 @@ const home: BreadcrumbItem = { label: 'Главная', to: '/' }
 /** Родительские разделы для вложенных страниц */
 export const breadcrumbParents = {
   news: { label: pages.news.breadcrumb, to: '/news' },
+  coaches: { label: pages.coaches.breadcrumb, to: '/coaches' },
 } as const
 
 function trail(current: string): BreadcrumbItem[] {
@@ -30,6 +31,14 @@ export function newsArticleBreadcrumbs(title: string): BreadcrumbItem[] {
     home,
     { ...breadcrumbParents.news },
     { label: title },
+  ]
+}
+
+export function coachPageBreadcrumbs(name: string): BreadcrumbItem[] {
+  return [
+    home,
+    { ...breadcrumbParents.coaches },
+    { label: name },
   ]
 }
 

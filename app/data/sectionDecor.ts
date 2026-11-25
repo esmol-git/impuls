@@ -1,5 +1,5 @@
 /**
- * Декор секций: ambient-пятна + wash + SVG-мячи (цвет через tone).
+ * Декор секций: либо wash+мячи, либо крупный герб-watermark — не вместе.
  */
 import washCorner from '~/assets/img/wash-triangle-corner.webp'
 import washWave from '~/assets/img/wash-triangle-wave.webp'
@@ -11,11 +11,12 @@ import ball04 from '~/assets/img/ball/ball-04.svg'
 import ball05 from '~/assets/img/ball/ball-05.svg'
 import ball06 from '~/assets/img/ball/ball-06.svg'
 import ball07 from '~/assets/img/ball/ball-07.svg'
+import logoCrest from '~/assets/img/logo.webp'
 
 export type DecoSide = 'left' | 'right'
 export type DecoCorner = 'top' | 'bottom'
 export type WashSide = 'left' | 'right' | 'center' | 'full'
-export type DecoTone = 'brand' | 'accent' | 'muted' | 'white'
+export type DecoTone = 'brand' | 'accent' | 'muted' | 'white' | 'soft'
 
 export interface AmbientGlow {
   tone?: 'red' | 'blue' | 'brand'
@@ -43,6 +44,24 @@ export interface SectionDecoConfig {
   motion?: number
   glow?: boolean
   tone?: DecoTone
+  /** Маска по альфе (SVG) */
+  masked?: boolean
+  /** Водяной знак герба с деталями */
+  mark?: boolean
+}
+
+/** Крупный полупрозрачный герб — без wash и без роя мячей рядом */
+function crestMark(partial: Omit<SectionDecoConfig, 'src' | 'mark'> = {}): SectionDecoConfig {
+  return {
+    src: logoCrest,
+    mark: true,
+    glow: false,
+    opacity: 0.07,
+    width: 'clamp(220px, 44vw, 460px)',
+    motion: 0,
+    rotate: -12,
+    ...partial,
+  }
 }
 
 export interface SectionWashConfig {
@@ -93,11 +112,10 @@ export const SECTION_DECOR: Record<string, SectionDecorConfig> = {
 
   audience: {
     glows: [
-      { tone: 'blue', top: '-12%', left: '18%', size: '50%' },
+      { tone: 'blue', top: '-12%', left: '18%', size: '50%', opacity: 0.35 },
     ],
     decos: [
-      { src: ball03, left: '0%', top: '12%', width: 'clamp(100px, 17vw, 180px)', opacity: 0.26, rotate: -8, motion: 3, tone: 'brand' },
-      { src: ball07, right: '3%', bottom: '4%', width: 'clamp(60px, 11vw, 105px)', opacity: 0.2, rotate: 20, motion: 1, tone: 'accent' },
+      crestMark({ right: '-2%', top: '8%', rotate: -14, width: 'clamp(220px, 46vw, 480px)' }),
     ],
   },
 
@@ -106,11 +124,10 @@ export const SECTION_DECOR: Record<string, SectionDecorConfig> = {
       { tone: 'brand', top: '8%', left: '-14%', size: '56%' },
       { tone: 'blue', bottom: '-4%', right: '-8%', size: '48%' },
     ),
-    wash: { src: washCorner, side: 'center', opacity: 0.16 },
+    wash: { src: washCorner, side: 'center', opacity: 0.14 },
     decos: [
       { src: ball01, right: '1%', top: '5%', width: 'clamp(95px, 16vw, 170px)', opacity: 0.26, rotate: 14, motion: 4, tone: 'brand' },
       { src: ball04, left: '0%', top: '10%', width: 'clamp(64px, 11vw, 110px)', opacity: 0.2, rotate: -16, motion: 1, tone: 'muted' },
-      { src: ball06, right: '8%', top: '40%', width: 'clamp(50px, 9vw, 85px)', opacity: 0.18, rotate: 20, motion: 5, tone: 'accent' },
       { src: ball02, left: '2%', bottom: '6%', width: 'clamp(72px, 12vw, 125px)', opacity: 0.22, rotate: -12, motion: 2, tone: 'brand' },
     ],
   },
@@ -140,12 +157,10 @@ export const SECTION_DECOR: Record<string, SectionDecorConfig> = {
   training: {
     glows: pairGlow(
       { tone: 'blue', top: '-10%', left: '-6%', size: '54%' },
-      { tone: 'red', bottom: '-8%', right: '-8%', size: '40%', opacity: 0.4 },
+      { tone: 'red', bottom: '-8%', right: '-8%', size: '40%', opacity: 0.35 },
     ),
     decos: [
-      { src: ball02, right: '2%', top: '3%', width: 'clamp(88px, 15vw, 165px)', opacity: 0.26, rotate: 8, motion: 3, tone: 'accent' },
-      { src: ball06, left: '1%', top: '42%', width: 'clamp(56px, 9vw, 90px)', opacity: 0.18, rotate: -28, motion: 1, tone: 'brand' },
-      { src: ball04, right: '10%', bottom: '5%', width: 'clamp(72px, 12vw, 125px)', opacity: 0.22, rotate: 16, motion: 5, tone: 'muted' },
+      crestMark({ right: '-2%', top: '6%', rotate: 11, width: 'clamp(200px, 40vw, 420px)' }),
     ],
   },
 
@@ -266,11 +281,8 @@ export const SECTION_DECOR: Record<string, SectionDecorConfig> = {
       { tone: 'blue', top: '-4%', left: '-8%', size: '50%' },
       { tone: 'brand', bottom: '-8%', right: '-6%', size: '46%' },
     ),
-    wash: { src: washCorner, side: 'left', opacity: 0.14 },
     decos: [
-      { src: ball01, right: '1%', top: '6%', width: 'clamp(88px, 15vw, 160px)', opacity: 0.24, rotate: 12, motion: 2, tone: 'accent' },
-      { src: ball04, left: '0%', top: '12%', width: 'clamp(64px, 11vw, 110px)', opacity: 0.2, rotate: -16, motion: 4, tone: 'brand' },
-      { src: ball07, left: '2%', bottom: '6%', width: 'clamp(70px, 12vw, 120px)', opacity: 0.2, rotate: -10, motion: 5, tone: 'muted' },
+      crestMark({ right: '-2%', bottom: '8%', rotate: -9, width: 'clamp(190px, 38vw, 400px)' }),
     ],
   },
 

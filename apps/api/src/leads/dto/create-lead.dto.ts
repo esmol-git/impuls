@@ -9,11 +9,8 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator'
+import { trimString } from '../../common/transforms'
 import { LeadPurchaseItemDto } from './lead-purchase-item.dto'
-
-function trimString({ value }: { value: unknown }) {
-  return typeof value === 'string' ? value.trim() : value
-}
 
 export class CreateLeadDto {
   @Transform(trimString)

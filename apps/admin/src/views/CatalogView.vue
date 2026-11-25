@@ -1,31 +1,65 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { icons } from '@/icons'
 import { useRouter } from 'vue-router'
+import AdminSurface from '@/components/ui/AdminSurface.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
+import SectionSiteSwitch from '@/components/ui/SectionSiteSwitch.vue'
 import TablePager from '@/components/ui/TablePager.vue'
 import { api } from '@/api/client'
-import type { MediaItem, MediaPage, MediaSortField, SectionStatus } from '@/api/types'
+import type { MediaItem, MediaPage, MediaSortField } from '@/api/types'
 import { useConfirm } from '@/composables/useConfirm'
+import { useDebouncedSearch } from '@/composables/useDebouncedSearch'
+import { usePagedResource } from '@/composables/usePagedResource'
+import { usePublishedFilter } from '@/composables/usePublishedFilter'
+import { useSectionVisibility } from '@/composables/useSectionVisibility'
 import { useToast } from '@/composables/useToast'
+import { getErrorMessage } from '@/utils/apiError'
 
 const toast = useToast()
 const { confirm } = useConfirm()
 const router = useRouter()
 
-const items = ref<MediaItem[]>([])
-const loading = ref(false)
 const copyingId = ref<string | null>(null)
-const section = ref<SectionStatus | null>(null)
-const sectionSaving = ref(false)
+const { searchInput, search, onSearchInput, clearSearch } = useDebouncedSearch()
+const { publishedFilter, publishedFilterOptions, applyPublishedParam } = usePublishedFilter()
+const { section, sectionSaving, loadSection, onSectionToggle } = useSectionVisibility(() => 'CATALOG')
 
-const page = ref(1)
-const pageSize = ref(10)
-const pageSizes = [5, 10, 20, 50]
-const total = ref(0)
-const sort = ref<MediaSortField>('createdAt')
-const order = ref<'asc' | 'desc'>('desc')
+const {
+  items,
+  loading,
+  page,
+  pageSize,
+  pageSizes,
+  total,
+  load,
+  onSortChange,
+  afterDelete,
+  replaceItem,
+} = usePagedResource<MediaItem, MediaSortField>({
+  defaultSort: 'createdAt',
+  defaultOrder: 'desc',
+  onLoadSideEffect: () => loadSection(),
+  fetchPage: async ({ page: p, limit, sort, order }) => {
+    const params = new URLSearchParams({
+      type: 'CATALOG',
+      page: String(p),
+      limit: String(limit),
+      sort,
+      order,
+    })
+    if (search.value) params.set('q', search.value)
+    applyPublishedParam(params)
+    const media = await api<MediaPage>(`/api/admin/media?${params}`)
+    return { items: media.items, meta: media.meta }
+  },
+})
+
+watch([search, publishedFilter], () => {
+  if (page.value !== 1) page.value = 1
+  else void load()
+})
 
 function formatPrice(value?: number | null) {
   if (value == null) return '—'
@@ -35,80 +69,6 @@ function formatPrice(value?: number | null) {
 function photoCount(item: MediaItem) {
   if (item.imageUrls?.length) return item.imageUrls.length
   return item.imageUrl ? 1 : 0
-}
-
-async function loadSection() {
-  try {
-    const list = await api<SectionStatus[]>('/api/admin/settings/sections')
-    section.value = list.find((row) => row.key === 'CATALOG') || null
-  } catch {
-    section.value = null
-  }
-}
-
-function buildQuery() {
-  const params = new URLSearchParams({
-    type: 'CATALOG',
-    page: String(page.value),
-    limit: String(pageSize.value),
-    sort: sort.value,
-    order: order.value,
-  })
-  return params.toString()
-}
-
-async function load(options: { silent?: boolean } = {}) {
-  if (!options.silent) loading.value = true
-  try {
-    const [media] = await Promise.all([
-      api<MediaPage>(`/api/admin/media?${buildQuery()}`),
-      options.silent ? Promise.resolve() : loadSection(),
-    ])
-    items.value = media.items
-    total.value = media.meta.total
-    if (page.value > media.meta.totalPages) {
-      page.value = media.meta.totalPages
-      return
-    }
-  } catch (e) {
-    if (!options.silent) {
-      toast.error(e instanceof Error ? e.message : 'Ошибка загрузки')
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-function onSortChange(payload: { prop: string; order: string | null }) {
-  if (!payload.order) {
-    sort.value = 'createdAt'
-    order.value = 'desc'
-  } else {
-    sort.value = payload.prop as MediaSortField
-    order.value = payload.order === 'ascending' ? 'asc' : 'desc'
-  }
-  if (page.value !== 1) page.value = 1
-  else void load()
-}
-
-async function onSectionToggle(enabled: boolean) {
-  if (!section.value?.canEnable && enabled) {
-    toast.error('Сначала добавьте хотя бы один товар')
-    return
-  }
-  sectionSaving.value = true
-  try {
-    section.value = await api<SectionStatus>('/api/admin/settings/sections/CATALOG', {
-      method: 'PATCH',
-      body: JSON.stringify({ enabled }),
-    })
-    toast.success(enabled ? 'Раздел показывается на сайте' : 'Раздел скрыт на сайте')
-  } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось обновить')
-    await loadSection()
-  } finally {
-    sectionSaving.value = false
-  }
 }
 
 function openCreate() {
@@ -125,12 +85,11 @@ async function togglePublished(item: MediaItem) {
       method: 'PATCH',
       body: JSON.stringify({ published: !item.published }),
     })
-    const idx = items.value.findIndex((row) => row.id === item.id)
-    if (idx >= 0) items.value[idx] = updated
+    replaceItem(item.id, updated, (row) => row.id)
     await loadSection()
     toast.success(updated.published ? 'Опубликовано' : 'Скрыто')
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось обновить')
+    toast.error(getErrorMessage(e, 'Не удалось обновить'))
   }
 }
 
@@ -166,7 +125,7 @@ async function copyItem(item: MediaItem) {
     toast.success('Копия создана')
     await router.push({ name: 'catalog-edit', params: { id: created.id } })
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось создать копию')
+    toast.error(getErrorMessage(e, 'Не удалось создать копию'))
   } finally {
     copyingId.value = null
   }
@@ -184,25 +143,12 @@ async function removeItem(item: MediaItem) {
   try {
     await api(`/api/admin/media/${item.id}`, { method: 'DELETE' })
     toast.success('Удалено')
-    if (items.value.length === 1 && page.value > 1) {
-      page.value -= 1
-    } else {
-      await load({ silent: true })
-    }
+    await afterDelete()
     await loadSection()
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось удалить')
+    toast.error(getErrorMessage(e, 'Не удалось удалить'))
   }
 }
-
-watch(pageSize, () => {
-  if (page.value !== 1) page.value = 1
-  else void load()
-})
-
-watch(page, () => load())
-
-onMounted(load)
 </script>
 
 <template>
@@ -213,34 +159,40 @@ onMounted(load)
     >
       <template #actions>
         <div class="flex flex-wrap items-center gap-3">
-          <div
-            class="section-switch"
-            :class="{ 'is-disabled': !section?.canEnable }"
-            :title="
-              section?.canEnable
-                ? 'Показывать раздел на сайте'
-                : 'Добавьте контент, чтобы включить раздел'
-            "
-          >
-            <span class="section-switch__label">На сайте</span>
-            <el-switch
-              :model-value="Boolean(section?.enabled && section?.canEnable)"
-              :disabled="!section?.canEnable || sectionSaving"
-              :loading="sectionSaving"
-              @change="onSectionToggle"
+          <el-input
+            :model-value="searchInput"
+            class="w-56 sm:w-64"
+            clearable
+            placeholder="Название, артикул, категория…"
+            :prefix-icon="icons.search"
+            @update:model-value="onSearchInput"
+            @clear="clearSearch"
+          />
+          <el-select v-model="publishedFilter" class="w-36">
+            <el-option
+              v-for="option in publishedFilterOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
             />
-          </div>
+          </el-select>
+          <SectionSiteSwitch
+            :section="section"
+            :saving="sectionSaving"
+            disabled-hint="Добавьте товар, чтобы включить раздел"
+            @change="onSectionToggle"
+          />
           <el-button type="primary" :icon="Plus" @click="openCreate">Добавить товар</el-button>
         </div>
       </template>
     </PageHeader>
 
-    <el-card shadow="never" class="!border-slate-200">
+    <AdminSurface>
       <el-table
         v-loading="loading"
         :data="items"
         stripe
-        empty-text="Каталог пуст — добавьте первый товар"
+        :empty-text="search || publishedFilter !== 'ALL' ? 'Ничего не найдено' : 'Каталог пуст — добавьте первый товар'"
         class="catalog-table"
         :default-sort="{ prop: 'createdAt', order: 'descending' }"
         @row-click="openEdit"
@@ -249,7 +201,7 @@ onMounted(load)
         <el-table-column label="Фото" width="88">
           <template #default="{ row }">
             <div class="catalog-table__thumb">
-              <img :src="row.imageUrl" :alt="row.title" />
+              <img :src="row.imageUrl" :alt="row.title">
               <span v-if="photoCount(row) > 1" class="catalog-table__badge">
                 {{ photoCount(row) }}
               </span>
@@ -359,7 +311,7 @@ onMounted(load)
         :total="total"
         :page-sizes="pageSizes"
       />
-    </el-card>
+    </AdminSurface>
   </div>
 </template>
 
@@ -417,25 +369,5 @@ onMounted(load)
   color: var(--el-color-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
-}
-
-.section-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.35rem 0.7rem;
-  border: 1px solid rgb(226 232 240);
-  border-radius: 999px;
-  background: #fff;
-}
-
-.section-switch.is-disabled {
-  opacity: 0.65;
-}
-
-.section-switch__label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: rgb(71 85 105);
 }
 </style>

@@ -63,7 +63,7 @@ onMounted(async () => {
       :description="`Добро пожаловать${auth.user?.email ? `, ${auth.user.email}` : ''}. Краткий обзор системы.`"
     />
 
-    <div v-loading="loading" class="grid min-h-40 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div v-loading="loading" class="grid min-h-40 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       <el-card
         v-if="stats"
         shadow="hover"
@@ -108,6 +108,15 @@ onMounted(async () => {
       >
         <p class="text-sm text-slate-500">Галерея</p>
         <p class="mt-2 text-3xl font-extrabold text-brand-700">{{ stats.media.gallery }}</p>
+      </el-card>
+      <el-card
+        v-if="stats"
+        shadow="hover"
+        class="cursor-pointer"
+        @click="router.push('/coaches')"
+      >
+        <p class="text-sm text-slate-500">Тренеры</p>
+        <p class="mt-2 text-3xl font-extrabold text-brand-700">{{ stats.coaches ?? 0 }}</p>
       </el-card>
     </div>
 

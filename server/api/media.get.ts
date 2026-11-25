@@ -20,24 +20,22 @@ interface MediaItem {
   updatedAt: string
 }
 
-/** В браузере отдаём относительный /uploads — его проксирует Nuxt на API */
-function publicImageUrl(imageUrl: string) {
-  if (!imageUrl) return imageUrl
-  if (/^https?:\/\//i.test(imageUrl)) {
-    try {
-      const url = new URL(imageUrl)
-      if (url.pathname.startsWith('/uploads/')) return url.pathname
-    } catch {
-      /* keep as is */
-    }
-    return imageUrl
-  }
-  return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`
+const DEFAULT_LIMIT: Record<MediaType, number> = {
+  CATALOG: 48,
+  NEWS: 48,
+  REVIEW: 48,
+  GALLERY: 48,
 }
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const type = typeof query.type === 'string' ? query.type : undefined
+  const type = typeof query.type === 'string' ? (query.type as MediaType) : undefined
+  const rawLimit = typeof query.limit === 'string' ? Number(query.limit) : Number(query.limit)
+  const fallback = type ? DEFAULT_LIMIT[type] : 48
+  const limit = Number.isFinite(rawLimit) && rawLimit > 0
+    ? Math.min(100, Math.round(rawLimit))
+    : fallback
+
   const config = useRuntimeConfig()
   const apiUrl = (config.apiUrl as string | undefined)?.replace(/\/$/, '')
 
@@ -47,7 +45,10 @@ export default defineEventHandler(async (event) => {
 
   try {
     const items = await $fetch<MediaItem[]>(`${apiUrl}/api/media`, {
-      query: type ? { type } : undefined,
+      query: {
+        ...(type ? { type } : {}),
+        limit,
+      },
     })
     return items.map((item) => ({
       ...item,

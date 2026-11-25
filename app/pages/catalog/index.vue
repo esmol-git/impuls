@@ -339,7 +339,7 @@ function onFiltersReset() {
       <!-- Пусто только после реального ответа API -->
       <div
         v-else-if="showEmptyCatalog || !sectionEnabled"
-        class="mt-10 rounded-2xl border border-brand-100 bg-white px-6 py-12 text-center shadow-card"
+        class="empty-panel mt-10"
       >
         <p class="text-base font-semibold text-brand-700">Каталог скоро появится</p>
         <p class="mt-2 text-sm text-brand-500">

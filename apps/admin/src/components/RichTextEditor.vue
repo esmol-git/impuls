@@ -6,7 +6,6 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import { icons } from '@/icons'
 import { ElMessageBox } from 'element-plus'
-import { api } from '@/api/client'
 import { Column, Columns } from '@/components/editor/columns'
 import {
   type ImageSize,
@@ -169,14 +168,12 @@ async function onImageFile(event: Event) {
   }
   uploading.value = true
   try {
-    const { prepareImageUpload } = await import('@/utils/image')
+    const [{ prepareImageUpload }, { uploadMediaFile }] = await Promise.all([
+      import('@/utils/image'),
+      import('@/utils/uploadMedia'),
+    ])
     const prepared = await prepareImageUpload(file)
-    const body = new FormData()
-    body.append('file', prepared)
-    const uploaded = await api<{ url: string }>('/api/admin/media/upload', {
-      method: 'POST',
-      body,
-    })
+    const imageUrl = await uploadMediaFile(prepared)
 
     // по умолчанию на всю ширину текста; размер можно сменить в тулбаре
     editor.value
@@ -184,7 +181,7 @@ async function onImageFile(event: Event) {
       .focus()
       .insertContent({
         type: 'image',
-        attrs: { src: uploaded.url, size: 'full' },
+        attrs: { src: imageUrl, size: 'full' },
       })
       .run()
   } catch (e) {

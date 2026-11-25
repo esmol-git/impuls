@@ -12,6 +12,8 @@ Environment=HOST=127.0.0.1
 Environment=PORT=3000
 Environment=NUXT_API_URL=http://127.0.0.1:3001
 Environment=NUXT_SITE_URL=https://impuls.esmolakov.ru
+# NUXT_PUBLIC_YANDEX_MAPS_API_KEY и др. — из .env.site (пишет deploy:all)
+EnvironmentFile=-/opt/impuls/.env.site
 # Опционально Telegram (заявки):
 # Environment=NUXT_TELEGRAM_BOT_TOKEN=
 # Environment=NUXT_TELEGRAM_CHAT_ID=

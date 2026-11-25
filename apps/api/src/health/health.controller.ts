@@ -1,9 +1,10 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common'
 import { SkipThrottle } from '@nestjs/throttler'
+import { SKIP_ALL_THROTTLES } from '../common/throttle'
 import { PrismaService } from '../prisma/prisma.service'
 
 @Controller('health')
-@SkipThrottle({ default: true, auth: true, leads: true })
+@SkipThrottle(SKIP_ALL_THROTTLES)
 export class HealthController {
   constructor(private readonly prisma: PrismaService) {}
 

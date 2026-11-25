@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { site } from '~/data/site'
 
 withDefaults(defineProps<{
   variant?: 'inline' | 'card' | 'bar'
@@ -8,39 +7,40 @@ withDefaults(defineProps<{
   variant: 'inline',
 })
 
-const { isOpen } = useBusinessHours()
-
-const phoneHref = computed(() => `tel:${site.phone.replace(/[\s()-]/g, '')}`)
+const { isOpen, ready } = useBusinessHours()
+const { phone, phoneHours, hasPhone, telHref } = await useSiteContacts()
 
 const dotClass = computed(() => {
-  if (isOpen.value === null) return 'bg-brand-300'
+  if (!ready.value) return 'bg-brand-300'
   return isOpen.value ? 'bg-emerald-500' : 'bg-red-500'
 })
 
 const statusAria = computed(() => {
-  if (isOpen.value === null) return 'Проверка времени приёма звонков'
+  if (!ready.value) return 'Проверка времени приёма звонков'
   return isOpen.value ? 'Сейчас принимаем звонки' : 'Сейчас вне времени приёма звонков'
 })
 </script>
 
 <template>
   <a
-    :href="phoneHref"
+    v-if="hasPhone"
+    :href="telHref"
     class="group transition"
     :class="{
-      'flex items-center gap-3 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 hover:border-brand-200 hover:bg-white': variant === 'card',
+      'flex items-center gap-3 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 hover:border-brand-200 hover:bg-[var(--card-bg)]': variant === 'card',
       'flex items-center gap-2.5 rounded-xl border border-brand-100/80 bg-brand-50/60 px-3 py-2 hover:border-brand-200 hover:bg-brand-50': variant === 'inline',
       'flex min-w-0 items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-brand-50/80': variant === 'bar',
     }"
   >
     <span class="relative flex h-2.5 w-2.5 shrink-0" :aria-label="statusAria" role="status">
+      <!-- ready=false на SSR и первом клиентском кадре — без ClientOnly -->
       <span
-        v-if="isOpen"
+        v-if="ready && isOpen"
         class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60"
         aria-hidden="true"
       />
       <span
-        class="relative inline-flex h-2.5 w-2.5 rounded-full ring-2 ring-white"
+        class="relative inline-flex h-2.5 w-2.5 rounded-full ring-2 ring-[var(--header-bg,#fff)]"
         :class="dotClass"
         aria-hidden="true"
       />
@@ -51,13 +51,14 @@ const statusAria = computed(() => {
         class="header-phone__num block font-bold leading-tight"
         :class="variant === 'bar' ? 'text-[15px] tracking-tight' : 'text-sm'"
       >
-        {{ site.phone }}
+        {{ phone }}
       </span>
       <span
+        v-if="phoneHours"
         class="header-phone__meta block truncate leading-snug"
         :class="variant === 'bar' ? 'text-[11px]' : 'text-[11px] sm:text-xs'"
       >
-        {{ site.phoneHours }}
+        {{ phoneHours }}
       </span>
     </span>
 

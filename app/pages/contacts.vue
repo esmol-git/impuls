@@ -17,6 +17,7 @@ definePageMeta({ breadcrumb: meta.breadcrumb })
 
 usePageSeo(`${meta.title} — ${site.name}`, meta.description)
 
+const { email, hasPhone, hasEmail, hasSocials, mailtoHref } = await useSiteContacts()
 const { focusId, select } = useLocationMapFocus('contacts-locations-focus')
 
 function onSelectFromCard(id: string) {
@@ -60,19 +61,30 @@ function onSelectFromMap(id: string) {
 
     <BaseSection id="contacts-info">
       <ScrollReveal>
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <HeaderPhone variant="card" class="h-full" />
+        <div
+          v-if="hasPhone || hasEmail || hasSocials"
+          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          <HeaderPhone
+            v-if="hasPhone"
+            variant="card"
+            class="h-full"
+          />
 
           <a
-            :href="`mailto:${site.email}`"
+            v-if="hasEmail"
+            :href="mailtoHref"
             class="card flex h-full flex-col p-5 transition hover:border-brand-200 sm:p-6"
           >
             <p class="text-xs font-semibold uppercase tracking-wider text-accent-500">Email</p>
-            <p class="mt-2 text-lg font-bold text-brand-600">{{ site.email }}</p>
+            <p class="mt-2 text-lg font-bold text-brand-600">{{ email }}</p>
             <p class="mt-auto pt-3 text-sm text-brand-400">Ответим в рабочее время</p>
           </a>
 
-          <div class="card flex h-full flex-col p-5 sm:p-6">
+          <div
+            v-if="hasSocials"
+            class="card flex h-full flex-col p-5 sm:p-6"
+          >
             <p class="text-xs font-semibold uppercase tracking-wider text-accent-500">Мы в соцсетях</p>
             <p class="mt-2 text-sm text-brand-600/70">Новости, фото с тренировок и анонсы турниров</p>
             <SocialLinks size="sm" class="mt-4" />

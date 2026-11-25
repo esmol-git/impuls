@@ -41,7 +41,7 @@ export class CoachesAdminController {
 
   @Patch('reorder')
   reorder(@Body() dto: ReorderCoachesDto) {
-    return this.coaches.reorder(dto.ids)
+    return this.coaches.reorder(dto.ids, dto.offset ?? 0)
   }
 
   @Patch(':id')

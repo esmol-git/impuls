@@ -5,6 +5,7 @@ import { icons } from '@/icons'
 import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import EditPageActions from '@/components/ui/EditPageActions.vue'
+import EditPublishSwitch from '@/components/ui/EditPublishSwitch.vue'
 import MultiImageUpload, { type GalleryImage } from '@/components/ui/MultiImageUpload.vue'
 import CatalogCardPreview from '@/components/catalog/CatalogCardPreview.vue'
 import { api } from '@/api/client'
@@ -12,6 +13,7 @@ import type { MediaItem, TaxonomyItem } from '@/api/types'
 import { useSavingIndicator } from '@/composables/useSavingIndicator'
 import { useToast } from '@/composables/useToast'
 import { rules } from '@/utils/rules'
+import { uploadMediaFile } from '@/utils/uploadMedia'
 
 const route = useRoute()
 const router = useRouter()
@@ -179,20 +181,10 @@ async function load() {
   }
 }
 
-async function uploadFile(file: File) {
-  const body = new FormData()
-  body.append('file', file)
-  const uploaded = await api<{ url: string }>('/api/admin/media/upload', {
-    method: 'POST',
-    body,
-  })
-  return uploaded.url
-}
-
 async function uploadGallery(): Promise<string[]> {
   const urls: string[] = []
   for (const image of form.gallery) {
-    if (image.file) urls.push(await uploadFile(image.file))
+    if (image.file) urls.push(await uploadMediaFile(image.file))
     else if (image.url) urls.push(image.url)
   }
   return urls
@@ -354,12 +346,7 @@ onUnmounted(resetGallery)
               />
             </el-form-item>
             <el-form-item label="Публикация">
-              <div class="edit-page__publish catalog-edit__publish-inline">
-                <el-switch v-model="form.published" />
-                <span class="text-sm font-semibold text-slate-800">
-                  {{ form.published ? 'Опубликован' : 'Скрыт' }}
-                </span>
-              </div>
+              <EditPublishSwitch v-model="form.published" compact />
             </el-form-item>
           </div>
 
@@ -488,13 +475,6 @@ onUnmounted(resetGallery)
   .catalog-edit__price-row {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-}
-
-.catalog-edit__publish-inline {
-  min-height: 42px;
-  height: 42px;
-  padding-top: 0;
-  padding-bottom: 0;
 }
 
 .sku-input--locked :deep(.el-input__wrapper) {

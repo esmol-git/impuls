@@ -1,25 +1,6 @@
 import type { Component } from 'vue'
-import AdvantagesSection from '~/components/AdvantagesSection.vue'
-import AudienceSection from '~/components/AudienceSection.vue'
-import CatalogSection from '~/components/CatalogSection.vue'
-import ChildBenefitsSection from '~/components/ChildBenefitsSection.vue'
-import CoachesPreviewSection from '~/components/CoachesPreviewSection.vue'
-import ConditionsSection from '~/components/ConditionsSection.vue'
-import CtaSection from '~/components/CtaSection.vue'
-import EcosystemSection from '~/components/EcosystemSection.vue'
-import FaqAccordion from '~/components/FaqAccordion.vue'
-import GallerySection from '~/components/GallerySection.vue'
+import { defineAsyncComponent } from 'vue'
 import HeroSection from '~/components/HeroSection.vue'
-import HomeProgramsTabs from '~/components/HomeProgramsTabs.vue'
-import LocationsPreviewSection from '~/components/LocationsPreviewSection.vue'
-import NewsSection from '~/components/NewsSection.vue'
-import PainPointsSection from '~/components/PainPointsSection.vue'
-import ProgressionSection from '~/components/ProgressionSection.vue'
-import ReviewsCarousel from '~/components/ReviewsCarousel.vue'
-import StatsBand from '~/components/StatsBand.vue'
-import StepsSection from '~/components/StepsSection.vue'
-import TrainingQualitySection from '~/components/TrainingQualitySection.vue'
-import VideoSection from '~/components/VideoSection.vue'
 
 export type HomeBlockKey =
   | 'hero'
@@ -50,32 +31,33 @@ export interface HomeBlockStatus {
   description: string
   enabled: boolean
   sortOrder: number
-  contentKey?: 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
+  contentKey?: 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY' | 'COACHES'
   visible: boolean
 }
 
+/** Hero синхронно (LCP); остальное — async chunk ниже fold */
 const blockComponents: Record<HomeBlockKey, Component> = {
   hero: HeroSection,
-  stats: StatsBand,
-  programs: HomeProgramsTabs,
-  painPoints: PainPointsSection,
-  audience: AudienceSection,
-  childBenefits: ChildBenefitsSection,
-  steps: StepsSection,
-  progression: ProgressionSection,
-  trainingQuality: TrainingQualitySection,
-  conditions: ConditionsSection,
-  ecosystem: EcosystemSection,
-  advantages: AdvantagesSection,
-  video: VideoSection,
-  locations: LocationsPreviewSection,
-  gallery: GallerySection,
-  catalog: CatalogSection,
-  news: NewsSection,
-  reviews: ReviewsCarousel,
-  faq: FaqAccordion,
-  coaches: CoachesPreviewSection,
-  cta: CtaSection,
+  stats: defineAsyncComponent(() => import('~/components/StatsBand.vue')),
+  programs: defineAsyncComponent(() => import('~/components/HomeProgramsTabs.vue')),
+  painPoints: defineAsyncComponent(() => import('~/components/PainPointsSection.vue')),
+  audience: defineAsyncComponent(() => import('~/components/AudienceSection.vue')),
+  childBenefits: defineAsyncComponent(() => import('~/components/ChildBenefitsSection.vue')),
+  steps: defineAsyncComponent(() => import('~/components/StepsSection.vue')),
+  progression: defineAsyncComponent(() => import('~/components/ProgressionSection.vue')),
+  trainingQuality: defineAsyncComponent(() => import('~/components/TrainingQualitySection.vue')),
+  conditions: defineAsyncComponent(() => import('~/components/ConditionsSection.vue')),
+  ecosystem: defineAsyncComponent(() => import('~/components/EcosystemSection.vue')),
+  advantages: defineAsyncComponent(() => import('~/components/AdvantagesSection.vue')),
+  video: defineAsyncComponent(() => import('~/components/VideoSection.vue')),
+  locations: defineAsyncComponent(() => import('~/components/LocationsPreviewSection.vue')),
+  gallery: defineAsyncComponent(() => import('~/components/GallerySection.vue')),
+  catalog: defineAsyncComponent(() => import('~/components/CatalogSection.vue')),
+  news: defineAsyncComponent(() => import('~/components/NewsSection.vue')),
+  reviews: defineAsyncComponent(() => import('~/components/ReviewsCarousel.vue')),
+  faq: defineAsyncComponent(() => import('~/components/FaqAccordion.vue')),
+  coaches: defineAsyncComponent(() => import('~/components/CoachesPreviewSection.vue')),
+  cta: defineAsyncComponent(() => import('~/components/CtaSection.vue')),
 }
 
 /** Fallback, если API недоступен — как раньше в data/home.ts */
@@ -99,7 +81,7 @@ const FALLBACK_BLOCKS: HomeBlockStatus[] = [
   { key: 'news', label: 'Новости', description: '', enabled: true, sortOrder: 16, visible: true, contentKey: 'NEWS' },
   { key: 'reviews', label: 'Отзывы', description: '', enabled: true, sortOrder: 17, visible: true, contentKey: 'REVIEW' },
   { key: 'faq', label: 'FAQ', description: '', enabled: true, sortOrder: 18, visible: true },
-  { key: 'coaches', label: 'Тренеры', description: '', enabled: true, sortOrder: 19, visible: true },
+  { key: 'coaches', label: 'Тренеры', description: '', enabled: true, sortOrder: 19, visible: true, contentKey: 'COACHES' },
   { key: 'cta', label: 'Заявка', description: '', enabled: true, sortOrder: 20, visible: true },
 ]
 

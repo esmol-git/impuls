@@ -16,20 +16,20 @@ export class CreateCoachDto {
   @MaxLength(120)
   name!: string
 
+  @IsOptional()
   @IsString()
-  @MinLength(2)
   @MaxLength(120)
-  role!: string
+  role?: string
 
+  @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(60)
-  experience!: string
+  experience?: string
 
+  @IsOptional()
   @IsString()
-  @MinLength(2)
-  @MaxLength(2000)
-  bio!: string
+  @MaxLength(200_000)
+  bio?: string
 
   @IsOptional()
   @IsArray()

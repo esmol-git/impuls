@@ -86,7 +86,8 @@ npm run deploy:all                  # сборка + rsync + migrate + restart u
 4. Caddy: `deploy/caddy-impuls.snippet` (или Nginx: `deploy/nginx-impuls.conf`)
 5. DNS: `impuls.…` и `admin.impuls.…` → сервер
 
-Старый `npm run deploy` заливает только `nuxt generate` (статика без Nitro `/api`) — для полного стека используйте `deploy:all`.
+`npm run deploy` больше не заливает прод (подсказка → `deploy:all`).  
+Только статика `nuxt generate` (без Nitro `/api`): `npm run deploy:static`.
 
 ## Заявки с сайта
 

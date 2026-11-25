@@ -19,7 +19,7 @@ export const HOME_BLOCK_DEFS = [
   { key: 'news', label: 'Новости', description: 'Новости на главной (нужен контент)', defaultEnabled: true, contentKey: 'NEWS' },
   { key: 'reviews', label: 'Отзывы', description: 'Скриншоты отзывов (нужен контент)', defaultEnabled: true, contentKey: 'REVIEW' },
   { key: 'faq', label: 'FAQ', description: 'Частые вопросы', defaultEnabled: true },
-  { key: 'coaches', label: 'Тренеры', description: 'Превью команды', defaultEnabled: true },
+  { key: 'coaches', label: 'Тренеры', description: 'Превью команды (нужен контент)', defaultEnabled: true, contentKey: 'COACHES' },
   { key: 'cta', label: 'Заявка', description: 'Нижний блок записи', defaultEnabled: true },
 ] as const
 

@@ -61,7 +61,7 @@ type MapLike = {
   setCenter: (c: number[], zoom?: number, opts?: Record<string, unknown>) => void
   setZoom: (zoom: number, opts?: Record<string, unknown>) => void
   getZoom: () => number
-  getCenter: () => number[]
+  getCenter: () => [number, number]
   destroy: () => void
   events: MapEvents
   behaviors?: MapBehaviors

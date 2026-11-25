@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-
 const { isOpen } = useModal()
+const { visible: cookieVisible } = useCookieConsent()
 const scrolled = ref(false)
 
 function onScroll() {
@@ -16,6 +15,8 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
 })
+
+const show = computed(() => scrolled.value && !isOpen.value && !cookieVisible.value)
 </script>
 
 <template>
@@ -28,8 +29,8 @@ onUnmounted(() => {
     leave-to-class="opacity-0 translate-y-full"
   >
     <div
-      v-if="scrolled && !isOpen"
-      class="scroll-lock-pad fixed inset-x-0 bottom-0 z-40 border-t border-brand-100 bg-white/95 px-3 py-3 shadow-lg backdrop-blur-md safe-bottom lg:hidden"
+      v-if="show"
+      class="sticky-mobile-cta scroll-lock-pad fixed inset-x-0 bottom-0 z-40 px-3 py-3 shadow-lg safe-bottom lg:hidden"
     >
       <div class="mx-auto flex max-w-site items-center gap-2 sm:gap-3">
         <ModalTrigger type="callback" class="btn-outline min-h-[44px] flex-1 !px-3 !py-2.5 text-xs sm:text-sm">
@@ -42,3 +43,11 @@ onUnmounted(() => {
     </div>
   </Transition>
 </template>
+
+<style scoped>
+.sticky-mobile-cta {
+  border-top: 1px solid var(--card-border);
+  background: color-mix(in srgb, var(--card-bg) 95%, transparent);
+  backdrop-filter: blur(12px);
+}
+</style>

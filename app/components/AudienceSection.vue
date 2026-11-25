@@ -43,7 +43,7 @@ import { audienceCards, audienceSection } from '~/data/audience'
             </UiSkeletonImage>
 
             <div class="flex flex-1 flex-col p-4 sm:p-5">
-              <h3 class="min-h-[3.25rem] text-base font-bold leading-snug text-brand-600 sm:min-h-[3.5rem] sm:text-lg">
+              <h3 class="text-base font-bold leading-snug text-brand-600 sm:text-lg lg:min-h-[3.5rem]">
                 {{ card.title }}
               </h3>
               <p class="mt-2 flex-1 text-sm leading-relaxed text-brand-600/70">

@@ -1,8 +1,13 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { site } from '~/data/site'
 
+/**
+ * Статус «на линии» только после mount — иначе SSR/клиент
+ * могут разойтись по минутам и дать hydration mismatch.
+ */
 export function useBusinessHours() {
-  const isOpen = ref<boolean | null>(null)
+  const isOpen = ref(false)
+  const ready = ref(false)
   let intervalId: ReturnType<typeof setInterval> | undefined
 
   function update() {
@@ -11,6 +16,7 @@ export function useBusinessHours() {
     const start = site.phoneHoursStart * 60
     const end = site.phoneHoursEnd * 60
     isOpen.value = minutes >= start && minutes < end
+    ready.value = true
   }
 
   onMounted(() => {
@@ -23,9 +29,9 @@ export function useBusinessHours() {
   })
 
   const statusText = computed(() => {
-    if (isOpen.value === null) return site.phoneHours
+    if (!ready.value) return 'Проверка времени приёма'
     return isOpen.value ? 'Сейчас на связи' : 'Вне часов приёма'
   })
 
-  return { isOpen, statusText }
+  return { isOpen, ready, statusText }
 }

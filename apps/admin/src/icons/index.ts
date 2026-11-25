@@ -86,7 +86,7 @@ import IconRedo from '@/assets/icons/redo.svg'
 import IconZoomIn from '@/assets/icons/zoom-in.svg'
 import IconZoomOut from '@/assets/icons/zoom-out.svg'
 
-export const icons = {
+const iconsMap = {
   'airplay': IconAirplay,
   'archive': IconArchive,
   'arrow-chevron-left': IconArrowChevronLeft,
@@ -172,9 +172,12 @@ export const icons = {
   'redo': IconRedo,
   'zoom-in': IconZoomIn,
   'zoom-out': IconZoomOut,
-} as const satisfies Record<string, Component>
+} as const
 
-export type IconName = keyof typeof icons
+export type IconName = keyof typeof iconsMap
+
+/** SVG loader отдаёт компоненты; vite/client типизирует *.svg как string — каст здесь. */
+export const icons = iconsMap as unknown as { [K in IconName]: Component }
 
 export function getIcon(name: IconName): Component {
   return icons[name]

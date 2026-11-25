@@ -32,21 +32,33 @@ function applyDom(mode: ThemeMode, resolved: 'light' | 'dark') {
   writeCookies(mode, resolved)
 }
 
+function cookieResolved(
+  mode: ThemeMode,
+  resolvedCookie: string | null | undefined,
+): 'light' | 'dark' {
+  if (mode === 'dark') return 'dark'
+  if (mode === 'light') return 'light'
+  return resolvedCookie === 'dark' ? 'dark' : 'light'
+}
+
 /** Тема сайта из админки: light / dark / system. */
-export function useSiteTheme() {
+export async function useSiteTheme() {
+  // readonly: не шлём Set-Cookie на SSR. Запись — document.cookie в applyDom после mount.
   const themeCookie = useCookie<ThemeMode>(THEME_COOKIE, {
     default: () => 'system',
     sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 365,
+    readonly: true,
   })
 
   const resolvedCookie = useCookie<'light' | 'dark'>(THEME_RESOLVED_COOKIE, {
     default: () => 'light',
     sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 365,
+    readonly: true,
   })
 
-  const { data, refresh } = useFetch<ThemeStatus>('/api/settings/theme', {
+  const { data, refresh, status } = await useFetch<ThemeStatus>('/api/settings/theme', {
     key: 'site-theme',
     default: () => ({
       mode: isThemeMode(String(themeCookie.value))
@@ -60,49 +72,37 @@ export function useSiteTheme() {
 
   const mode = computed<ThemeMode>(() => data.value?.mode ?? 'system')
 
-  const prefersDark = ref(readPrefersDark())
+  /** До mount не трогаем matchMedia — иначе SSR/клиент разъедутся. */
+  const readyForSystem = ref(false)
+  const prefersDark = ref(false)
 
   const resolved = computed<'light' | 'dark'>(() => {
-    // На SSR для system берём прошлый resolved из cookie (его пишет клиент).
-    if (
-      import.meta.server &&
-      mode.value === 'system' &&
-      (resolvedCookie.value === 'dark' || resolvedCookie.value === 'light')
-    ) {
-      return resolvedCookie.value
+    if (mode.value !== 'system') {
+      return mode.value
     }
-    return resolveThemeMode(mode.value, prefersDark.value)
+    if (!readyForSystem.value) {
+      return cookieResolved('system', resolvedCookie.value)
+    }
+    return resolveThemeMode('system', prefersDark.value)
   })
 
   const isDark = computed(() => resolved.value === 'dark')
 
-  // Не затирать class пустой строкой — только 'dark' | undefined
-  useHead({
-    htmlAttrs: computed(() => ({
-      lang: 'ru',
-      class: isDark.value ? 'dark' : undefined,
-      'data-theme': mode.value,
-      style: `color-scheme:${resolved.value}`,
-    })),
-  })
+  // Не трогаем htmlAttrs через useHead: theme-boot.js уже выставил class/data-theme
+  // до Vue, а useHead с class="" / data-theme=light даёт hydration mismatch.
 
-  watch(
-    [mode, resolved],
-    ([m, r]) => {
-      themeCookie.value = m
-      resolvedCookie.value = r
-      applyDom(m, r)
-    },
-    { immediate: true },
-  )
+  function syncFromOs() {
+    prefersDark.value = readPrefersDark()
+    applyDom(mode.value, resolveThemeMode(mode.value, prefersDark.value))
+  }
 
   function bindClientListeners() {
-    prefersDark.value = readPrefersDark()
-    applyDom(mode.value, resolved.value)
+    readyForSystem.value = true
+    syncFromOs()
 
-    void refresh().then(() => {
-      applyDom(mode.value, resolved.value)
-    })
+    if (status.value === 'pending' || status.value === 'idle') {
+      void refresh().then(() => applyDom(mode.value, resolved.value))
+    }
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const onMq = () => {
@@ -111,16 +111,22 @@ export function useSiteTheme() {
     }
     mq.addEventListener('change', onMq)
 
-    const onFocus = () => {
+    const onVisibility = () => {
+      if (document.visibilityState !== 'visible') return
       void refresh().then(() => applyDom(mode.value, resolved.value))
     }
-    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisibility)
 
     return () => {
       mq.removeEventListener('change', onMq)
-      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisibility)
     }
   }
+
+  watch(mode, (m) => {
+    if (!import.meta.client || !readyForSystem.value) return
+    applyDom(m, resolveThemeMode(m, prefersDark.value))
+  })
 
   if (import.meta.client) {
     const instance = getCurrentInstance()
@@ -131,15 +137,15 @@ export function useSiteTheme() {
       })
     }
     else {
-      /* plugin / вне setup — без Vue lifecycle hooks */
       const nuxtApp = useNuxtApp()
       let cleanup: (() => void) | undefined
       nuxtApp.hook('app:mounted', () => {
+        cleanup?.()
         cleanup = bindClientListeners()
       })
-      nuxtApp.hook('app:unmounted', () => {
-        cleanup?.()
-      })
+      if (import.meta.client) {
+        window.addEventListener('pagehide', () => cleanup?.(), { once: true })
+      }
     }
   }
 

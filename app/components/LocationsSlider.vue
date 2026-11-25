@@ -84,7 +84,7 @@ watch(() => props.activeId, (id) => {
     <div class="relative sm:px-12 md:px-14">
       <div
         ref="track"
-        class="slider-scroll -mx-4 flex snap-x snap-mandatory gap-4 px-4 sm:mx-0 sm:px-0"
+        class="slider-scroll locations-track -mx-4 flex snap-x snap-mandatory gap-3 sm:mx-0 sm:gap-4 sm:px-0"
         :aria-label="ariaLabel"
         @touchstart.passive="onTouchStart"
         @touchend.passive="onTouchEnd"
@@ -94,7 +94,7 @@ watch(() => props.activeId, (id) => {
           :key="loc.id"
           data-location-card
           :data-location-id="loc.id"
-          class="w-[min(100%,20rem)] shrink-0 snap-start sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] xl:w-[calc(25%-0.75rem)]"
+          class="w-[min(100%,16.5rem)] shrink-0 snap-start sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] xl:w-[calc(25%-0.75rem)]"
         >
           <LocationCard
             :location="loc"
@@ -129,15 +129,19 @@ watch(() => props.activeId, (id) => {
         </svg>
       </button>
     </div>
-
-    <p class="mt-3 text-center text-xs text-brand-400 sm:hidden">
-      Свайпните · нажмите карточку — точка на карте
-    </p>
   </div>
 </template>
 
 <style scoped>
-.carousel-btn {
-  @apply flex h-10 w-10 items-center justify-center rounded-full border border-brand-200 bg-white text-brand-600 shadow-card transition hover:border-brand-300 hover:bg-brand-50 hover:shadow-lg active:scale-95 md:h-11 md:w-11;
+.locations-track {
+  padding-inline: 1.5rem;
+  scroll-padding-inline: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .locations-track {
+    padding-inline: 0;
+    scroll-padding-inline: 0;
+  }
 }
 </style>

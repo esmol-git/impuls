@@ -41,6 +41,9 @@ export function mapMediaToNews(item: MediaNewsDto): NewsItem {
   }
 }
 
+/** Статический fallback только в dev — на проде пустой список / 404. */
 export function withNewsFallback(items: NewsItem[]) {
-  return items.length ? items : fallbackNews
+  if (items.length) return items
+  if (import.meta.dev) return fallbackNews
+  return []
 }

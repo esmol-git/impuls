@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { sections } from '~/data/sections'
-import { decorFor, decosOf, glowsOf } from '~/data/sectionDecor'
-import {
-  SECTION_SURFACE,
-  type SectionEdge,
-  type SectionTone,
-} from '~/utils/sectionSurface'
+import type { SectionEdge, SectionTone } from '~/utils/sectionSurface'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   tone?: SectionTone
   edge?: SectionEdge
   flipWave?: boolean
@@ -21,11 +16,6 @@ const props = withDefaults(defineProps<{
 })
 
 const config = sections.coaches
-const headingId = 'coaches-title'
-const coachesSurface = computed(() => SECTION_SURFACE[props.tone])
-const decor = decorFor('coaches')
-const decos = decosOf(decor)
-const glows = glowsOf(decor)
 const { data: coaches } = await useCoaches()
 
 const track = ref<HTMLElement>()
@@ -79,40 +69,27 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section
+  <BaseSection
+    v-if="coaches?.length"
     id="coaches"
-    class="coaches-section section-padding"
-    :class="{ 'coaches-section--edge': wave }"
-    :aria-labelledby="headingId"
-    :style="{ '--section-surface': coachesSurface, backgroundColor: coachesSurface }"
+    class="coaches-section"
+    :tone="tone"
+    :edge="edge"
+    :flip-wave="flipWave"
+    :wave="wave"
   >
-    <SectionWave
-      v-if="wave"
-      :fill="coachesSurface"
-      :flip="flipWave"
-      :variant="edge"
-    />
-    <SectionAmbient :glows="glows" />
-    <SectionWash
-      v-if="decor?.wash"
-      v-bind="decor.wash"
-    />
-    <SectionDeco
-      v-for="(item, i) in decos"
-      :key="i"
-      v-bind="item"
-    />
-
-    <div class="container-site relative z-[2]">
+    <template #default="{ headingId }">
       <SectionHeader
-        v-bind="config"
+        :label="config.label"
+        :title="config.title"
+        :description="config.description"
         :title-id="headingId"
       />
 
-      <div v-if="coaches?.length" class="relative mt-8 sm:mt-12 sm:px-12 md:px-14">
+      <div class="coaches-slider relative mt-8 sm:mt-12">
         <div
           ref="track"
-          class="slider-scroll -mx-4 flex snap-x snap-mandatory gap-4 px-4 sm:mx-0 sm:gap-6 sm:px-0"
+          class="slider-scroll coaches-track -mx-4 flex snap-x snap-mandatory gap-4 sm:mx-0 sm:gap-6 sm:px-0"
           aria-label="Тренеры"
           @touchstart.passive="onTouchStart"
           @touchend.passive="onTouchEnd"
@@ -130,7 +107,7 @@ onUnmounted(() => {
         <button
           v-show="canScrollPrev"
           type="button"
-          class="carousel-btn absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 sm:flex"
+          class="carousel-btn carousel-btn--prev absolute top-1/2 z-10 hidden -translate-y-1/2 sm:flex"
           aria-label="Предыдущие тренеры"
           @click="scrollStep(-1)"
         >
@@ -141,7 +118,7 @@ onUnmounted(() => {
         <button
           v-show="canScrollNext"
           type="button"
-          class="carousel-btn absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 sm:flex"
+          class="carousel-btn carousel-btn--next absolute top-1/2 z-10 hidden -translate-y-1/2 sm:flex"
           aria-label="Следующие тренеры"
           @click="scrollStep(1)"
         >
@@ -150,48 +127,52 @@ onUnmounted(() => {
           </svg>
         </button>
 
-        <p class="mt-3 text-center text-xs text-brand-400 sm:hidden">
-          Свайпните для просмотра
-        </p>
+        <div
+          v-if="config.action"
+          class="mt-4 flex justify-center sm:mt-6"
+        >
+          <NuxtLink
+            :to="config.action.to"
+            class="btn-outline w-full sm:w-auto"
+          >
+            {{ config.action.label }}
+          </NuxtLink>
+        </div>
       </div>
-    </div>
-  </section>
+    </template>
+  </BaseSection>
 </template>
 
 <style scoped>
-.coaches-section {
-  position: relative;
-  z-index: 0;
-  isolation: isolate;
-  overflow-x: clip;
-  overflow-y: visible;
+.coaches-slider {
+  --carousel-btn-gap: 0.75rem;
 }
 
-.coaches-section--edge {
-  padding-bottom: 5rem;
+.coaches-track {
+  padding-inline: 1.5rem;
+  scroll-padding-inline: 1.5rem;
 }
 
 @media (min-width: 640px) {
-  .coaches-section--edge {
-    padding-bottom: 6rem;
+  .coaches-track {
+    padding-inline: 0;
+    scroll-padding-inline: 0;
   }
 }
 
-@media (min-width: 768px) {
-  .coaches-section--edge {
-    padding-top: calc(3.25rem + 0.75rem);
-    padding-bottom: 6.5rem;
-  }
+.carousel-btn--prev {
+  right: 100%;
+  margin-right: var(--carousel-btn-gap);
 }
 
-@media (min-width: 1024px) {
-  .coaches-section--edge {
-    padding-top: calc(4rem + 1rem);
-    padding-bottom: 7.5rem;
-  }
+.carousel-btn--next {
+  left: 100%;
+  margin-left: var(--carousel-btn-gap);
 }
 
-.carousel-btn {
-  @apply flex h-10 w-10 items-center justify-center rounded-full border border-brand-200 bg-white text-brand-600 shadow-card transition hover:border-brand-300 hover:bg-brand-50 hover:shadow-lg active:scale-95 md:h-11 md:w-11;
+@media (min-width: 640px) {
+  :deep(.base-section) {
+    overflow-x: visible;
+  }
 }
 </style>

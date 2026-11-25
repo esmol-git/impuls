@@ -14,25 +14,61 @@ import { childBenefitCards, childBenefitsSection } from '~/data/childBenefits'
     <ScrollReveal>
       <ul class="mt-8 grid list-none gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         <li v-for="card in childBenefitCards" :key="card.id">
-          <article class="group relative h-full min-h-[200px] overflow-hidden rounded-xl border border-brand-100 sm:min-h-[220px]">
-            <div v-if="card.imageSrc" class="absolute inset-0">
-              <img :src="card.imageSrc" :alt="card.imageAlt" class="h-full w-full object-cover">
+          <article class="benefit-card group relative flex h-full min-h-[260px] flex-col overflow-hidden rounded-xl border border-brand-100 sm:min-h-[280px]">
+            <div class="absolute inset-0">
+              <img
+                v-if="card.imageSrc"
+                :src="card.imageSrc"
+                :alt="card.imageAlt"
+                class="h-full w-full object-cover object-[center_28%]"
+                loading="lazy"
+                decoding="async"
+              >
+              <UiMediaPlaceholder
+                v-else
+                :label="card.imageAlt"
+                hint="Фото готовится"
+                aspect="auto"
+                compact
+                class="absolute inset-0 !h-full !min-h-0 !rounded-none"
+              />
             </div>
-            <UiMediaPlaceholder
-              v-else
-              :label="card.imageAlt"
-              hint="Фото готовится"
-              aspect="auto"
-              compact
-              class="absolute inset-0 !h-full !min-h-0 !rounded-none"
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-brand-900/90 via-brand-900/40 to-transparent" />
-            <p class="absolute inset-x-0 bottom-0 p-4 text-sm font-semibold leading-snug text-white sm:p-5 sm:text-base">
-              {{ card.title }}
-            </p>
+
+            <div class="benefit-card__scrim" aria-hidden="true" />
+
+            <div class="benefit-card__copy relative z-[1] mt-auto p-4 sm:p-5">
+              <h3 class="text-base font-bold leading-snug text-white sm:text-lg">
+                {{ card.title }}
+              </h3>
+              <p class="mt-1.5 text-sm leading-relaxed text-white/90">
+                {{ card.description }}
+              </p>
+            </div>
           </article>
         </li>
       </ul>
     </ScrollReveal>
   </BaseSection>
 </template>
+
+<style scoped>
+.benefit-card__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to top,
+      rgb(16 25 45 / 0.97) 0%,
+      rgb(16 25 45 / 0.92) 34%,
+      rgb(16 25 45 / 0.55) 58%,
+      rgb(16 25 45 / 0.18) 78%,
+      transparent 100%
+    );
+}
+
+.benefit-card__copy {
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.55);
+}
+</style>

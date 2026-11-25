@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { reviewPlatforms, reviews as fallbackReviews } from '~/data/reviews'
+import { reviewPlatforms } from '~/data/reviews'
 import { sections } from '~/data/sections'
-import { decorFor, decosOf, glowsOf } from '~/data/sectionDecor'
 import reviewsPattern from '~/assets/img/pattern-stage.webp'
-import {
-  SECTION_SURFACE,
-  type SectionEdge,
-  type SectionTone,
-} from '~/utils/sectionSurface'
+import type { SectionEdge, SectionTone } from '~/utils/sectionSurface'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   tone?: SectionTone
   edge?: SectionEdge
   flipWave?: boolean
@@ -28,31 +23,7 @@ interface ReviewShot {
   title?: string
 }
 
-interface ReviewFallbackItem {
-  id: string
-  imageUrl: string
-  title: string
-  text: string
-  rating: number
-  author: string
-}
-
-type CarouselItem = ReviewShot | ReviewFallbackItem
-
-function isFallbackItem(item: CarouselItem): item is ReviewFallbackItem {
-  return 'rating' in item && typeof item.rating === 'number'
-}
-
-function itemRating(item: CarouselItem): number {
-  return isFallbackItem(item) ? item.rating : 0
-}
-
 const config = sections.reviews
-const headingId = 'reviews-title'
-const reviewsSurface = computed(() => SECTION_SURFACE[props.tone])
-const decor = decorFor('reviews')
-const decos = decosOf(decor)
-const glows = glowsOf(decor)
 
 /** Как у новостей: await useFetch — и SSR, и клиентский переход на главную. */
 const { data: mediaReviews } = await useFetch<ReviewShot[]>('/api/media', {
@@ -62,20 +33,7 @@ const { data: mediaReviews } = await useFetch<ReviewShot[]>('/api/media', {
   transform: (rows) => (Array.isArray(rows) ? rows.filter((row) => !!row?.imageUrl) : []),
 })
 
-const shots = computed(() => mediaReviews.value || [])
-const useScreenshots = computed(() => shots.value.length > 0)
-const items = computed<CarouselItem[]>(() =>
-  useScreenshots.value
-    ? shots.value
-    : fallbackReviews.map((review) => ({
-        id: review.id,
-        imageUrl: '',
-        title: review.author,
-        text: review.text,
-        rating: review.rating,
-        author: review.author,
-      })),
-)
+const items = computed(() => mediaReviews.value || [])
 
 const current = ref(0)
 const total = computed(() => items.value.length)
@@ -142,30 +100,15 @@ const trackStyle = computed(() => {
 </script>
 
 <template>
-  <section
+  <BaseSection
+    v-if="total"
     id="reviews"
-    class="reviews-section section-padding"
-    :class="{ 'reviews-section--edge': wave }"
-    :aria-labelledby="headingId"
-    :style="{ '--section-surface': reviewsSurface, backgroundColor: reviewsSurface }"
+    :tone="tone"
+    :edge="edge"
+    :flip-wave="flipWave"
+    :wave="wave"
   >
-    <SectionWave
-      v-if="wave"
-      :fill="reviewsSurface"
-      :flip="flipWave"
-      :variant="edge"
-    />
-    <SectionAmbient :glows="glows" />
-    <SectionWash
-      v-if="decor?.wash"
-      v-bind="decor.wash"
-    />
-    <SectionDeco
-      v-for="(item, i) in decos"
-      :key="i"
-      v-bind="item"
-    />
-    <div class="container-site relative z-[2]">
+    <template #default="{ headingId }">
       <div
         class="reviews-panel"
         :style="{ '--reviews-pattern': `url(${reviewsPattern})` }"
@@ -254,33 +197,12 @@ const trackStyle = computed(() => {
                       class="phone__slide"
                     >
                       <img
-                        v-if="useScreenshots && item.imageUrl"
                         :src="item.imageUrl"
                         :alt="item.title || 'Отзыв'"
                         class="phone__image"
                         loading="lazy"
                         draggable="false"
                       >
-                      <div v-else class="phone__fallback">
-                        <div class="mb-3 flex justify-center gap-1" aria-hidden="true">
-                          <svg
-                            v-for="n in 5"
-                            :key="n"
-                            class="h-4 w-4"
-                            :class="n <= itemRating(item) ? 'text-amber-400' : 'text-brand-200'"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        </div>
-                        <blockquote class="text-sm leading-relaxed text-brand-700">
-                          «{{ isFallbackItem(item) ? item.text : '' }}»
-                        </blockquote>
-                        <p class="mt-4 text-sm font-semibold text-brand-800">
-                          {{ isFallbackItem(item) ? item.author : item.title }}
-                        </p>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -298,46 +220,15 @@ const trackStyle = computed(() => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
+
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </template>
+  </BaseSection>
 </template>
 
 <style scoped>
-.reviews-section {
-  position: relative;
-  z-index: 0;
-  isolation: isolate;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-
-.reviews-section--edge {
-  padding-bottom: 5rem;
-}
-
-@media (min-width: 640px) {
-  .reviews-section--edge {
-    padding-bottom: 6rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .reviews-section--edge {
-    padding-top: calc(3.25rem + 0.75rem);
-    padding-bottom: 6.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .reviews-section--edge {
-    padding-top: calc(4rem + 1rem);
-    padding-bottom: 7.5rem;
-  }
-}
-
 .reviews-panel {
   position: relative;
   overflow: hidden;
@@ -495,6 +386,7 @@ const trackStyle = computed(() => {
 .reviews-stage {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
@@ -503,12 +395,13 @@ const trackStyle = computed(() => {
 
 @media (min-width: 640px) {
   .reviews-stage {
+    flex-wrap: nowrap;
     gap: 1.25rem;
   }
 }
 
 .reviews-nav {
-  display: inline-flex;
+  display: none;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -525,6 +418,12 @@ const trackStyle = computed(() => {
     transform 0.15s ease;
 }
 
+@media (min-width: 640px) {
+  .reviews-nav {
+    display: inline-flex;
+  }
+}
+
 .reviews-nav:hover {
   background: #fff;
   color: #253863;
@@ -535,7 +434,7 @@ const trackStyle = computed(() => {
 }
 
 .phone {
-  width: min(100%, 280px);
+  width: min(100%, 22.5rem);
   touch-action: pan-y;
   cursor: grab;
   user-select: none;
@@ -620,16 +519,6 @@ const trackStyle = computed(() => {
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
-}
-
-.phone__fallback {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  justify-content: center;
-  padding: 2rem 1.25rem 1.5rem;
-  text-align: center;
-  background: #fff;
 }
 
 .sr-only {

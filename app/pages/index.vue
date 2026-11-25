@@ -9,7 +9,7 @@ import {
 usePageSeo(`${site.name} — ${site.tagline}`, site.description)
 
 const { blocks } = await useHomeBlocks()
-const { enabled: features } = useSiteFeatures()
+const { enabled: features } = await useSiteFeatures()
 
 const laidOutBlocks = computed(() => {
   const edgesOn = features.value.sectionEdges

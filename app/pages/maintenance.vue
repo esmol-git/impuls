@@ -6,7 +6,7 @@ definePageMeta({
   layout: 'maintenance',
 })
 
-const phoneHref = computed(() => `tel:${site.phone.replace(/[\s()-]/g, '')}`)
+const { phone, phoneHours, hasPhone, telHref } = await useSiteContacts()
 </script>
 
 <template>
@@ -49,13 +49,19 @@ const phoneHref = computed(() => `tel:${site.phone.replace(/[\s()-]/g, '')}`)
       </p>
 
       <a
-        :href="phoneHref"
+        v-if="hasPhone"
+        :href="telHref"
         class="mt-8 inline-flex items-center justify-center rounded-xl bg-brand-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
-        {{ site.phone }}
+        {{ phone }}
       </a>
 
-      <p class="mt-3 text-sm text-slate-500">{{ site.phoneHours }}</p>
+      <p
+        v-if="phoneHours"
+        class="mt-3 text-sm text-slate-500"
+      >
+        {{ phoneHours }}
+      </p>
     </div>
   </div>
 </template>

@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import EditPageActions from '@/components/ui/EditPageActions.vue'
+import EditPublishSwitch from '@/components/ui/EditPublishSwitch.vue'
 import ImageUpload from '@/components/ui/ImageUpload.vue'
+import RichTextEditor from '@/components/RichTextEditor.vue'
 import { api } from '@/api/client'
 import type { Coach, TaxonomyItem } from '@/api/types'
 import { useSavingIndicator } from '@/composables/useSavingIndicator'
 import { useToast } from '@/composables/useToast'
+import { getErrorMessage } from '@/utils/apiError'
 import { formatYears, parseYears, yearsWord } from '@/utils/format'
 import { rules } from '@/utils/rules'
+import { uploadMediaFile } from '@/utils/uploadMedia'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,6 +30,7 @@ const isCreate = computed(() => !coachId.value)
 const loading = ref(false)
 const formRef = ref<FormInstance>()
 const specialtyOptions = ref<string[]>([])
+const current = ref<Coach | null>(null)
 
 const form = reactive({
   name: '',
@@ -47,16 +52,14 @@ const experienceSuffix = computed(() =>
 
 const formRules = computed<FormRules>(() => ({
   name: rules.title,
-  role: rules.required('Роль'),
   experienceYears: [
     {
-      required: true,
       validator: (_rule, value: number | null, callback) => {
-        if (value == null || !Number.isFinite(value)) {
-          callback(new Error('Укажите стаж'))
+        if (value == null || Number.isNaN(value as number)) {
+          callback()
           return
         }
-        if (!Number.isInteger(value) || value < 1 || value > 60) {
+        if (!Number.isFinite(value) || !Number.isInteger(value) || value < 1 || value > 60) {
           callback(new Error('От 1 до 60 лет'))
           return
         }
@@ -65,14 +68,17 @@ const formRules = computed<FormRules>(() => ({
       trigger: ['blur', 'change'],
     },
   ],
-  bio: [
-    { required: true, message: 'Биография обязательна', trigger: 'blur' },
-    { min: 2, message: 'Слишком короткий текст', trigger: 'blur' },
-    { max: 2000, message: 'Максимум 2000 символов', trigger: 'blur' },
-  ],
 }))
 
-const pageTitle = computed(() => (isCreate.value ? 'Новый тренер' : 'Редактирование тренера'))
+const pageTitle = computed(() =>
+  isCreate.value ? 'Новый тренер' : current.value?.name || 'Редактирование тренера',
+)
+
+const pageDescription = computed(() =>
+  isCreate.value
+    ? 'Поля как на карточке тренера на сайте. Фото необязательно.'
+    : 'Редактирование тренера. Фото необязательно.',
+)
 
 async function loadSpecialties() {
   try {
@@ -83,29 +89,51 @@ async function loadSpecialties() {
   }
 }
 
+function resetForm() {
+  if (form.preview && form.preview.startsWith('blob:')) URL.revokeObjectURL(form.preview)
+  form.name = ''
+  form.role = ''
+  form.experienceYears = null
+  form.bio = ''
+  form.specialties = []
+  form.imageAlt = ''
+  form.published = true
+  form.file = null
+  form.preview = ''
+  form.existingImageUrl = ''
+  form.clearImage = false
+  current.value = null
+}
+
+function applyCoach(item: Coach) {
+  current.value = item
+  form.name = item.name
+  form.role = item.role || ''
+  form.experienceYears = parseYears(item.experience)
+  form.bio = item.bio || ''
+  form.specialties = [...(item.specialties || [])]
+  form.imageAlt = item.imageAlt || ''
+  form.published = item.published
+  form.existingImageUrl = item.imageUrl || ''
+  form.preview = item.imageUrl || ''
+  form.file = null
+  form.clearImage = false
+  for (const tag of form.specialties) {
+    if (tag && !specialtyOptions.value.includes(tag)) {
+      specialtyOptions.value = [...specialtyOptions.value, tag]
+    }
+  }
+}
+
 async function load() {
   loading.value = true
   try {
     await loadSpecialties()
     if (!coachId.value) return
     const item = await api<Coach>(`/api/admin/coaches/${coachId.value}`)
-    form.name = item.name
-    form.role = item.role
-    form.experienceYears = parseYears(item.experience)
-    form.bio = item.bio
-    form.specialties = [...(item.specialties || [])]
-    form.imageAlt = item.imageAlt || ''
-    form.published = item.published
-    form.existingImageUrl = item.imageUrl || ''
-    form.preview = item.imageUrl || ''
-    form.clearImage = false
-    for (const tag of form.specialties) {
-      if (tag && !specialtyOptions.value.includes(tag)) {
-        specialtyOptions.value = [...specialtyOptions.value, tag]
-      }
-    }
+    applyCoach(item)
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось загрузить')
+    toast.error(getErrorMessage(e, 'Не удалось загрузить'))
     await router.replace({ name: 'coaches' })
   } finally {
     loading.value = false
@@ -131,13 +159,7 @@ async function uploadIfNeeded() {
     if (form.clearImage) return null
     return form.existingImageUrl || null
   }
-  const body = new FormData()
-  body.append('file', form.file)
-  const uploaded = await api<{ url: string }>('/api/admin/media/upload', {
-    method: 'POST',
-    body,
-  })
-  return uploaded.url
+  return uploadMediaFile(form.file)
 }
 
 async function save() {
@@ -150,7 +172,7 @@ async function save() {
     const payload = {
       name: form.name.trim(),
       role: form.role.trim(),
-      experience: formatYears(form.experienceYears!),
+      experience: form.experienceYears == null ? '' : formatYears(form.experienceYears),
       bio: form.bio.trim(),
       specialties: form.specialties.map((item) => item.trim()).filter(Boolean),
       imageUrl,
@@ -159,22 +181,23 @@ async function save() {
     }
 
     if (coachId.value) {
-      await api<Coach>(`/api/admin/coaches/${coachId.value}`, {
+      const updated = await api<Coach>(`/api/admin/coaches/${coachId.value}`, {
         method: 'PATCH',
         body: JSON.stringify(payload),
       })
+      applyCoach(updated)
       toast.success('Сохранено')
     } else {
-      await api<Coach>('/api/admin/coaches', {
+      const created = await api<Coach>('/api/admin/coaches', {
         method: 'POST',
         body: JSON.stringify(payload),
       })
+      applyCoach(created)
       toast.success('Тренер добавлен')
+      await router.replace({ name: 'coaches-edit', params: { id: created.id } })
     }
-
-    await router.push({ name: 'coaches' })
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось сохранить')
+    toast.error(getErrorMessage(e, 'Не удалось сохранить'))
   } finally {
     await stopSaving()
   }
@@ -184,6 +207,12 @@ function goBack() {
   router.push({ name: 'coaches' })
 }
 
+watch(coachId, (id) => {
+  if (id && current.value?.id === id) return
+  resetForm()
+  void load()
+})
+
 onMounted(load)
 onUnmounted(() => {
   if (form.preview && form.preview.startsWith('blob:')) URL.revokeObjectURL(form.preview)
@@ -192,7 +221,7 @@ onUnmounted(() => {
 
 <template>
   <div v-loading="loading" class="edit-page coach-edit">
-    <PageHeader :title="pageTitle" description="Поля как на карточке тренера на сайте. Фото необязательно.">
+    <PageHeader :title="pageTitle" :description="pageDescription">
       <template #actions>
         <EditPageActions
           :saving="saving"
@@ -219,27 +248,14 @@ onUnmounted(() => {
         require-asterisk-position="right"
       >
         <section class="edit-page__section">
-          <div class="coach-edit__toolbar">
-            <p class="edit-page__section-title !mb-0">Основное</p>
-            <div class="edit-page__publish coach-edit__publish-inline">
-              <el-switch v-model="form.published" />
-              <div class="min-w-0">
-                <p class="text-sm font-semibold text-slate-800">
-                  {{ form.published ? 'Опубликовано' : 'Скрыто' }}
-                </p>
-                <p class="text-xs text-slate-500">
-                  {{ form.published ? 'Виден на сайте' : 'Только в админке' }}
-                </p>
-              </div>
-            </div>
-          </div>
+          <p class="edit-page__section-title">Основное</p>
 
           <div class="coach-edit__meta">
             <el-form-item label="Фото" class="coach-edit__cover">
               <ImageUpload
                 :preview="form.preview"
-                aspect="square"
-                tip="Квадрат 1:1"
+                aspect="portrait"
+                tip="Портрет 3:4"
                 @change="onFileChange"
                 @remove="onFileRemove"
               />
@@ -258,8 +274,9 @@ onUnmounted(() => {
                     min="1"
                     max="60"
                     step="1"
-                    placeholder="12"
+                    placeholder="—"
                     class="coach-edit__experience"
+                    clearable
                   >
                     <template #append>{{ experienceSuffix }}</template>
                   </el-input>
@@ -279,7 +296,7 @@ onUnmounted(() => {
                 />
               </el-form-item>
 
-              <el-form-item label="Специализации" class="!mb-0">
+              <el-form-item label="Специализации">
                 <el-select
                   v-model="form.specialties"
                   multiple
@@ -301,18 +318,18 @@ onUnmounted(() => {
                   Сначала добавьте специализации в «Настройки».
                 </p>
               </el-form-item>
+
+              <el-form-item label="Публикация" class="!mb-0">
+                <EditPublishSwitch v-model="form.published" />
+              </el-form-item>
             </div>
           </div>
+        </section>
 
-          <el-form-item label="О тренере" prop="bio" class="!mb-0">
-            <el-input
-              v-model="form.bio"
-              type="textarea"
-              :rows="4"
-              maxlength="2000"
-              show-word-limit
-              placeholder="Краткое описание опыта и специализации"
-            />
+        <section class="edit-page__section">
+          <p class="edit-page__section-title">О тренере</p>
+          <el-form-item prop="bio" class="!mb-0">
+            <RichTextEditor v-model="form.bio" placeholder="Опыт, подход, достижения…" />
           </el-form-item>
         </section>
       </el-form>
@@ -333,20 +350,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.coach-edit__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem 1rem;
-  margin-bottom: 1rem;
-}
-
-.coach-edit__publish-inline {
-  margin: 0;
-  padding: 0.5rem 0.75rem;
-}
-
 .coach-edit__meta {
   display: grid;
   gap: 1rem 1.25rem;

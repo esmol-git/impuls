@@ -1,7 +1,7 @@
-type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
+type SiteSectionKey = 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY' | 'COACHES'
 
 interface SectionStatus {
-  key: MediaType
+  key: SiteSectionKey
   enabled: boolean
   itemCount: number
   canEnable: boolean
@@ -16,12 +16,18 @@ export async function useManagedSections() {
   })
 
   const visible = computed(() => {
-    const map = Object.fromEntries((data.value || []).map((row) => [row.key, row.visible]))
+    const rows = data.value || []
+    // Пустой ответ / сбой — fail-open, не прячем разделы
+    if (!rows.length) {
+      return { catalog: true, news: true, reviews: true, gallery: true, coaches: true }
+    }
+    const map = Object.fromEntries(rows.map((row) => [row.key, row.visible]))
     return {
       catalog: Boolean(map.CATALOG),
       news: Boolean(map.NEWS),
       reviews: Boolean(map.REVIEW),
       gallery: Boolean(map.GALLERY),
+      coaches: Boolean(map.COACHES),
     }
   })
 

@@ -38,7 +38,7 @@ function openAll() {
 
     <el-empty
       v-if="!notifications.latest.length"
-      description="Пока тихо. Позже подключим алерты в Telegram и на почту."
+      description="Пока тихо — новых заявок нет."
       :image-size="64"
     />
 

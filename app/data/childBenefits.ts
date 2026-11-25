@@ -1,4 +1,10 @@
 import type { ChildBenefitCard } from '~/types'
+import imgAttention from '~/assets/img/child-benefits/attention.webp'
+import imgLove from '~/assets/img/child-benefits/love.webp'
+import imgDiscipline from '~/assets/img/child-benefits/discipline.webp'
+import imgEveryone from '~/assets/img/child-benefits/everyone.webp'
+import imgResults from '~/assets/img/child-benefits/results.webp'
+import imgPractice from '~/assets/img/child-benefits/practice.webp'
 
 export const childBenefitsSection = {
   titleBefore: 'В нашей школе ваш ребёнок',
@@ -7,33 +13,45 @@ export const childBenefitsSection = {
 
 export const childBenefitCards: ChildBenefitCard[] = [
   {
-    id: 'individual',
-    title: 'Индивидуальное внимание с учётом возраста и особенностей каждого',
-    imageAlt: 'Индивидуальный подход на тренировке',
+    id: 'attention',
+    title: 'Персональное внимание',
+    description: 'Индивидуальный подход к каждому с учётом возраста, характера и уровня подготовки.',
+    imageSrc: imgAttention,
+    imageAlt: 'Тренер объясняет упражнение двум воспитанникам',
   },
   {
-    id: 'fun',
-    title: 'Заниматься интересно — ребёнок влюбляется в футбол',
-    imageAlt: 'Дети на тренировке',
+    id: 'love',
+    title: 'Любовь к игре',
+    description: 'Увлекательные тренировки в игровом формате — ребёнок влюбляется в футбол с первых занятий.',
+    imageSrc: imgLove,
+    imageAlt: 'Радостный воспитанник с мячом на поле',
   },
   {
-    id: 'program',
-    title: 'Сбалансированная программа без стресса и давления',
-    imageAlt: 'Тренировка на поле',
+    id: 'discipline',
+    title: 'Здоровая дисциплина',
+    description: 'Учим работать в команде и соблюдать правила — без криков, давления и стресса.',
+    imageSrc: imgDiscipline,
+    imageAlt: 'Командный круг воспитанников с тренером',
   },
   {
-    id: 'girls',
-    title: 'Да, у нас тренируются и девочки!',
-    imageAlt: 'Девочка на тренировке',
+    id: 'everyone',
+    title: 'Футбол для всех',
+    description: 'Да, девочки у нас тоже занимаются! Футбол — игра для каждого!',
+    imageSrc: imgEveryone,
+    imageAlt: 'Тренер с мальчиками и девочкой на тренировке',
   },
   {
-    id: 'pro',
-    title: 'Путь в профессиональный футбол для одарённых игроков',
-    imageAlt: 'Юные футболисты',
+    id: 'results',
+    title: 'Работа на результат',
+    description: 'Углубленная подготовка для мотивированных игроков, стремящихся к высоким спортивным достижениям.',
+    imageSrc: imgResults,
+    imageAlt: 'Тренер разбирает тактику на магнитной доске',
   },
   {
-    id: 'games',
-    title: 'Игровая практика на соревнованиях — играют все',
-    imageAlt: 'Матч команды',
+    id: 'practice',
+    title: 'Постоянная практика',
+    description: 'Регулярные внутренние турниры и товарищеские матчи — игровую практику получает каждый ребёнок.',
+    imageSrc: imgPractice,
+    imageAlt: 'Воспитанники радуются после игры',
   },
 ]

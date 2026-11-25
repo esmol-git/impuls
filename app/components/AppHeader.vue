@@ -6,12 +6,17 @@ import logoUrl from '~/assets/img/logo.webp'
 
 const route = useRoute()
 const mobileOpen = ref(false)
+const mobileNavRef = ref<HTMLElement>()
+const compact = ref(false)
 const { visible } = await useManagedSections()
-const { enabled: features } = useSiteFeatures()
+const { enabled: features } = await useSiteFeatures()
+const { hasPhone, hasSocials, telHref } = await useSiteContacts()
 const { count: cartCount } = useGuestCart()
 const { count: favoritesCount } = useGuestFavorites()
 const { show: showCart } = useCartDrawer()
 const { show: showFavorites } = useFavoritesDrawer()
+
+useFocusTrap(mobileNavRef, mobileOpen, { onEscape: () => { mobileOpen.value = false } })
 
 const navItems = computed(() =>
   navigation.filter((item) => {
@@ -20,8 +25,18 @@ const navItems = computed(() =>
   }),
 )
 
+const COMPACT_AT = 56
+
+function syncCompact() {
+  const next = window.scrollY > COMPACT_AT
+  if (next === compact.value) return
+  compact.value = next
+  document.documentElement.classList.toggle('header-compact', next)
+}
+
 watch(() => route.path, () => {
   mobileOpen.value = false
+  nextTick(syncCompact)
 })
 
 watch(mobileOpen, (open) => {
@@ -40,35 +55,38 @@ function toggleMenu() {
   mobileOpen.value = !mobileOpen.value
 }
 
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') closeMenu()
-}
+onMounted(() => {
+  syncCompact()
+  window.addEventListener('scroll', syncCompact, { passive: true })
+})
 
-onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => {
-  document.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('scroll', syncCompact)
+  document.documentElement.classList.remove('header-compact')
   if (mobileOpen.value) unlockBodyScroll()
 })
 </script>
 
 <template>
-  <header class="app-header scroll-lock-pad fixed inset-x-0 top-0 z-50 safe-top">
-    <!-- Top tier: brand + contacts + actions -->
+  <header
+    class="app-header scroll-lock-pad fixed inset-x-0 top-0 z-50 safe-top"
+    :class="{ 'is-compact': compact }"
+  >
     <div class="app-header__top">
-      <div class="container-site flex h-14 items-center justify-between gap-3 sm:h-16">
+      <div class="app-header__top-inner container-site">
         <NuxtLink
           to="/"
-          class="group flex min-w-0 shrink items-center gap-2.5 sm:gap-3"
+          class="app-header__brand group flex min-w-0 shrink items-center gap-2.5 sm:gap-3"
           @click="closeMenu"
         >
           <img
             :src="logoUrl"
             alt="ФК Импульс"
-            class="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14"
+            class="app-header__logo shrink-0 object-contain"
             width="56"
             height="56"
           >
-          <span class="font-brand app-header__brand hidden min-w-0 sm:block">
+          <span class="font-brand app-header__brand-text hidden min-w-0 sm:block">
             <span class="app-header__brand-line block truncate text-[13px] font-medium leading-snug tracking-tight sm:text-sm">
               {{ site.tagline }}
             </span>
@@ -78,11 +96,38 @@ onUnmounted(() => {
           </span>
         </NuxtLink>
 
-        <!-- Desktop top actions -->
-        <div class="hidden min-w-0 items-center gap-2.5 lg:flex xl:gap-3">
-          <SocialLinks size="sm" class="hidden shrink-0 xl:flex" />
-          <div class="hidden h-8 w-px shrink-0 bg-brand-100 xl:block" aria-hidden="true" />
-          <HeaderPhone variant="bar" />
+        <!-- Desktop nav — в компакте уезжает в верхний ряд -->
+        <nav
+          class="app-header__inline-nav hidden"
+          aria-label="Основное меню"
+        >
+          <NuxtLink
+            v-for="item in navItems"
+            :key="`inline-${item.to}`"
+            :to="item.to"
+            class="app-header__nav-link"
+            active-class="is-active"
+          >
+            {{ item.label }}
+          </NuxtLink>
+        </nav>
+
+        <div class="app-header__actions hidden min-w-0 items-center gap-2.5 lg:flex xl:gap-3">
+          <SocialLinks
+            v-if="hasSocials"
+            size="sm"
+            class="app-header__social hidden shrink-0 xl:flex"
+          />
+          <div
+            v-if="hasSocials && hasPhone"
+            class="app-header__social-sep hidden h-8 w-px shrink-0 bg-brand-100 xl:block"
+            aria-hidden="true"
+          />
+          <HeaderPhone
+            v-if="hasPhone"
+            variant="bar"
+            class="app-header__phone"
+          />
           <button
             v-if="features.favorites"
             type="button"
@@ -120,16 +165,16 @@ onUnmounted(() => {
           <ModalTrigger
             type="lead"
             :payload="{ source: 'header' }"
-            class="btn-primary shrink-0 !min-h-[42px] !px-5 !py-2.5 text-xs"
+            class="btn-primary app-header__cta shrink-0 !min-h-[42px] !px-5 !py-2.5 text-xs"
           >
             Записаться
           </ModalTrigger>
         </div>
 
-        <!-- Mobile / tablet actions -->
         <div class="flex shrink-0 items-center gap-2 lg:hidden">
           <a
-            :href="`tel:${site.phone.replace(/[\s()-]/g, '')}`"
+            v-if="hasPhone"
+            :href="telHref"
             class="header-icon-btn"
             aria-label="Позвонить"
           >
@@ -189,7 +234,7 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Bottom tier: primary navigation (desktop) -->
+    <!-- Полная навигация только наверху (desktop) -->
     <div class="app-header__nav hidden lg:block">
       <div class="container-site">
         <nav class="app-header__nav-list" aria-label="Основное меню">
@@ -207,8 +252,7 @@ onUnmounted(() => {
     </div>
   </header>
 
-  <!-- Mobile drawer -->
-  <Teleport to="body">
+  <Teleport to="body" defer>
     <Transition
       name="drawer"
       :duration="{ enter: 350, leave: 350 }"
@@ -217,7 +261,14 @@ onUnmounted(() => {
       <div v-if="mobileOpen" class="fixed inset-0 z-[60] lg:hidden">
         <div class="drawer-backdrop absolute inset-0 bg-brand-900/50" @click="closeMenu" />
 
-        <nav class="drawer-panel absolute right-0 top-0 flex h-full w-full max-w-xs flex-col bg-white shadow-2xl safe-top safe-bottom sm:max-w-sm">
+        <nav
+          ref="mobileNavRef"
+          tabindex="-1"
+          class="drawer-panel absolute right-0 top-0 flex h-full w-full max-w-xs flex-col shadow-2xl safe-top safe-bottom sm:max-w-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Мобильное меню"
+        >
           <div class="flex items-center justify-between border-b border-brand-100 px-5 py-4">
             <span class="font-bold text-brand-600">Меню</span>
             <button
@@ -268,11 +319,67 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--header-border);
   background: var(--header-bg);
   box-shadow: 0 1px 0 rgb(15 23 42 / 0.03), 0 8px 24px rgb(15 23 42 / 0.04);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  transition:
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.app-header.is-compact {
+  box-shadow: 0 8px 28px rgb(15 23 42 / 0.1);
 }
 
 .app-header__top {
   background: var(--header-bg-top);
+}
+
+.app-header__top-inner {
+  display: flex;
+  height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  transition: height 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 640px) {
+  .app-header__top-inner {
+    height: 4rem;
+  }
+}
+
+.app-header__logo {
+  width: 3rem;
+  height: 3rem;
+  transition: width 0.28s ease, height 0.28s ease;
+}
+
+@media (min-width: 640px) {
+  .app-header__logo {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+}
+
+.app-header.is-compact .app-header__logo {
+  width: 2.35rem;
+  height: 2.35rem;
+}
+
+.app-header__brand-text {
+  transition:
+    opacity 0.2s ease,
+    max-width 0.28s ease,
+    margin 0.28s ease;
+  max-width: 16rem;
+}
+
+.app-header.is-compact .app-header__brand-text {
+  opacity: 0;
+  max-width: 0;
+  margin: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .app-header__brand-line {
@@ -282,6 +389,19 @@ onUnmounted(() => {
 .app-header__nav {
   border-top: 1px solid var(--header-border);
   background: var(--header-bg-nav);
+  max-height: 3rem;
+  overflow: hidden;
+  transition:
+    max-height 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.app-header.is-compact .app-header__nav {
+  max-height: 0;
+  opacity: 0;
+  border-top-color: transparent;
+  pointer-events: none;
 }
 
 .app-header__nav-list {
@@ -289,6 +409,38 @@ onUnmounted(() => {
   align-items: stretch;
   justify-content: center;
   gap: 0.25rem;
+}
+
+.app-header__inline-nav {
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease 0.05s;
+}
+
+@media (min-width: 1024px) {
+  .app-header.is-compact .app-header__inline-nav {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .app-header.is-compact .app-header__top-inner {
+    height: 3.5rem;
+  }
+
+  .app-header.is-compact .app-header__social,
+  .app-header.is-compact .app-header__social-sep {
+    display: none !important;
+  }
+
+  .app-header.is-compact .app-header__phone :deep(.header-phone__meta) {
+    display: none;
+  }
 }
 
 .app-header__nav-link {
@@ -301,10 +453,20 @@ onUnmounted(() => {
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+  white-space: nowrap;
   color: var(--header-link);
   transition:
     color 0.15s ease,
-    background 0.15s ease;
+    background 0.15s ease,
+    padding 0.2s ease,
+    font-size 0.2s ease,
+    min-height 0.2s ease;
+}
+
+.app-header.is-compact .app-header__inline-nav .app-header__nav-link {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8125rem;
 }
 
 .app-header__nav-link::after {
@@ -317,6 +479,11 @@ onUnmounted(() => {
   border-radius: 999px;
   background: transparent;
   transition: background 0.15s ease;
+}
+
+.app-header.is-compact .app-header__inline-nav .app-header__nav-link::after {
+  right: 0.55rem;
+  left: 0.55rem;
 }
 
 .app-header__nav-link:hover {
@@ -361,7 +528,20 @@ onUnmounted(() => {
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
-    color 0.15s ease;
+    color 0.15s ease,
+    height 0.2s ease,
+    width 0.2s ease;
+}
+
+.app-header.is-compact .header-icon-btn {
+  height: 2.25rem;
+  width: 2.25rem;
+}
+
+.app-header.is-compact .app-header__cta {
+  min-height: 2.25rem !important;
+  padding-top: 0.4rem !important;
+  padding-bottom: 0.4rem !important;
 }
 
 .header-icon-btn:hover {

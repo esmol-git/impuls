@@ -9,15 +9,10 @@ import {
   Min,
 } from 'class-validator'
 import { DEFAULT_PAGE } from '../../common/pagination'
+import { transformToBool } from '../../common/transforms'
 
 export const CATALOG_SORTS = ['default', 'price-asc', 'price-desc', 'title'] as const
 export type CatalogSort = (typeof CATALOG_SORTS)[number]
-
-function toBool(value: unknown) {
-  if (value === true || value === 'true' || value === '1') return true
-  if (value === false || value === 'false' || value === '0' || value === '') return false
-  return undefined
-}
 
 export class CatalogQueryDto {
   @IsOptional()
@@ -55,7 +50,7 @@ export class CatalogQueryDto {
   priceMax?: number
 
   @IsOptional()
-  @Transform(({ value }) => toBool(value))
+  @Transform(transformToBool)
   @IsBoolean()
   onlySale?: boolean
 

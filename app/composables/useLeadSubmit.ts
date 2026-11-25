@@ -12,6 +12,9 @@ export interface LeadPayload {
   variant?: 'full' | 'compact'
   guestToken?: string
   items?: CartLine[]
+  consent: boolean
+  website?: string
+  openedAt?: number
 }
 
 export function useLeadSubmit() {

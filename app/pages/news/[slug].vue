@@ -4,40 +4,54 @@ import { site } from '~/data/site'
 import { pages } from '~/data/pages'
 import { formatNewsDate, getNewsBySlug, newsItems } from '~/data/news'
 import { mapMediaToNews, type MediaNewsDto } from '~/utils/news'
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 import type { NewsItem } from '~/types'
 
 const route = useRoute()
 const slug = route.params.slug as string
 
-const { data: remote } = await useFetch<NewsItem>(`/api/news/${slug}`, {
+const { data: remote } = await useFetch<NewsItem | null>(`/api/news/${slug}`, {
   default: () => null,
 })
 
-const article = computed(() => remote.value || getNewsBySlug(slug) || null)
+const article = computed<NewsItem | null>(() => {
+  if (remote.value) return remote.value
+  if (import.meta.dev) return getNewsBySlug(slug) || null
+  return null
+})
 
-if (!article.value) {
+const current = article.value
+if (!current) {
   throw createError({ statusCode: 404, statusMessage: 'Новость не найдена' })
 }
 
+const safeBody = computed(() => sanitizeHtml(article.value?.body))
+
 definePageMeta({ breadcrumb: pages.newsArticle.breadcrumb })
 
-usePageSeo(`${article.value.title} — ${site.name}`, article.value.excerpt)
+usePageSeo(
+  `${current.title} — ${site.name}`,
+  current.excerpt,
+  current.imageUrl || undefined,
+)
 
-const breadcrumbs = computed(() => newsArticleBreadcrumbs(article.value!.title))
+const breadcrumbs = computed(() => newsArticleBreadcrumbs(article.value?.title || current.title))
 
 const { data: list } = await useFetch<MediaNewsDto[]>('/api/media', {
   query: { type: 'NEWS' },
-  default: () => [],
+  default: () => [] as MediaNewsDto[],
 })
 
 const relatedNews = computed(() => {
+  const currentSlug = article.value?.slug || current.slug
   const fromApi = (list.value || [])
     .map(mapMediaToNews)
-    .filter(item => item.slug !== article.value?.slug)
+    .filter(item => item.slug !== currentSlug)
     .slice(0, 3)
 
   if (fromApi.length) return fromApi
-  return newsItems.filter(item => item.slug !== article.value?.slug).slice(0, 3)
+  if (!import.meta.dev) return []
+  return newsItems.filter(item => item.slug !== currentSlug).slice(0, 3)
 })
 </script>
 
@@ -46,19 +60,7 @@ const relatedNews = computed(() => {
     <div class="container-site">
       <Breadcrumbs :items="breadcrumbs" />
 
-      <div class="news-cover relative mt-6 w-full overflow-hidden rounded-lg bg-brand-50">
-        <img
-          v-if="article.imageUrl"
-          :src="article.imageUrl"
-          :alt="article.title"
-          class="h-full w-full object-cover"
-        >
-        <div v-else class="absolute inset-0 flex items-center justify-center">
-          <p class="text-sm text-brand-400">Обложка новости</p>
-        </div>
-      </div>
-
-      <header class="mt-8">
+      <header class="mt-6 sm:mt-8">
         <div class="mb-4 flex flex-wrap items-center gap-3 text-sm">
           <span class="rounded-md bg-accent-50 px-3 py-1 font-semibold text-accent-500">
             {{ article.category }}
@@ -74,9 +76,9 @@ const relatedNews = computed(() => {
       </header>
 
       <div
-        v-if="article.body"
+        v-if="safeBody"
         class="prose-news mt-8 text-brand-600/80 leading-relaxed"
-        v-html="article.body"
+        v-html="safeBody"
       />
       <div v-else class="mt-8 space-y-4 text-brand-600/80 leading-relaxed">
         <p>{{ article.excerpt }}</p>
@@ -97,23 +99,6 @@ const relatedNews = computed(() => {
 </template>
 
 <style scoped>
-/* Высоту обложки потом подкрутим здесь */
-.news-cover {
-  height: 22rem;
-}
-
-@media (min-width: 640px) {
-  .news-cover {
-    height: 28rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .news-cover {
-    height: 32rem;
-  }
-}
-
 .prose-news :deep(p) {
   margin: 0 0 0.85em;
 }

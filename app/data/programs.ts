@@ -1,4 +1,8 @@
 import type { AgeProgram, ProgramFeature } from '~/types'
+import figAge46 from '~/assets/img/programs/age-4-6.webp'
+import figAge79 from '~/assets/img/programs/age-7-9.webp'
+import figAge1012 from '~/assets/img/programs/age-10-12.webp'
+import figAge1315 from '~/assets/img/programs/age-13-15.webp'
 
 export type { AgeProgram } from '~/types'
 
@@ -20,6 +24,8 @@ export const agePrograms: AgeProgram[] = [
     groupLabel: 'Младшая группа (4–6 лет)',
     description: 'Первые шаги в футболе через игру: мяч, координация и внутренние турниры без давления.',
     schedule: 'Базовые группы — 2 тренировки в неделю. Сборные команды — 3 тренировки в неделю.',
+    figureSrc: figAge46,
+    figureAlt: 'Воспитанник младшей группы с мячом',
     levels: [
       {
         id: '4-6-beginner',
@@ -55,6 +61,8 @@ export const agePrograms: AgeProgram[] = [
     groupLabel: 'Группы начальной подготовки (7–9 лет)',
     description: 'Базовая техника и тактика, развитие координации и путь в сборные команды.',
     schedule: 'Базовые группы — 2 тренировки в неделю. Сборные команды — 3–4 тренировки в неделю.',
+    figureSrc: figAge79,
+    figureAlt: 'Воспитанник группы 7–9 лет в ударе',
     levels: [
       {
         id: '7-9-beginner',
@@ -90,6 +98,8 @@ export const agePrograms: AgeProgram[] = [
     groupLabel: 'Группы подготовки (10–12 лет)',
     description: 'Техника, тактика и игровая практика с выходом на турниры и сборные команды.',
     schedule: 'Базовые группы — 2–3 тренировки в неделю. Сборные команды — 3–4 тренировки в неделю.',
+    figureSrc: figAge1012,
+    figureAlt: 'Воспитанник группы 10–12 лет с мячом',
     levels: [
       {
         id: '10-12-beginner',
@@ -125,6 +135,8 @@ export const agePrograms: AgeProgram[] = [
     groupLabel: 'Группы подготовки (13–15 лет)',
     description: 'Подготовка подростков: от комфортного темпа в базовых группах до интенсивной работы в сборных.',
     schedule: 'Базовые группы — 2–3 тренировки в неделю. Сборные команды — 3–4 тренировки в неделю.',
+    figureSrc: figAge1315,
+    figureAlt: 'Воспитанник группы 13–15 лет',
     levels: [
       {
         id: '13-15-beginner',

@@ -5,17 +5,13 @@ import type { FavoriteItem } from '~/composables/useGuestFavorites'
 
 const { open, hide, onAfterLeave } = useFavoritesDrawer()
 const { items, isEmpty, remove } = useGuestFavorites()
-const { enabled: features } = useSiteFeatures()
+const { enabled: features } = await useSiteFeatures()
 const { addLine } = useGuestCart()
 const { show: showCart } = useCartDrawer()
 const { open: openModal } = useModal()
 
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && open.value) hide()
-}
-
-onMounted(() => document.addEventListener('keydown', onKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+const panelRef = ref<HTMLElement>()
+useFocusTrap(panelRef, open, { onEscape: hide })
 
 function toLine(item: FavoriteItem) {
   return {
@@ -49,7 +45,7 @@ function checkoutAll() {
 </script>
 
 <template>
-  <Teleport to="body">
+  <Teleport to="body" defer>
     <Transition
       name="drawer"
       :duration="{ enter: 350, leave: 350 }"
@@ -59,7 +55,9 @@ function checkoutAll() {
         <div class="drawer-backdrop absolute inset-0 bg-brand-900/50" @click="hide" />
 
         <aside
-          class="drawer-panel absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-2xl safe-top safe-bottom"
+          ref="panelRef"
+          tabindex="-1"
+          class="drawer-panel absolute right-0 top-0 flex h-full w-full max-w-md flex-col shadow-2xl safe-top safe-bottom"
           role="dialog"
           aria-modal="true"
           aria-label="Избранное"
@@ -118,7 +116,7 @@ function checkoutAll() {
                     <button
                       v-if="features.cart"
                       type="button"
-                      class="rounded-lg border border-brand-200 bg-white px-2.5 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-300 hover:bg-brand-50"
+                      class="btn-soft"
                       @click="addToCart(item)"
                     >
                       В корзину

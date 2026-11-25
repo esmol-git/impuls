@@ -1,36 +1,6 @@
 import type { Advantage, HeroBenefit, HeroContent, HeroStat } from '~/types'
 import heroPlayer from '~/assets/img/hero/player.webp'
 
-/**
- * @deprecated Управление блоками главной — в админке → Настройки → Главная.
- * Оставлены как типы/fallback для совместимости.
- */
-export const homeSections = {
-  hero: true,
-  stats: true,
-  programs: true,
-  painPoints: true,
-  audience: true,
-  childBenefits: true,
-  steps: true,
-  progression: true,
-  trainingQuality: true,
-  conditions: true,
-  ecosystem: true,
-  advantages: false,
-  video: true,
-  locations: true,
-  gallery: true,
-  catalog: true,
-  news: true,
-  reviews: true,
-  faq: true,
-  coaches: true,
-  cta: true,
-} as const
-
-export type HomeSectionId = keyof typeof homeSections
-
 export const heroContent: HeroContent = {
   titleBefore: 'Запишите ребенка',
   titleAccent: 'на бесплатное занятие',

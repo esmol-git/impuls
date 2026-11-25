@@ -1,23 +1,17 @@
 <script setup lang="ts">
 import LogoutButton from '@/components/layout/LogoutButton.vue'
 import logoUrl from '@/assets/img/logo.png'
-import { useSidebarCollapsed } from '@/composables/useSidebarCollapsed'
 import { useNavMenu } from '@/composables/useNavMenu'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const { menu, activePath } = useNavMenu()
-const { collapsed } = useSidebarCollapsed()
 </script>
 
 <template>
-  <aside class="admin-sidebar" :class="{ 'admin-sidebar--mini': collapsed }">
+  <aside class="admin-sidebar">
     <div class="admin-sidebar__brand">
-      <RouterLink
-        to="/"
-        class="admin-sidebar__brand-link"
-        :title="collapsed ? 'ФК «Импульс» Ярославль' : undefined"
-      >
+      <RouterLink to="/" class="admin-sidebar__brand-link">
         <img
           :src="logoUrl"
           alt="ФК Импульс"
@@ -34,8 +28,6 @@ const { collapsed } = useSidebarCollapsed()
 
     <el-menu
       :default-active="activePath"
-      :collapse="collapsed"
-      :collapse-transition="false"
       router
       class="admin-sidebar__menu"
     >
@@ -62,10 +54,7 @@ const { collapsed } = useSidebarCollapsed()
           {{ auth.roleLabel }}
         </p>
       </div>
-      <LogoutButton
-        :title="collapsed ? auth.user?.email || 'Выход' : 'Выход'"
-        :placement="collapsed ? 'right' : 'top'"
-      />
+      <LogoutButton title="Выход" placement="top" />
     </div>
   </aside>
 </template>

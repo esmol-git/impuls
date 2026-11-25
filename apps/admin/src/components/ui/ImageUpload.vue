@@ -12,12 +12,14 @@ const props = withDefaults(
     tip?: string
     accept?: string
     aspect?: 'wide' | 'portrait' | 'square'
+    fit?: 'cover' | 'contain'
   }>(),
   {
     preview: '',
     tip: 'JPEG, PNG, WebP или GIF до 20 МБ. На сервере конвертируется в WebP.',
     accept: 'image/jpeg,image/png,image/webp,image/gif',
     aspect: 'wide',
+    fit: 'cover',
   },
 )
 
@@ -73,8 +75,13 @@ function openPicker() {
 <template>
   <div class="image-upload">
     <template v-if="preview">
-      <button type="button" class="image-upload__preview" :class="aspectClass" @click="openPicker">
-        <img :src="preview" alt="Превью" class="h-full w-full object-cover" />
+      <button type="button" class="image-upload__preview" :class="[aspectClass, fit === 'contain' ? 'is-contain' : '']" @click="openPicker">
+        <img
+          :src="preview"
+          alt="Превью"
+          class="h-full w-full"
+          :class="fit === 'contain' ? 'object-contain' : 'object-cover'"
+        />
       </button>
 
       <div class="image-upload__toolbar">

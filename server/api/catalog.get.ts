@@ -1,21 +1,6 @@
 import type { CatalogItem, CatalogPageResult, CatalogSort } from '~/utils/catalog'
 import { emptyCatalogPage } from '~/utils/catalog'
 
-/** В браузере отдаём относительный /uploads — его проксирует Nuxt на API */
-function publicImageUrl(imageUrl: string) {
-  if (!imageUrl) return imageUrl
-  if (/^https?:\/\//i.test(imageUrl)) {
-    try {
-      const url = new URL(imageUrl)
-      if (url.pathname.startsWith('/uploads/')) return url.pathname
-    } catch {
-      /* keep as is */
-    }
-    return imageUrl
-  }
-  return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`
-}
-
 function mapItem(item: CatalogItem): CatalogItem {
   const imageUrls = (item.imageUrls?.length ? item.imageUrls : item.imageUrl ? [item.imageUrl] : []).map(
     publicImageUrl,

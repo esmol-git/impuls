@@ -4,6 +4,7 @@ import { footerLinks, navigation, site } from '~/data/site'
 import logoUrl from '~/assets/img/logo.webp'
 
 const { visible } = await useManagedSections()
+const { phone, phoneHours, email, hasPhone, hasEmail, hasSocials, telHref } = await useSiteContacts()
 
 const navItems = computed(() =>
   navigation.filter((item) => {
@@ -11,6 +12,8 @@ const navItems = computed(() =>
     return visible.value[item.section]
   }),
 )
+
+const hasContacts = computed(() => hasPhone.value || hasEmail.value || Boolean(phoneHours.value))
 </script>
 
 <template>
@@ -38,7 +41,10 @@ const navItems = computed(() =>
           <p class="text-sm leading-relaxed text-white/70">
             {{ site.description }}
           </p>
-          <div class="mt-5">
+          <div
+            v-if="hasSocials"
+            class="mt-5"
+          >
             <SocialLinks variant="light" size="sm" />
           </div>
         </div>
@@ -61,18 +67,18 @@ const navItems = computed(() =>
           </ul>
         </div>
 
-        <div>
+        <div v-if="hasContacts">
           <p class="mb-4 text-sm font-semibold uppercase tracking-wider text-white/90">
             Контакты
           </p>
           <ul class="space-y-2 text-sm text-white/70">
-            <li>
-              <a :href="`tel:${site.phone.replace(/[\s()-]/g, '')}`" class="font-bold text-white hover:underline">
-                {{ site.phone }}
+            <li v-if="hasPhone">
+              <a :href="telHref" class="font-bold text-white hover:underline">
+                {{ phone }}
               </a>
             </li>
-            <li>{{ site.phoneHours }}</li>
-            <li>{{ site.email }}</li>
+            <li v-if="phoneHours">{{ phoneHours }}</li>
+            <li v-if="hasEmail">{{ email }}</li>
           </ul>
         </div>
       </div>

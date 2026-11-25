@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-
-const visible = ref(false)
+const { visible: cookieVisible } = useCookieConsent()
+const scrolled = ref(false)
 
 function onScroll() {
-  visible.value = window.scrollY > 500
+  scrolled.value = window.scrollY > 500
 }
 
 onMounted(() => {
@@ -19,6 +18,8 @@ onUnmounted(() => {
 function scrollTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+
+const visible = computed(() => scrolled.value && !cookieVisible.value)
 </script>
 
 <template>

@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import LogoutButton from '@/components/layout/LogoutButton.vue'
+import MobileNavDrawer from '@/components/layout/MobileNavDrawer.vue'
 import NotificationBell from '@/components/NotificationBell.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import { useNavMenu } from '@/composables/useNavMenu'
 
-const route = useRoute()
-const router = useRouter()
 const { menu, activePath } = useNavMenu()
+const mobileOpen = ref(false)
 
 const now = ref(new Date())
-/** На wrap 59→0 отключаем transition, иначе кольцо «отматывается» назад */
 const ringSnap = ref(false)
 let rafId = 0
 let lastSecond = -1
@@ -34,7 +32,6 @@ function tickClock(ts: number) {
   }
 
   lastSecond = sec
-  // ~25 fps достаточно для гладкого кольца
   if (ts - lastPaint >= 40) {
     now.value = d
     lastPaint = ts
@@ -70,7 +67,6 @@ const secondsLabel = computed(() =>
   String(now.value.getSeconds()).padStart(2, '0'),
 )
 
-/** Доля минуты с учётом мс — кольцо идёт плавно */
 const secondProgress = computed(() => {
   const d = now.value
   return (d.getSeconds() * 1000 + d.getMilliseconds()) / 60_000
@@ -80,51 +76,31 @@ const RING_R = 26
 const RING_C = 2 * Math.PI * RING_R
 const ringOffset = computed(() => RING_C * (1 - secondProgress.value))
 
-function onMobileNav(path: string) {
-  if (route.path !== path) router.push(path)
-}
+const pageTitle = computed(
+  () => menu.value.find((item) => item.path === activePath.value)?.label || 'Админка',
+)
 </script>
 
 <template>
   <header class="admin-header">
     <div class="admin-header__left">
-      <!-- Mobile: page nav (sidebar hidden below md) -->
-      <div class="admin-header__mobile-nav md:hidden">
-        <el-dropdown trigger="click" @command="onMobileNav">
-          <button
-            type="button"
-            class="admin-header__icon-btn"
-            title="Меню"
-            aria-label="Меню разделов"
-          >
-            <el-icon :size="20"><AppIcon name="menu-2" :size="20" /></el-icon>
-          </button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item
-                v-for="item in menu"
-                :key="item.path"
-                :command="item.path"
-                :class="{ 'is-active': item.path === activePath }"
-              >
-                <span class="inline-flex items-center gap-2">
-                  <el-icon :size="20"><component :is="item.icon" /></el-icon>
-                  {{ item.label }}
-                  <el-badge
-                    v-if="item.badge"
-                    :value="item.badge"
-                    type="danger"
-                    class="menu-badge"
-                  />
-                </span>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
+      <button
+        type="button"
+        class="admin-header__icon-btn md:hidden"
+        title="Меню"
+        aria-label="Открыть меню"
+        :aria-expanded="mobileOpen"
+        @click="mobileOpen = true"
+      >
+        <el-icon :size="20"><AppIcon name="menu-2" :size="20" /></el-icon>
+      </button>
+
+      <p class="admin-header__page-title md:hidden">
+        {{ pageTitle }}
+      </p>
 
       <div
-        class="admin-header__clock"
+        class="admin-header__clock hidden md:flex"
         :title="`${dateLabel} · ${timeLabel}:${secondsLabel}`"
       >
         <div class="admin-header__clock-disk" aria-hidden="true">
@@ -158,6 +134,8 @@ function onMobileNav(path: string) {
       <NotificationBell />
       <LogoutButton class="md:hidden" placement="bottom" />
     </div>
+
+    <MobileNavDrawer v-model="mobileOpen" />
   </header>
 </template>
 
@@ -167,6 +145,17 @@ function onMobileNav(path: string) {
   min-width: 0;
   align-items: center;
   gap: 0.75rem;
+}
+
+.admin-header__page-title {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .admin-header__icon-btn {
@@ -194,7 +183,6 @@ function onMobileNav(path: string) {
 }
 
 .admin-header__clock {
-  display: flex;
   min-width: 0;
   align-items: center;
   gap: 0.7rem;
@@ -267,13 +255,5 @@ function onMobileNav(path: string) {
   font-weight: 600;
   text-transform: capitalize;
   color: #475569;
-}
-
-.admin-header__seconds {
-  font-size: 0.7rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: #94a3b8;
-  letter-spacing: 0.04em;
 }
 </style>

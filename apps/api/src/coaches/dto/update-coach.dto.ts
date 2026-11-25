@@ -20,20 +20,17 @@ export class UpdateCoachDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(2)
   @MaxLength(120)
   role?: string
 
   @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(60)
   experience?: string
 
   @IsOptional()
   @IsString()
-  @MinLength(2)
-  @MaxLength(2000)
+  @MaxLength(200_000)
   bio?: string
 
   @IsOptional()

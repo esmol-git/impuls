@@ -65,6 +65,7 @@ export interface ConditionCard {
 export interface ChildBenefitCard {
   id: string
   title: string
+  description: string
   imageAlt: string
   imageSrc?: string
 }
@@ -137,17 +138,10 @@ export interface AgeProgram {
   description: string
   schedule: string
   levels: [ProgramLevel, ProgramLevel]
+  /** Вырезанная фигура между карточками уровней */
+  figureSrc?: string
+  figureAlt?: string
 }
-
-export interface Program {
-  id: string
-  title: string
-  age: string
-  description: string
-  schedule: string
-  features: string[]
-}
-
 export interface NewsItem {
   slug: string
   title: string
@@ -162,13 +156,6 @@ export interface FaqItem {
   id: string
   question: string
   answer: string
-}
-
-export interface Review {
-  id: string
-  author: string
-  rating: number
-  text: string
 }
 
 export interface GalleryItem {

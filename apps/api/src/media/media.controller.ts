@@ -1,20 +1,19 @@
 import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common'
-import { MediaType } from '@prisma/client'
 import { SkipThrottle } from '@nestjs/throttler'
+import { SKIP_ALL_THROTTLES } from '../common/throttle'
 import { CatalogQueryDto } from './dto/catalog-query.dto'
 import { PublicMediaQueryDto } from './dto/public-media-query.dto'
 import { MediaService } from './media.service'
 
 /** Публичные GET для SSR Nuxt — без rate limit (один IP сервера на всех) */
 @Controller('media')
-@SkipThrottle({ default: true, auth: true, leads: true })
+@SkipThrottle(SKIP_ALL_THROTTLES)
 export class MediaController {
   constructor(private readonly media: MediaService) {}
 
   @Get()
   list(@Query() query: PublicMediaQueryDto) {
-    const fallback = query.type === MediaType.GALLERY ? 300 : 100
-    return this.media.listPublic(query.type, query.limit ?? fallback)
+    return this.media.listPublic(query.type, query.limit ?? 48)
   }
 
   @Get('catalog')

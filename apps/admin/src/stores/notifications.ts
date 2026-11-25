@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { getToken, setTokens, getRefreshToken } from '@/api/client'
+import { apiFetch } from '@/api/client'
 import type { NotificationLead, NotificationsPayload } from '@/api/types'
 import { useToast } from '@/composables/useToast'
 
@@ -31,19 +31,9 @@ export const useNotificationsStore = defineStore('notifications', () => {
     inFlight = true
     try {
       const headers = new Headers({ Accept: 'application/json' })
-      const token = getToken()
-      if (token) headers.set('Authorization', `Bearer ${token}`)
       if (etag) headers.set('If-None-Match', etag)
 
-      let res = await fetch('/api/admin/notifications', { headers })
-
-      if (res.status === 401 && getRefreshToken()) {
-        const refreshed = await refreshAccessToken()
-        if (refreshed) {
-          headers.set('Authorization', `Bearer ${getToken()}`)
-          res = await fetch('/api/admin/notifications', { headers })
-        }
-      }
+      const res = await apiFetch('/api/admin/notifications', { headers })
 
       if (res.status === 304) return
       if (!res.ok) return
@@ -68,31 +58,9 @@ export const useNotificationsStore = defineStore('notifications', () => {
         }
       }
     } catch {
-      /* keep previous values while offline */
+      /* offline или сессия истекла (authFailureHandler уже отработал) */
     } finally {
       inFlight = false
-    }
-  }
-
-  async function refreshAccessToken() {
-    const refreshToken = getRefreshToken()
-    if (!refreshToken) return false
-    try {
-      const res = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      })
-      if (!res.ok) {
-        setTokens(null, null)
-        return false
-      }
-      const data = (await res.json()) as { accessToken: string; refreshToken: string }
-      setTokens(data.accessToken, data.refreshToken)
-      return true
-    } catch {
-      setTokens(null, null)
-      return false
     }
   }
 

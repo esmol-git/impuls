@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { icons } from '@/icons'
+import AdminSurface from '@/components/ui/AdminSurface.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import TablePager from '@/components/ui/TablePager.vue'
 import { api } from '@/api/client'
 import type { Gender, Role, User, UserSortField, UsersPage } from '@/api/types'
 import { useConfirm } from '@/composables/useConfirm'
+import { useDebouncedSearch } from '@/composables/useDebouncedSearch'
+import { usePagedResource } from '@/composables/usePagedResource'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import { getErrorMessage } from '@/utils/apiError'
 import { formatDate } from '@/utils/format'
 import { rules } from '@/utils/rules'
 
@@ -16,19 +21,42 @@ const auth = useAuthStore()
 const toast = useToast()
 const { confirm } = useConfirm()
 
-const users = ref<User[]>([])
-const loading = ref(false)
 const saving = ref(false)
 const dialogOpen = ref(false)
 const editingId = ref<string | null>(null)
 const formRef = ref<FormInstance>()
+const { searchInput, search, onSearchInput, clearSearch } = useDebouncedSearch()
 
-const page = ref(1)
-const pageSize = ref(10)
-const pageSizes = [5, 10, 20, 50]
-const total = ref(0)
-const sort = ref<UserSortField>('createdAt')
-const order = ref<'asc' | 'desc'>('desc')
+const {
+  items: users,
+  loading,
+  page,
+  pageSize,
+  pageSizes,
+  total,
+  load,
+  onSortChange,
+  afterDelete,
+} = usePagedResource<User, UserSortField>({
+  defaultSort: 'createdAt',
+  defaultOrder: 'desc',
+  fetchPage: async ({ page: p, limit, sort, order }) => {
+    const params = new URLSearchParams({
+      page: String(p),
+      limit: String(limit),
+      sort,
+      order,
+    })
+    if (search.value) params.set('q', search.value)
+    const data = await api<UsersPage>(`/api/admin/users?${params}`)
+    return { items: data.items, meta: data.meta }
+  },
+})
+
+watch(search, () => {
+  if (page.value !== 1) page.value = 1
+  else void load()
+})
 
 const form = reactive({
   email: '',
@@ -95,47 +123,6 @@ function canManage(user: User) {
 function canChangeRole(user: User) {
   if (user.role === 'SUPERADMIN') return false
   return canManage(user)
-}
-
-function buildQuery() {
-  const params = new URLSearchParams({
-    page: String(page.value),
-    limit: String(pageSize.value),
-    sort: sort.value,
-    order: order.value,
-  })
-  return params.toString()
-}
-
-async function load(options: { silent?: boolean } = {}) {
-  if (!options.silent) loading.value = true
-  try {
-    const data = await api<UsersPage>(`/api/admin/users?${buildQuery()}`)
-    users.value = data.items
-    total.value = data.meta.total
-    if (page.value > data.meta.totalPages) {
-      page.value = data.meta.totalPages
-      return
-    }
-  } catch (e) {
-    if (!options.silent) {
-      toast.error(e instanceof Error ? e.message : 'Ошибка загрузки')
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-function onSortChange(payload: { prop: string; order: string | null }) {
-  if (!payload.order) {
-    sort.value = 'createdAt'
-    order.value = 'desc'
-  } else {
-    sort.value = payload.prop as UserSortField
-    order.value = payload.order === 'ascending' ? 'asc' : 'desc'
-  }
-  if (page.value !== 1) page.value = 1
-  else void load()
 }
 
 function resetForm() {
@@ -207,7 +194,7 @@ async function saveUser() {
     }
     dialogOpen.value = false
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось сохранить')
+    toast.error(getErrorMessage(e, 'Не удалось сохранить'))
   } finally {
     saving.value = false
   }
@@ -228,7 +215,7 @@ async function changeRole(user: User, role: Role) {
     if (idx >= 0) users.value[idx] = updated
     toast.success('Роль обновлена')
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось обновить роль')
+    toast.error(getErrorMessage(e, 'Не удалось обновить роль'))
   }
 }
 
@@ -249,39 +236,37 @@ async function removeUser(user: User) {
   try {
     await api(`/api/admin/users/${user.id}`, { method: 'DELETE' })
     toast.success('Пользователь удалён')
-    if (users.value.length === 1 && page.value > 1) {
-      page.value -= 1
-    } else {
-      await load({ silent: true })
-    }
+    await afterDelete()
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Не удалось удалить')
+    toast.error(getErrorMessage(e, 'Не удалось удалить'))
   }
 }
-
-watch(pageSize, () => {
-  if (page.value !== 1) page.value = 1
-  else void load()
-})
-
-watch(page, () => load())
-
-onMounted(load)
 </script>
 
 <template>
   <div>
     <PageHeader title="Пользователи" description="Суперадмины, админы и менеджеры с доступом в панель.">
       <template #actions>
-        <el-button type="primary" @click="openCreate">Добавить</el-button>
+        <div class="flex flex-wrap items-center gap-3">
+          <el-input
+            :model-value="searchInput"
+            class="w-56 sm:w-64"
+            clearable
+            placeholder="Email, имя…"
+            :prefix-icon="icons.search"
+            @update:model-value="onSearchInput"
+            @clear="clearSearch"
+          />
+          <el-button type="primary" :icon="Plus" @click="openCreate">Добавить</el-button>
+        </div>
       </template>
     </PageHeader>
 
-    <el-card shadow="never" v-loading="loading">
+    <AdminSurface v-loading="loading">
       <el-table
         :data="users"
         stripe
-        empty-text="Пользователей пока нет"
+        :empty-text="search ? 'Ничего не найдено' : 'Пользователей пока нет'"
         :default-sort="{ prop: 'createdAt', order: 'descending' }"
         @sort-change="onSortChange"
       >
@@ -362,7 +347,7 @@ onMounted(load)
         :total="total"
         :page-sizes="pageSizes"
       />
-    </el-card>
+    </AdminSurface>
 
     <el-dialog
       v-model="dialogOpen"

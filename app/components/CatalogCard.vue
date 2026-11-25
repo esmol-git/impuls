@@ -8,7 +8,7 @@ const props = defineProps<{
   item: CatalogItem
 }>()
 
-const { enabled: features } = useSiteFeatures()
+const { enabled: features } = await useSiteFeatures()
 const { add: addToCart } = useGuestCart()
 const { show: showCart } = useCartDrawer()
 const { has: hasFavorite, toggle: toggleFavorite } = useGuestFavorites()
@@ -126,7 +126,7 @@ function onToggleFavorite() {
       <button
         v-if="features.favorites"
         type="button"
-        class="absolute right-3 top-3 z-[1] flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-brand-400 shadow-sm transition hover:text-accent-500"
+        class="btn-soft--fab absolute right-3 top-3 z-[1] transition hover:text-accent-500"
         :class="{ '!text-accent-500': favorited }"
         :aria-label="favorited ? 'Убрать из избранного' : 'В избранное'"
         :aria-pressed="favorited"

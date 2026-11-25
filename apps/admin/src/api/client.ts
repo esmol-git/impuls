@@ -65,7 +65,24 @@ async function tryRefresh(): Promise<boolean> {
   }
 }
 
-export async function api<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
+function shouldAttemptRefresh(path: string, status: number, retry: boolean) {
+  return (
+    status === 401 &&
+    retry &&
+    !path.includes('/api/auth/login') &&
+    !path.includes('/api/auth/refresh')
+  )
+}
+
+/**
+ * Fetch с общим refresh/single-flight и auth-failure handler.
+ * Возвращает Response как есть (включая 304) — для ETag-поллинга и т.п.
+ */
+export async function apiFetch(
+  path: string,
+  init: RequestInit = {},
+  retry = true,
+): Promise<Response> {
   const headers = new Headers(init.headers)
   const token = getToken()
   if (token) headers.set('Authorization', `Bearer ${token}`)
@@ -76,17 +93,23 @@ export async function api<T>(path: string, init: RequestInit = {}, retry = true)
 
   const res = await fetch(path, { ...init, headers })
 
-  if (res.status === 401 && retry && !path.includes('/api/auth/login') && !path.includes('/api/auth/refresh')) {
+  if (shouldAttemptRefresh(path, res.status, retry)) {
     if (!refreshPromise) {
       refreshPromise = tryRefresh().finally(() => {
         refreshPromise = null
       })
     }
     const ok = await refreshPromise
-    if (ok) return api<T>(path, init, false)
+    if (ok) return apiFetch(path, init, false)
     notifyAuthFailure()
     throw new ApiError('Сессия истекла. Войдите снова.', 401)
   }
+
+  return res
+}
+
+export async function api<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
+  const res = await apiFetch(path, init, retry)
 
   if (!res.ok) {
     let message = 'Ошибка запроса'

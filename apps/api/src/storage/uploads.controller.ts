@@ -1,11 +1,12 @@
 import { Controller, Get, Param, Res } from '@nestjs/common'
 import { SkipThrottle } from '@nestjs/throttler'
 import type { Response } from 'express'
+import { SKIP_ALL_THROTTLES } from '../common/throttle'
 import { StorageService } from './storage.service'
 
 /** Раздача файлов с MinIO (и локальный fallback для старых uploads) */
 @Controller('uploads')
-@SkipThrottle({ default: true, auth: true, leads: true })
+@SkipThrottle(SKIP_ALL_THROTTLES)
 export class UploadsController {
   constructor(private readonly storage: StorageService) {}
 

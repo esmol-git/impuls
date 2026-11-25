@@ -34,10 +34,21 @@ export class UsersService {
     const { page, limit, skip } = resolvePage(query.page, query.limit)
     const sort = query.sort ?? 'createdAt'
     const order = query.order ?? 'desc'
+    const q = query.q?.trim()
+    const where = q
+      ? {
+          OR: [
+            { email: { contains: q, mode: 'insensitive' as const } },
+            { firstName: { contains: q, mode: 'insensitive' as const } },
+            { lastName: { contains: q, mode: 'insensitive' as const } },
+          ],
+        }
+      : undefined
 
     const [total, items] = await this.prisma.$transaction([
-      this.prisma.user.count(),
+      this.prisma.user.count({ where }),
       this.prisma.user.findMany({
+        where,
         select: userSelect,
         orderBy: { [sort]: order },
         skip,

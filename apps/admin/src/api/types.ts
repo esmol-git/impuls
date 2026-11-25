@@ -1,6 +1,7 @@
 export type Role = 'SUPERADMIN' | 'ADMIN' | 'MANAGER'
 export type Gender = 'MALE' | 'FEMALE'
 export type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
+export type SiteSectionKey = MediaType | 'COACHES'
 export type LeadStatus = 'NEW' | 'DONE'
 
 export interface User {
@@ -149,7 +150,7 @@ export interface TaxonomyItem {
 }
 
 export interface SectionStatus {
-  key: MediaType
+  key: SiteSectionKey
   enabled: boolean
   itemCount: number
   canEnable: boolean
@@ -169,6 +170,17 @@ export type ThemeMode = 'light' | 'dark' | 'system'
 
 export interface ThemeStatus {
   mode: ThemeMode
+}
+
+export interface ContactsStatus {
+  phone: string
+  phoneHours: string
+  email: string
+  socials: {
+    vk: string
+    telegram: string
+    youtube: string
+  }
 }
 
 export type HomeBlockKey =
@@ -200,7 +212,7 @@ export interface HomeBlockStatus {
   description: string
   enabled: boolean
   sortOrder: number
-  contentKey?: MediaType
+  contentKey?: SiteSectionKey
   visible: boolean
 }
 
@@ -250,6 +262,7 @@ export interface LeadsPage {
 
 export interface DashboardStats {
   newLeads: number
+  coaches: number
   media: {
     catalog: number
     news: number

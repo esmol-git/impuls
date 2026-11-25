@@ -44,7 +44,7 @@ const icons: Record<PainPointIcon, string> = {
           aria-hidden="true"
         />
         <div class="accent-bloom accent-bloom--corner" aria-hidden="true" />
-        <div class="relative z-[1] px-5 py-8 text-center sm:px-8 sm:py-10">
+        <div class="relative z-[1] min-w-0 px-4 py-8 text-center sm:px-8 sm:py-10">
           <h3 class="text-xl font-bold text-white sm:text-2xl">
             {{ painPointsSection.joinTitle }}
           </h3>
@@ -54,7 +54,7 @@ const icons: Record<PainPointIcon, string> = {
           <ModalTrigger
             type="lead"
             :payload="{ source: 'pain-points' }"
-            class="btn-primary mx-auto mt-5 w-full sm:mt-6 sm:w-auto"
+            class="btn-primary mx-auto mt-5 w-full max-w-full min-w-0 sm:mt-6 sm:w-auto"
           >
             {{ painPointsSection.joinCta }}
           </ModalTrigger>

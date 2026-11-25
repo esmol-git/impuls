@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { gsap } from 'gsap'
 import { heroBenefits, heroContent } from '~/data/home'
 import heroStagePattern from '~/assets/img/pattern-stage.webp'
 import heroField from '~/assets/img/hero/field-ground.webp'
@@ -18,26 +17,63 @@ defineProps<{
 const { isBlockVisible } = await useHomeBlocks()
 const showVideoCta = computed(() => isBlockVisible('video'))
 
+const rootRef = ref<HTMLElement>()
 const contentRef = ref<HTMLElement>()
+const figureRef = ref<HTMLElement>()
 
-onMounted(() => {
-  if (!contentRef.value) return
+onMounted(async () => {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (reduced) return
+  if (reduced) {
+    rootRef.value?.classList.add('is-hero-ready')
+    return
+  }
 
-  gsap.from(contentRef.value.querySelectorAll('.hero-animate'), {
-    y: 24,
-    autoAlpha: 0,
-    duration: 0.55,
-    stagger: 0.07,
-    ease: 'power3.out',
-    clearProps: 'opacity,visibility,transform',
-  })
+  const textNodes = contentRef.value?.querySelectorAll('.hero-animate')
+  const figure = figureRef.value
+  if (!textNodes?.length && !figure) {
+    rootRef.value?.classList.add('is-hero-ready')
+    return
+  }
+
+  const { gsap } = await import('gsap')
+
+  const finish = () => {
+    rootRef.value?.classList.add('is-hero-ready')
+    if (textNodes?.length) gsap.set(textNodes, { clearProps: 'transform' })
+    if (figure) gsap.set(figure, { clearProps: 'transform' })
+  }
+
+  const tl = gsap.timeline({ onComplete: finish })
+
+  if (figure) {
+    tl.fromTo(
+      figure,
+      { x: 36, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.5, ease: 'power3.out' },
+      0,
+    )
+  }
+
+  if (textNodes?.length) {
+    tl.fromTo(
+      textNodes,
+      { y: 16, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.42,
+        stagger: 0.045,
+        ease: 'power3.out',
+      },
+      0.04,
+    )
+  }
 })
 </script>
 
 <template>
   <section
+    ref="rootRef"
     class="hero relative flex min-h-[100svh] flex-col overflow-hidden pt-[var(--header-h)]"
     :style="{ '--hero-pattern': `url(${heroStagePattern})` }"
     aria-label="Главный экран"
@@ -52,7 +88,7 @@ onMounted(() => {
       <div class="hero-bg__vignette" />
     </div>
 
-    <div class="hero-figure-wrap hidden lg:block">
+    <div ref="figureRef" class="hero-figure-wrap">
       <div class="hero-figure-halo" aria-hidden="true" />
       <img
         class="hero-figure-smoke"
@@ -84,7 +120,7 @@ onMounted(() => {
     </div>
 
     <div class="container-site relative z-[2] grid flex-1 items-center gap-8 py-8 sm:gap-10 sm:py-10 lg:grid-cols-2 lg:gap-6 lg:py-8 xl:gap-8">
-      <div ref="contentRef" class="relative z-[2] max-w-xl lg:max-w-none">
+      <div ref="contentRef" class="relative z-[2] min-w-0 max-w-xl lg:max-w-none">
         <h1 class="hero-animate hero-title text-[1.75rem] font-extrabold leading-[1.2] tracking-tight xs:text-3xl sm:text-4xl lg:text-[2.75rem] lg:leading-[1.15]">
           {{ heroContent.titleBefore }}
           <span class="hero-accent">{{ heroContent.titleAccent }}</span>
@@ -117,11 +153,11 @@ onMounted(() => {
           </li>
         </ul>
 
-        <div class="hero-animate mt-8 flex flex-col gap-4 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
+        <div class="hero-animate mt-8 flex min-w-0 flex-col gap-4 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
           <ModalTrigger
             type="lead"
             :payload="{ source: 'hero' }"
-            class="btn-primary hero-cta w-full sm:w-auto"
+            class="btn-primary hero-cta w-full max-w-full min-w-0 sm:w-auto"
           >
             {{ heroContent.ctaPrimary }}
           </ModalTrigger>
@@ -299,9 +335,34 @@ onMounted(() => {
 }
 
 .hero-cta {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  padding-inline: 0.85rem;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  white-space: normal;
+  text-wrap: balance;
+  text-align: center;
   background-color: #ff2a2a !important;
   color: #ffffff !important;
   box-shadow: 0 10px 28px rgb(255 42 42 / 0.28);
+}
+
+@media (min-width: 400px) {
+  .hero-cta {
+    font-size: 0.8125rem;
+    padding-inline: 1.1rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .hero-cta {
+    font-size: 0.875rem;
+    letter-spacing: 0.04em;
+    padding-inline: 1.5rem;
+  }
 }
 
 .hero-cta:hover {
@@ -374,13 +435,49 @@ onMounted(() => {
 
 .hero-figure-wrap {
   position: absolute;
-  right: 4%;
+  right: -12%;
   bottom: 0;
-  z-index: 2;
-  height: calc((100% - var(--header-h)) * 0.92);
+  z-index: 1;
+  height: min(52vh, 26rem);
   width: auto;
   pointer-events: none;
   overflow: visible;
+  /* С первого кадра скрыта — появляется вместе с текстом */
+  opacity: 0;
+  transform: translate3d(1.5rem, 0, 0);
+  /* На mobile не перекрывает текст слева */
+  -webkit-mask-image: linear-gradient(95deg, transparent 0%, transparent 28%, #000 58%, #000 100%);
+  mask-image: linear-gradient(95deg, transparent 0%, transparent 28%, #000 58%, #000 100%);
+}
+
+.hero.is-hero-ready .hero-figure-wrap {
+  opacity: 0.72;
+  transform: none;
+}
+
+@media (min-width: 640px) {
+  .hero-figure-wrap {
+    right: -6%;
+    height: min(58vh, 30rem);
+  }
+
+  .hero.is-hero-ready .hero-figure-wrap {
+    opacity: 0.82;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-figure-wrap {
+    right: 4%;
+    z-index: 2;
+    height: calc((100% - var(--header-h)) * 0.92);
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .hero.is-hero-ready .hero-figure-wrap {
+    opacity: 1;
+  }
 }
 
 .hero-figure-halo {
@@ -507,6 +604,25 @@ onMounted(() => {
   .hero-figure-wrap {
     right: 8%;
     height: calc((100% - var(--header-h)) * 0.95);
+  }
+}
+
+/* Скрыто с первого кадра (SSR CSS) — иначе flash → повторный fade-in */
+.hero-animate {
+  opacity: 0;
+  transform: translate3d(0, 1rem, 0);
+}
+
+.hero.is-hero-ready .hero-animate {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-animate,
+  .hero-figure-wrap {
+    opacity: 1;
+    transform: none;
   }
 }
 </style>

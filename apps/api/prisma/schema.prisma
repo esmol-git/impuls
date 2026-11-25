@@ -24,6 +24,15 @@ enum MediaType {
   GALLERY
 }
 
+/// Разделы сайта, которыми управляет свитч «На сайте» (шире MediaType)
+enum SiteSectionKey {
+  CATALOG
+  NEWS
+  REVIEW
+  GALLERY
+  COACHES
+}
+
 enum LeadStatus {
   NEW
   DONE
@@ -128,7 +137,7 @@ enum OrderStatus {
   CANCELLED
 }
 
-/// Заказы без регистрации. Checkout пока идёт через Lead; Order — следующий шаг.
+/// Schema reserved: guest checkout tables. No Nest API yet — cart still submits as Lead + items JSON.
 model Order {
   id         String      @id @default(cuid())
   guestToken String
@@ -147,6 +156,7 @@ model Order {
   @@index([status, createdAt])
 }
 
+/// Schema reserved with Order — no API routes yet.
 model OrderItem {
   id        String  @id @default(cuid())
   orderId   String
@@ -162,9 +172,9 @@ model OrderItem {
 
 /// Видимость разделов сайта, которыми управляет админка (каталог / новости / отзывы)
 model SiteSection {
-  key       MediaType @id
-  enabled   Boolean   @default(true)
-  updatedAt DateTime  @updatedAt
+  key       SiteSectionKey @id
+  enabled   Boolean        @default(true)
+  updatedAt DateTime       @updatedAt
 }
 
 /// Блоки главной страницы: порядок и вкл/выкл

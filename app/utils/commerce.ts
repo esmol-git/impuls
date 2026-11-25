@@ -51,11 +51,11 @@ export function formatCartTotal(lines: CartLine[]) {
 }
 
 export function orderProgramLabel(lines: CartLine[]) {
-  if (!lines.length) return undefined
+  const first = lines[0]
+  if (!first) return undefined
   if (lines.length === 1) {
-    const title = lines[0].title
-    const sku = lines[0].sku ? ` [${lines[0].sku}]` : ''
-    const label = `${title}${sku}`
+    const sku = first.sku ? ` [${first.sku}]` : ''
+    const label = `${first.title}${sku}`
     return label.length > 100 ? `${label.slice(0, 97)}…` : label
   }
   return `Заказ из каталога (${lines.length})`

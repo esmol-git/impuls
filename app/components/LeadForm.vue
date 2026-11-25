@@ -35,8 +35,10 @@ const form = reactive({
   birthDate: '',
   message: '',
   consent: false,
+  website: '',
 })
 
+const openedAt = Date.now()
 const submitted = ref(false)
 const isMock = ref(false)
 const errors = reactive<Record<string, string>>({})
@@ -60,11 +62,7 @@ function validate() {
   } else {
     errors.birthDate = ''
   }
-  if (props.variant === 'full') {
-    errors.consent = form.consent ? '' : 'Необходимо согласие'
-  } else {
-    errors.consent = ''
-  }
+  errors.consent = form.consent ? '' : 'Необходимо согласие'
   return !Object.values(errors).some(Boolean)
 }
 
@@ -109,6 +107,9 @@ async function onSubmit() {
       variant: props.variant,
       guestToken: ensureGuestId() || undefined,
       items: isCheckout.value ? purchaseItems.value : undefined,
+      consent: form.consent,
+      website: form.website,
+      openedAt,
     })
     isMock.value = !!result.mock
     submitted.value = true
@@ -148,6 +149,14 @@ defineExpose({ reset: () => { submitted.value = false } })
   </div>
 
   <form v-else class="space-y-4" novalidate @submit.prevent="onSubmit">
+    <!-- honeypot: скрыто от людей -->
+    <div class="lead-hp" aria-hidden="true">
+      <label>
+        Сайт
+        <input v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off">
+      </label>
+    </div>
+
     <p v-if="payload?.location" class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-600">
       Предпочитаемый адрес: <strong>{{ payload.location }}</strong>
     </p>
@@ -218,16 +227,27 @@ defineExpose({ reset: () => { submitted.value = false } })
 
     <template v-if="variant === 'full'">
       <div v-if="!isCheckout">
-        <label class="mb-1.5 block text-sm font-medium text-brand-600">Дата рождения ребёнка</label>
+        <label
+          class="mb-1.5 block text-sm font-medium text-brand-600"
+          for="lead-birth-date"
+        >Дата рождения ребёнка</label>
         <UiAppDatePicker
           v-model="form.birthDate"
+          input-id="lead-birth-date"
+          aria-label="Дата рождения ребёнка"
+          :described-by="errors.birthDate ? 'lead-birth-date-error' : undefined"
           :min="birthBounds.min"
           :max="birthBounds.max"
           :disabled="loading"
           :error="Boolean(errors.birthDate)"
           @change="errors.birthDate = ''"
         />
-        <p v-if="errors.birthDate" class="mt-1 text-xs text-accent-500">{{ errors.birthDate }}</p>
+        <p
+          v-if="errors.birthDate"
+          id="lead-birth-date-error"
+          class="mt-1 text-xs text-accent-500"
+          role="alert"
+        >{{ errors.birthDate }}</p>
       </div>
       <div v-if="isCheckout">
         <label class="mb-1.5 block text-sm font-medium text-brand-600">Комментарий</label>
@@ -239,29 +259,38 @@ defineExpose({ reset: () => { submitted.value = false } })
           :disabled="loading"
         />
       </div>
-      <label
-        class="consent"
-        :class="{ 'consent--error': errors.consent }"
+    </template>
+
+    <label
+      class="consent"
+      :class="{ 'consent--error': errors.consent, 'consent--compact': variant === 'compact' }"
+    >
+      <input
+        v-model="form.consent"
+        type="checkbox"
+        class="consent__input"
+        :disabled="loading"
+        @change="errors.consent = ''"
       >
-        <input
-          v-model="form.consent"
-          type="checkbox"
-          class="consent__input"
-          :disabled="loading"
-          @change="errors.consent = ''"
-        >
-        <span class="consent__box" aria-hidden="true">
-          <svg class="consent__check" viewBox="0 0 16 16" fill="none">
-            <path
-              d="M3.5 8.5 6.5 11.5 12.5 4.5"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </span>
-        <span class="consent__text">
+      <span class="consent__box" aria-hidden="true">
+        <svg class="consent__check" viewBox="0 0 16 16" fill="none">
+          <path
+            d="M3.5 8.5 6.5 11.5 12.5 4.5"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <span class="consent__text">
+        <template v-if="variant === 'compact'">
+          Согласен на
+          <NuxtLink to="/legal#consent" class="consent__link" target="_blank" @click.stop>
+            обработку персональных данных
+          </NuxtLink>
+        </template>
+        <template v-else>
           Оставляя заявку на сайте, я подтверждаю ознакомление и даю
           <NuxtLink
             to="/legal#consent"
@@ -280,10 +309,10 @@ defineExpose({ reset: () => { submitted.value = false } })
           >
             Политике обработки персональных данных
           </NuxtLink>
-        </span>
-      </label>
-      <p v-if="errors.consent" class="text-xs text-accent-500">{{ errors.consent }}</p>
-    </template>
+        </template>
+      </span>
+    </label>
+    <p v-if="errors.consent" class="text-xs text-accent-500">{{ errors.consent }}</p>
 
     <p v-if="error" class="text-sm text-accent-500">{{ error }}</p>
 
@@ -294,6 +323,20 @@ defineExpose({ reset: () => { submitted.value = false } })
 </template>
 
 <style scoped>
+.lead-hp {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.consent--compact .consent__text {
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
 .input-field {
   @apply w-full rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/10 disabled:opacity-60;
 }

@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common'
+import { SettingsModule } from '../settings/settings.module'
 import { CoachesAdminController } from './coaches-admin.controller'
 import { CoachesController } from './coaches.controller'
 import { CoachesService } from './coaches.service'
 
 @Module({
+  imports: [SettingsModule],
   controllers: [CoachesController, CoachesAdminController],
   providers: [CoachesService],
   exports: [CoachesService],

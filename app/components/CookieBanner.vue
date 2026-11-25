@@ -1,19 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-
-const STORAGE_KEY = 'cookie-consent'
-const visible = ref(false)
+const { visible, syncFromStorage, accept } = useCookieConsent()
 
 onMounted(() => {
-  if (!localStorage.getItem(STORAGE_KEY)) {
-    visible.value = true
-  }
+  syncFromStorage()
 })
-
-function accept() {
-  localStorage.setItem(STORAGE_KEY, '1')
-  visible.value = false
-}
 </script>
 
 <template>
@@ -27,12 +17,14 @@ function accept() {
   >
     <div
       v-if="visible"
-      class="scroll-lock-pad fixed inset-x-0 bottom-0 z-[90] border-t border-brand-100 bg-white p-4 shadow-lg safe-bottom md:bottom-4 md:mx-4 md:rounded-2xl md:border lg:mx-auto lg:max-w-site"
+      class="cookie-banner scroll-lock-pad fixed inset-x-0 bottom-0 z-[90] p-4 shadow-lg safe-bottom md:bottom-4 md:mx-4 md:rounded-2xl md:border lg:mx-auto lg:max-w-site"
+      role="dialog"
+      aria-label="Согласие на cookies"
     >
       <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <p class="text-xs text-brand-600/70 sm:text-sm">
+        <p class="cookie-banner__text text-xs sm:text-sm">
           Мы используем cookies для работы сайта.
-          <NuxtLink to="/legal#policy" class="font-medium text-brand-600 underline-offset-2 hover:text-accent-500 hover:underline">
+          <NuxtLink to="/legal#policy" class="cookie-banner__link font-medium underline-offset-2 hover:underline">
             Политика обработки персональных данных
           </NuxtLink>
         </p>
@@ -43,3 +35,33 @@ function accept() {
     </div>
   </Transition>
 </template>
+
+<style scoped>
+.cookie-banner {
+  border-top: 1px solid var(--card-border);
+  background: color-mix(in srgb, var(--card-bg) 96%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+@media (min-width: 768px) {
+  .cookie-banner {
+    border: 1px solid var(--card-border);
+  }
+}
+
+.cookie-banner__text {
+  color: var(--header-fg-muted);
+}
+
+.cookie-banner__link {
+  color: var(--header-fg);
+}
+
+.cookie-banner__link:hover {
+  color: #b0191b;
+}
+
+:global(html.dark .cookie-banner__link:hover) {
+  color: #ff4242;
+}
+</style>

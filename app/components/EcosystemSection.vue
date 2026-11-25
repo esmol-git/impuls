@@ -45,7 +45,7 @@ import { ecosystemCards, ecosystemSection } from '~/data/ecosystem'
           <ModalTrigger
             type="lead"
             :payload="{ source: 'ecosystem' }"
-            class="btn-primary eco-cta w-full sm:w-auto"
+            class="btn-primary eco-cta w-full max-w-full min-w-0 sm:w-auto"
           >
             Записаться на бесплатное занятие
           </ModalTrigger>

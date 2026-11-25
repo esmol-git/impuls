@@ -11,14 +11,22 @@ export const SECTION_SURFACE: Record<SectionTone, string> = {
 export const SECTION_NO_EDGE = new Set(['hero', 'stats'])
 
 export interface SectionSurfaceProps {
-  wave: boolean
+  wave?: boolean
   tone?: SectionTone
   edge?: SectionEdge
   flipWave?: boolean
 }
 
+/** Пропсы стыка — для defineProps секций на главной (fallthrough на BaseSection тоже ок). */
+export type SectionSurfacePropDefs = {
+  tone?: SectionTone
+  edge?: SectionEdge
+  flipWave?: boolean
+  wave?: boolean
+}
+
 /** Чередование по порядку только среди видимых секций со стыком. */
-export function surfaceForVisibleIndex(index: number): SectionSurfaceProps {
+export function surfaceForVisibleIndex(index: number): Required<SectionSurfaceProps> {
   const even = index % 2 === 0
   return {
     wave: true,

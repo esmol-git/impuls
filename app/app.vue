@@ -1,5 +1,6 @@
 <script setup lang="ts">
-useSiteTheme()
+await useSiteTheme()
+useSiteBoot()
 </script>
 
 <template>

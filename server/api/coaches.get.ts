@@ -11,21 +11,6 @@ interface ApiCoach {
   published: boolean
 }
 
-/** В браузере отдаём относительный /uploads — его проксирует Nuxt на API */
-function publicImageUrl(imageUrl: string) {
-  if (!imageUrl) return imageUrl
-  if (/^https?:\/\//i.test(imageUrl)) {
-    try {
-      const url = new URL(imageUrl)
-      if (url.pathname.startsWith('/uploads/')) return url.pathname
-    } catch {
-      /* keep as is */
-    }
-    return imageUrl
-  }
-  return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`
-}
-
 export default defineEventHandler(async () => {
   const config = useRuntimeConfig()
   const apiUrl = (config.apiUrl as string | undefined)?.replace(/\/$/, '')

@@ -1,4 +1,8 @@
 export default defineNuxtPlugin(() => {
+  // Только desktop + мышь — на touch/mobile бессмысленно
+  const desktop = window.matchMedia('(pointer: fine) and (min-width: 1024px)').matches
+  if (!desktop) return
+
   const { open } = useModal()
 
   function onMouseLeave(e: MouseEvent) {

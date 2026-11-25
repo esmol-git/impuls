@@ -19,7 +19,11 @@ const props = withDefaults(defineProps<{
   glow?: boolean
   motion?: number
   /** Цвет SVG-маски */
-  tone?: 'brand' | 'accent' | 'muted' | 'white'
+  tone?: 'brand' | 'accent' | 'muted' | 'white' | 'soft'
+  /** Маска по альфе (SVG-мячи) */
+  masked?: boolean
+  /** Водяной знак-герб: img с деталями, не solid-mask */
+  mark?: boolean
 }>(), {
   side: 'right',
   corner: 'top',
@@ -28,6 +32,8 @@ const props = withDefaults(defineProps<{
   glow: true,
   motion: 1,
   tone: 'brand',
+  masked: false,
+  mark: false,
 })
 
 const freePos = computed(() =>
@@ -35,6 +41,7 @@ const freePos = computed(() =>
 )
 
 const isSvg = computed(() => /\.svg(\?|$)/i.test(props.src))
+const useMask = computed(() => (isSvg.value || props.masked) && !props.mark)
 
 const toneColor = computed(() => {
   switch (props.tone) {
@@ -44,6 +51,8 @@ const toneColor = computed(() => {
       return 'var(--deco-tone-muted, #3d5d91)'
     case 'white':
       return 'var(--deco-tone-white, #ffffff)'
+    case 'soft':
+      return 'var(--deco-tone-soft, #c2cad6)'
     case 'brand':
     default:
       return 'var(--deco-tone-brand, #253863)'
@@ -64,19 +73,22 @@ const style = computed(() => {
   if (props.bottom) {
     base.bottom = `calc(${props.bottom} + var(--section-edge-h, 5rem) * 0.35)`
   }
-  if (isSvg.value) {
+  if (useMask.value) {
     base['--deco-color'] = toneColor.value
     base['--deco-mask'] = `url(${props.src})`
   }
   return base
 })
 
-const motionClass = computed(() => `section-deco--drift-${((props.motion || 1) - 1) % 5 + 1}`)
+const motionClass = computed(() => {
+  if (!props.motion) return ''
+  return `section-deco--drift-${((props.motion || 1) - 1) % 5 + 1}`
+})
 </script>
 
 <template>
   <span
-    v-if="isSvg"
+    v-if="useMask"
     class="section-deco section-deco--mask"
     :class="[
       motionClass,
@@ -93,8 +105,9 @@ const motionClass = computed(() => `section-deco--drift-${((props.motion || 1) -
     class="section-deco"
     :class="[
       motionClass,
-      { 'section-deco--glow': glow },
+      { 'section-deco--glow': glow && !mark },
       { 'section-deco--free': freePos },
+      { 'section-deco--mark': mark },
       { [`section-deco--${side}`]: !freePos },
       { [`section-deco--${corner}`]: !freePos },
     ]"
@@ -122,7 +135,7 @@ const motionClass = computed(() => `section-deco--drift-${((props.motion || 1) -
   transform: translate(var(--deco-tx, 0), var(--deco-ty, 0)) rotate(var(--deco-rot, 0deg));
 }
 
-.section-deco:not(.section-deco--mask) {
+.section-deco:not(.section-deco--mask):not(.section-deco--mark) {
   filter: brightness(0.42) contrast(1.15);
 }
 
@@ -131,6 +144,7 @@ const motionClass = computed(() => `section-deco--drift-${((props.motion || 1) -
   --deco-tone-accent: #ff2a2a;
   --deco-tone-muted: #3d5d91;
   --deco-tone-white: #ffffff;
+  --deco-tone-soft: #c2cad6;
   background-color: var(--deco-color, #253863);
   -webkit-mask-image: var(--deco-mask);
   mask-image: var(--deco-mask);
@@ -142,11 +156,24 @@ const motionClass = computed(() => `section-deco--drift-${((props.motion || 1) -
   mask-position: center;
 }
 
-.section-deco--glow:not(.section-deco--mask) {
+
+.section-deco--glow:not(.section-deco--mask):not(.section-deco--mark) {
   filter:
     brightness(0.42) contrast(1.15)
     drop-shadow(0 0 10px rgb(255 59 59 / 0.18))
     drop-shadow(0 0 24px rgb(61 93 145 / 0.12));
+}
+
+.section-deco--mark {
+  aspect-ratio: 1;
+  width: clamp(200px, 42vw, 440px);
+  max-width: min(52vw, 460px);
+  filter: grayscale(1) contrast(0.88) brightness(1.45);
+}
+
+:global(html.dark .section-deco--mark) {
+  filter: grayscale(1) brightness(2.4) contrast(0.8);
+  opacity: 0.08 !important;
 }
 
 .section-deco--mask.section-deco--glow {
@@ -154,12 +181,12 @@ const motionClass = computed(() => `section-deco--drift-${((props.motion || 1) -
   filter: drop-shadow(0 0 14px rgb(255 59 59 / 0.16));
 }
 
-:global(html.dark .section-deco:not(.section-deco--mask)) {
+:global(html.dark .section-deco:not(.section-deco--mask):not(.section-deco--mark)) {
   filter: brightness(0) invert(1);
   opacity: 0.28 !important;
 }
 
-:global(html.dark .section-deco--glow:not(.section-deco--mask)) {
+:global(html.dark .section-deco--glow:not(.section-deco--mask):not(.section-deco--mark)) {
   filter:
     brightness(0) invert(1)
     drop-shadow(0 0 8px rgb(239 68 68 / 0.45))
@@ -171,6 +198,7 @@ const motionClass = computed(() => `section-deco--drift-${((props.motion || 1) -
   --deco-tone-accent: #ff5c5c;
   --deco-tone-muted: #8aa4c8;
   --deco-tone-white: #ffffff;
+  --deco-tone-soft: #4a5a72;
 }
 
 :global(html.dark .section-deco--mask.section-deco--glow) {

@@ -1,15 +1,46 @@
 <script setup lang="ts">
 import { site } from '~/data/site'
 
-const { enabled: features } = useSiteFeatures()
+const { enabled: features } = await useSiteFeatures()
+const { phone, email, hasPhone, hasEmail } = await useSiteContacts()
+const siteConfig = useSiteConfig()
+const siteUrl = computed(() => String(siteConfig.url || '').replace(/\/$/, ''))
 
-useSeoMeta({
-  title: `${site.name} — ${site.tagline}`,
-  description: site.description,
-  ogTitle: `${site.name} — ${site.tagline}`,
-  ogDescription: site.description,
-  ogLocale: 'ru_RU',
-})
+usePageSeo(`${site.name} — ${site.tagline}`, site.description)
+
+useHead(() => ({
+  script: [
+    {
+      key: 'ld-org',
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'Organization',
+            name: site.name,
+            url: siteUrl.value || undefined,
+            logo: siteUrl.value ? `${siteUrl.value}/img/logo.png` : '/img/logo.png',
+          },
+          {
+            '@type': 'SportsActivityLocation',
+            name: `${site.name} — ${site.tagline}`,
+            description: site.description,
+            url: siteUrl.value || undefined,
+            ...(hasPhone.value ? { telephone: phone.value } : {}),
+            ...(hasEmail.value ? { email: email.value } : {}),
+            image: siteUrl.value ? `${siteUrl.value}/img/logo.png` : '/img/logo.png',
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: site.city,
+              addressCountry: 'RU',
+            },
+          },
+        ],
+      }),
+    },
+  ],
+}))
 </script>
 
 <template>

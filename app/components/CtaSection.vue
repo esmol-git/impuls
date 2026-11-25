@@ -29,7 +29,7 @@ const defaults = sections.cta
         <div class="cta-banner__scrim" aria-hidden="true" />
         <div class="accent-bloom accent-bloom--corner" aria-hidden="true" />
 
-        <div class="relative z-[1] max-w-xl">
+        <div class="relative z-[1] min-w-0 max-w-xl">
           <h2 class="text-2xl font-bold text-white sm:text-3xl lg:text-4xl">
             {{ title || defaults.title }}
           </h2>
@@ -39,7 +39,7 @@ const defaults = sections.cta
           <ModalTrigger
             type="lead"
             :payload="{ source }"
-            class="btn-primary mt-6 w-full sm:mt-8 sm:w-auto"
+            class="btn-primary mt-6 w-full max-w-full min-w-0 sm:mt-8 sm:w-auto"
           >
             {{ buttonText || defaults.action?.label || 'Оставить заявку' }}
           </ModalTrigger>

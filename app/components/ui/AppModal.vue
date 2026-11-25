@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue'
+import { ref } from 'vue'
 
 defineProps<{
   title: string
@@ -17,26 +17,17 @@ function onClose() {
   emit('close')
 }
 
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') onClose()
-}
+useFocusTrap(panelRef, visible, { onEscape: onClose })
 
 function handleAfterLeave() {
   onAfterLeave()
 }
-
-watch(visible, (val) => {
-  if (val) {
-    nextTick(() => panelRef.value?.focus())
-  }
-})
 </script>
 
 <template>
-  <Teleport to="body">
+  <Teleport to="body" defer>
     <Transition
       name="modal"
-      appear
       :duration="{ enter: 550, leave: 380 }"
       @after-leave="handleAfterLeave"
     >
@@ -46,14 +37,13 @@ watch(visible, (val) => {
         role="dialog"
         aria-modal="true"
         :aria-label="title"
-        @keydown="onKeydown"
       >
         <div class="modal-backdrop absolute inset-0 bg-brand-900/40" @click="onClose" />
 
         <div
           ref="panelRef"
           tabindex="-1"
-          class="modal-panel relative w-full overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+          class="modal-panel relative w-full overflow-hidden rounded-t-2xl shadow-2xl sm:rounded-2xl"
           :class="size === 'lg' ? 'max-w-lg' : 'max-w-md'"
         >
           <div class="border-b border-brand-100 px-4 py-4 pr-12 sm:px-6 sm:py-5 sm:pr-14">

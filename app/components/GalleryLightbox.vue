@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
-
 const { visible, current, activeIndex, items, close, onAfterLeave, next, prev } = useLightbox()
+const panelRef = ref<HTMLElement>()
+
+useFocusTrap(panelRef, visible, { onEscape: close })
 
 function onKeydown(e: KeyboardEvent) {
   if (!visible.value) return
-  if (e.key === 'Escape') close()
   if (e.key === 'ArrowRight') next()
   if (e.key === 'ArrowLeft') prev()
 }
@@ -15,15 +15,16 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <Teleport to="body">
+  <Teleport to="body" defer>
     <Transition
       name="modal"
-      appear
       :duration="{ enter: 550, leave: 380 }"
       @after-leave="onAfterLeave"
     >
       <div
         v-if="visible"
+        ref="panelRef"
+        tabindex="-1"
         class="modal-overlay fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4"
         role="dialog"
         aria-modal="true"
@@ -43,7 +44,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
             </svg>
           </button>
 
-          <div class="overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <div class="lightbox-panel overflow-hidden rounded-2xl shadow-2xl">
             <div v-if="current?.src" class="relative">
               <img :src="current.src" :alt="current.alt" class="max-h-[70dvh] w-full object-contain sm:max-h-[80vh]">
             </div>
