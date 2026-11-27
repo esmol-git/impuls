@@ -2,6 +2,7 @@ import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common
 import { SkipThrottle } from '@nestjs/throttler'
 import { SKIP_ALL_THROTTLES } from '../common/throttle'
 import { CatalogQueryDto } from './dto/catalog-query.dto'
+import { NewsQueryDto } from './dto/news-query.dto'
 import { PublicMediaQueryDto } from './dto/public-media-query.dto'
 import { MediaService } from './media.service'
 
@@ -19,6 +20,12 @@ export class MediaController {
   @Get('catalog')
   listCatalog(@Query() query: CatalogQueryDto) {
     return this.media.listCatalogPublic(query)
+  }
+
+  /** Пагинированный список новостей (как каталог). Должен быть выше news/:slug. */
+  @Get('news')
+  listNews(@Query() query: NewsQueryDto) {
+    return this.media.listNewsPublic(query)
   }
 
   @Get('news/:slug')

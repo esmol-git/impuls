@@ -1,6 +1,8 @@
 import { MediaType } from '@prisma/client'
 
 export const CATALOG_PAGE_SIZE = 9
+/** Временно 3 — синхрон с витриной; потом вернуть 9 */
+export const NEWS_PAGE_SIZE = 9
 
 /** Поля для публичных/админ-списков без тяжёлого HTML body */
 export const MEDIA_LIST_SELECT = {
@@ -20,6 +22,8 @@ export const MEDIA_LIST_SELECT = {
   salePrice: true,
   sortOrder: true,
   published: true,
+  publishAt: true,
+  unpublishAt: true,
   createdAt: true,
   updatedAt: true,
 } as const
@@ -41,6 +45,8 @@ export type CatalogRow = {
   salePrice: number | null
   sortOrder: number
   published: boolean
+  publishAt: Date | null
+  unpublishAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

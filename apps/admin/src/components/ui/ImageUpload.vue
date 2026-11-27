@@ -11,7 +11,7 @@ const props = withDefaults(
     preview?: string
     tip?: string
     accept?: string
-    aspect?: 'wide' | 'portrait' | 'square'
+    aspect?: 'wide' | 'card' | 'portrait' | 'square'
     fit?: 'cover' | 'contain'
   }>(),
   {
@@ -34,6 +34,8 @@ const aspectClass = computed(
   () =>
     ({
       wide: 'aspect-[16/9]',
+      /** Как превью новости на сайте */
+      card: 'aspect-[4/3]',
       portrait: 'aspect-[3/4]',
       square: 'aspect-square',
     })[props.aspect],

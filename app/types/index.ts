@@ -154,6 +154,8 @@ export interface NewsItem {
   title: string
   excerpt: string
   date: string
+  /** ISO дата публикации для SEO (publishAt || createdAt) */
+  publishedAt?: string
   category: string
   imageUrl?: string
   body?: string

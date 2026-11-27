@@ -9,6 +9,7 @@ import type { NewsItem } from '~/types'
 
 const route = useRoute()
 const slug = route.params.slug as string
+const siteUrl = useSiteConfig().url.replace(/\/$/, '')
 
 const { data: remote } = await useFetch<NewsItem | null>(`/api/news/${slug}`, {
   default: () => null,
@@ -33,12 +34,45 @@ usePageSeo(
   `${current.title} — ${site.name}`,
   current.excerpt,
   current.imageUrl || undefined,
+  {
+    ogType: 'article',
+    publishedTime: current.publishedAt,
+  },
 )
+
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'NewsArticle',
+        headline: current.title,
+        description: current.excerpt,
+        datePublished: current.publishedAt || current.date,
+        image: current.imageUrl
+          ? (current.imageUrl.startsWith('http')
+            ? current.imageUrl
+            : `${siteUrl}${current.imageUrl}`)
+          : undefined,
+        author: {
+          '@type': 'Organization',
+          name: site.name,
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: site.name,
+        },
+        mainEntityOfPage: `${siteUrl}/news/${current.slug}`,
+      }),
+    },
+  ],
+})
 
 const breadcrumbs = computed(() => newsArticleBreadcrumbs(article.value?.title || current.title))
 
 const { data: list } = await useFetch<MediaNewsDto[]>('/api/media', {
-  query: { type: 'NEWS' },
+  query: { type: 'NEWS', limit: 12 },
   default: () => [] as MediaNewsDto[],
 })
 
@@ -65,7 +99,7 @@ const relatedNews = computed(() => {
           <span class="rounded-md bg-accent-50 px-3 py-1 font-semibold text-accent-500">
             {{ article.category }}
           </span>
-          <time :datetime="article.date" class="text-brand-400">
+          <time :datetime="article.publishedAt || article.date" class="text-brand-400">
             {{ formatNewsDate(article.date) }}
           </time>
         </div>

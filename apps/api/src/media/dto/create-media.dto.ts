@@ -4,6 +4,7 @@ import {
   ArrayMaxSize,
   IsArray,
   IsBoolean,
+  IsDateString,
   IsEnum,
   IsInt,
   IsOptional,
@@ -76,9 +77,10 @@ export class CreateMediaDto {
   slug?: string
 
   @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== '')
   @IsString()
   @MaxLength(4000)
-  description?: string
+  description?: string | null
 
   @IsOptional()
   @Type(() => Number)
@@ -107,4 +109,16 @@ export class CreateMediaDto {
   @IsOptional()
   @IsBoolean()
   published?: boolean
+
+  /** Новости: дата/время публикации (ISO). Пусто = сразу при published */
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== '')
+  @IsDateString()
+  publishAt?: string | null
+
+  /** Новости: снять с публикации после (ISO). Пусто = не снимать */
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== '')
+  @IsDateString()
+  unpublishAt?: string | null
 }

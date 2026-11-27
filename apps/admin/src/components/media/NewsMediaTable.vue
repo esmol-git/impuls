@@ -3,7 +3,7 @@ import { icons } from '@/icons'
 import AdminSurface from '@/components/ui/AdminSurface.vue'
 import TablePager from '@/components/ui/TablePager.vue'
 import type { MediaItem } from '@/api/types'
-import { formatDate } from '@/utils/format'
+import { formatDate, formatDateTime } from '@/utils/format'
 
 defineProps<{
   items: MediaItem[]
@@ -11,6 +11,7 @@ defineProps<{
   emptyText: string
   total: number
   pageSizes: number[]
+  copyingId?: string | null
 }>()
 
 const page = defineModel<number>('page', { required: true })
@@ -18,6 +19,7 @@ const pageSize = defineModel<number>('pageSize', { required: true })
 
 const emit = defineEmits<{
   edit: [item: MediaItem]
+  copy: [item: MediaItem]
   togglePublished: [item: MediaItem]
   remove: [item: MediaItem]
   sortChange: [payload: { prop: string; order: string | null }]
@@ -29,6 +31,30 @@ function onRowClick(row: MediaItem) {
 
 function onSortChange(payload: { prop: string; order: string | null }) {
   emit('sortChange', payload)
+}
+
+function newsStatus(row: MediaItem) {
+  if (!row.published) {
+    return { label: 'Скрыто', type: 'info' as const }
+  }
+  const now = Date.now()
+  if (row.publishAt) {
+    const start = new Date(row.publishAt).getTime()
+    if (!Number.isNaN(start) && start > now) {
+      return { label: 'Запланировано', type: 'warning' as const }
+    }
+  }
+  if (row.unpublishAt) {
+    const end = new Date(row.unpublishAt).getTime()
+    if (!Number.isNaN(end) && end <= now) {
+      return { label: 'Снято', type: 'info' as const }
+    }
+  }
+  return { label: 'Опубликовано', type: 'success' as const }
+}
+
+function displayDate(row: MediaItem) {
+  return row.publishAt || row.createdAt
 }
 </script>
 
@@ -69,21 +95,23 @@ function onSortChange(payload: { prop: string; order: string | null }) {
         </template>
       </el-table-column>
 
-      <el-table-column prop="published" label="Статус" width="130" sortable="custom">
+      <el-table-column prop="published" label="Статус" width="148" sortable="custom">
         <template #default="{ row }">
-          <el-tag :type="row.published ? 'success' : 'info'" size="small">
-            {{ row.published ? 'Опубликовано' : 'Скрыто' }}
+          <el-tag :type="newsStatus(row).type" size="small">
+            {{ newsStatus(row).label }}
           </el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column prop="createdAt" label="Дата" width="140" sortable="custom">
+      <el-table-column prop="createdAt" label="На сайте" width="148" sortable="custom">
         <template #default="{ row }">
-          {{ formatDate(row.createdAt) }}
+          <span :title="row.publishAt ? `Публикация: ${formatDateTime(row.publishAt)}` : `Создано: ${formatDateTime(row.createdAt)}`">
+            {{ formatDate(displayDate(row)) }}
+          </span>
         </template>
       </el-table-column>
 
-      <el-table-column label="Действия" width="136" align="right" fixed="right">
+      <el-table-column label="Действия" width="168" align="right" fixed="right">
         <template #default="{ row }">
           <div class="admin-table__actions" @click.stop>
             <button
@@ -94,6 +122,16 @@ function onSortChange(payload: { prop: string; order: string | null }) {
               @click="$emit('edit', row)"
             >
               <el-icon :size="18"><component :is="icons.edit" /></el-icon>
+            </button>
+            <button
+              type="button"
+              class="admin-table__action"
+              title="Создать копию"
+              aria-label="Создать копию"
+              :disabled="copyingId === row.id"
+              @click="$emit('copy', row)"
+            >
+              <el-icon :size="18"><component :is="icons.copy" /></el-icon>
             </button>
             <button
               type="button"

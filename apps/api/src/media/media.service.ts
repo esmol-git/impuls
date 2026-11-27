@@ -3,6 +3,7 @@ import { MediaType } from '@prisma/client'
 import { CatalogQueryDto } from './dto/catalog-query.dto'
 import { CreateMediaDto } from './dto/create-media.dto'
 import type { ListMediaQueryDto } from './dto/list-media-query.dto'
+import type { NewsQueryDto } from './dto/news-query.dto'
 import { UpdateMediaDto } from './dto/update-media.dto'
 import { MediaAdminService } from './media-admin.service'
 import { MediaCatalogService } from './media-catalog.service'
@@ -26,6 +27,10 @@ export class MediaService {
 
   listCatalogPublic(query: CatalogQueryDto) {
     return this.catalog.listCatalogPublic(query)
+  }
+
+  listNewsPublic(query: NewsQueryDto) {
+    return this.publicMedia.listNewsPublic(query)
   }
 
   findPublicBySlug(slug: string) {

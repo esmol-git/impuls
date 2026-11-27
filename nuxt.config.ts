@@ -124,6 +124,10 @@ export default defineNuxtConfig({
     validateAppHead: false,
   },
 
+  sitemap: {
+    sources: ['/api/__sitemap__/urls'],
+  },
+
   nitro: {
     prerender: {
       crawlLinks: false,

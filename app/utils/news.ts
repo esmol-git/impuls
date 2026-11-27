@@ -1,6 +1,8 @@
 import type { NewsItem } from '~/types'
 import { newsItems as fallbackNews } from '~/data/news'
 
+export const NEWS_PAGE_SIZE = 9
+
 export interface MediaNewsDto {
   id: string
   title: string
@@ -9,7 +11,26 @@ export interface MediaNewsDto {
   topic?: string | null
   slug?: string | null
   description?: string | null
+  publishAt?: string | null
+  unpublishAt?: string | null
   createdAt: string
+}
+
+export interface NewsPageResult {
+  items: MediaNewsDto[]
+  meta: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
+export function emptyNewsPage(page = 1, limit = NEWS_PAGE_SIZE): NewsPageResult {
+  return {
+    items: [],
+    meta: { page, limit, total: 0, totalPages: 0 },
+  }
 }
 
 function stripHtml(html: string) {
@@ -30,11 +51,13 @@ function toDateKey(value: string) {
 
 export function mapMediaToNews(item: MediaNewsDto): NewsItem {
   const text = item.description?.trim() || stripHtml(item.body || '')
+  const displayDate = item.publishAt || item.createdAt
   return {
     slug: item.slug || item.id,
     title: item.title,
     excerpt: text.slice(0, 160) || 'Подробности в материале.',
-    date: toDateKey(item.createdAt),
+    date: toDateKey(displayDate),
+    publishedAt: displayDate,
     category: item.topic?.trim() || 'Новости',
     imageUrl: item.imageUrl,
     body: item.body || undefined,

@@ -14,6 +14,7 @@ import { CreateMediaDto } from './dto/create-media.dto'
 import type { ListMediaQueryDto, MediaSortField } from './dto/list-media-query.dto'
 import { UpdateMediaDto } from './dto/update-media.dto'
 import { MediaCatalogService } from './media-catalog.service'
+import { assertNewsSchedule, parseOptionalDate } from './media-visibility'
 import {
   calcSalePrice,
   MEDIA_LIST_SELECT,
@@ -117,6 +118,14 @@ export class MediaAdminService implements OnModuleInit {
         ? await this.resolveCreateSku(normalizeSku(dto.sku))
         : null
 
+    const publishAt =
+      dto.type === MediaType.NEWS ? parseOptionalDate(dto.publishAt) ?? null : null
+    const unpublishAt =
+      dto.type === MediaType.NEWS ? parseOptionalDate(dto.unpublishAt) ?? null : null
+    if (dto.type === MediaType.NEWS) {
+      assertNewsSchedule(new Date(), publishAt, unpublishAt)
+    }
+
     const created = await this.prisma.mediaItem.create({
       data: {
         type: dto.type,
@@ -131,7 +140,7 @@ export class MediaAdminService implements OnModuleInit {
         slug,
         description:
           dto.type === MediaType.CATALOG || dto.type === MediaType.NEWS
-            ? dto.description ?? null
+            ? dto.description?.trim() || null
             : null,
         price: dto.type === MediaType.CATALOG ? dto.price ?? null : null,
         discount: dto.type === MediaType.CATALOG ? dto.discount ?? null : null,
@@ -141,6 +150,8 @@ export class MediaAdminService implements OnModuleInit {
             : null,
         sortOrder,
         published: dto.published ?? true,
+        publishAt,
+        unpublishAt,
       },
     })
 
@@ -205,6 +216,22 @@ export class MediaAdminService implements OnModuleInit {
       await this.ensureSkuUnique(nextSku, id)
     }
 
+    const nextPublishAt =
+      type === MediaType.NEWS && dto.publishAt !== undefined
+        ? parseOptionalDate(dto.publishAt) ?? null
+        : type === MediaType.NEWS
+          ? existing.publishAt
+          : null
+    const nextUnpublishAt =
+      type === MediaType.NEWS && dto.unpublishAt !== undefined
+        ? parseOptionalDate(dto.unpublishAt) ?? null
+        : type === MediaType.NEWS
+          ? existing.unpublishAt
+          : null
+    if (type === MediaType.NEWS) {
+      assertNewsSchedule(existing.createdAt, nextPublishAt, nextUnpublishAt)
+    }
+
     const updated = await this.prisma.mediaItem.update({
       where: { id },
       data: {
@@ -223,7 +250,10 @@ export class MediaAdminService implements OnModuleInit {
               : undefined
             : null,
         slug,
-        description: dto.description,
+        description:
+          dto.description !== undefined
+            ? dto.description?.trim() || null
+            : undefined,
         price: dto.price,
         discount: dto.discount,
         salePrice:
@@ -232,6 +262,18 @@ export class MediaAdminService implements OnModuleInit {
             : dto.salePrice,
         sortOrder: dto.sortOrder,
         published: dto.published,
+        publishAt:
+          type === MediaType.NEWS && dto.publishAt !== undefined
+            ? nextPublishAt
+            : type === MediaType.NEWS
+              ? undefined
+              : null,
+        unpublishAt:
+          type === MediaType.NEWS && dto.unpublishAt !== undefined
+            ? nextUnpublishAt
+            : type === MediaType.NEWS
+              ? undefined
+              : null,
       },
     })
 

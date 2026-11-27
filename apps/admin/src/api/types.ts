@@ -93,6 +93,8 @@ export interface MediaItem {
   salePrice?: number | null
   sortOrder: number
   published: boolean
+  publishAt?: string | null
+  unpublishAt?: string | null
   createdAt: string
   updatedAt: string
 }

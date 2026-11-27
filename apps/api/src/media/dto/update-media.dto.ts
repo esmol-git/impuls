@@ -4,6 +4,7 @@ import {
   ArrayMaxSize,
   IsArray,
   IsBoolean,
+  IsDateString,
   IsEnum,
   IsInt,
   IsOptional,
@@ -12,6 +13,7 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateIf,
 } from 'class-validator'
 
 export class UpdateMediaDto {
@@ -101,4 +103,14 @@ export class UpdateMediaDto {
   @IsOptional()
   @IsBoolean()
   published?: boolean
+
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== '')
+  @IsDateString()
+  publishAt?: string | null
+
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== '')
+  @IsDateString()
+  unpublishAt?: string | null
 }

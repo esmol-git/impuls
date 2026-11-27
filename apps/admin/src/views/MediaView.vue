@@ -39,6 +39,7 @@ const uploading = ref(false)
 const reordering = ref(false)
 const replacing = ref(false)
 const busyItemId = ref<string | null>(null)
+const copyingId = ref<string | null>(null)
 const fileInputKey = ref(0)
 
 const { section, sectionSaving, loadSection, onSectionToggle } = useSectionVisibility(() => props.type)
@@ -218,6 +219,43 @@ async function togglePublished(item: MediaItem) {
   }
 }
 
+async function copyNewsItem(item: MediaItem) {
+  if (props.type !== 'NEWS') return
+
+  const ok = await confirm({
+    title: 'Создать копию?',
+    message: `Будет создана скрытая новость «${item.title} (копия)» с тем же текстом и обложкой.`,
+    confirmLabel: 'Создать копию',
+  })
+  if (!ok) return
+
+  copyingId.value = item.id
+  try {
+    // В списке нет body — подтягиваем полную карточку
+    const full = await api<MediaItem>(`/api/admin/media/${item.id}`)
+    const created = await api<MediaItem>('/api/admin/media', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'NEWS',
+        title: `${full.title} (копия)`,
+        topic: full.topic,
+        description: full.description,
+        body: full.body,
+        imageUrl: full.imageUrl,
+        published: false,
+        publishAt: null,
+        unpublishAt: null,
+      }),
+    })
+    toast.success('Копия создана')
+    await router.push({ name: 'news-edit', params: { id: created.id } })
+  } catch (e) {
+    toast.error(getErrorMessage(e, 'Не удалось создать копию'))
+  } finally {
+    copyingId.value = null
+  }
+}
+
 async function removeItem(item: MediaItem) {
   const ok = await confirm({
     title: 'Удалить?',
@@ -367,7 +405,9 @@ watch(
       :empty-text="emptyText"
       :total="total"
       :page-sizes="newsPageSizes"
+      :copying-id="copyingId"
       @edit="openEdit"
+      @copy="copyNewsItem"
       @toggle-published="togglePublished"
       @remove="removeItem"
       @sort-change="onSortChange"

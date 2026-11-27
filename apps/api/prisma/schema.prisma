@@ -109,6 +109,10 @@ model MediaItem {
   salePrice   Int?
   sortOrder   Int       @default(0)
   published   Boolean   @default(true)
+  /// Когда показать на сайте (null = сразу при published=true)
+  publishAt   DateTime?
+  /// Когда снять с публикации (null = не снимать автоматически)
+  unpublishAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -116,6 +120,8 @@ model MediaItem {
   @@index([type, published, sortOrder])
   /// Админ-списки: сортировка по дате в рамках типа
   @@index([type, createdAt])
+  /// Расписание публикации новостей
+  @@index([type, published, publishAt, unpublishAt])
   /// Фильтры/таксономия каталога
   @@index([type, category])
   /// Фильтры/таксономия новостей
