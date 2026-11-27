@@ -1,3 +1,5 @@
+import type { LeadAssignee, LeadStatus } from '@/api/types'
+
 export function formatDateTime(value?: string | null) {
   if (!value) return '—'
   return new Date(value).toLocaleString('ru-RU', {
@@ -25,49 +27,176 @@ export function roleLabel(role: string) {
   return role
 }
 
-const LEAD_SOURCE_LABELS: Record<string, string> = {
-  hero: 'Герой',
-  header: 'Шапка',
-  'header-mobile': 'Шапка (моб.)',
-  'sticky-mobile': 'Нижняя кнопка',
-  'exit-intent': 'При уходе',
-  steps: 'Шаги записи',
-  'pain-points': 'Блок «боли»',
-  ecosystem: 'Экосистема',
-  'program-card': 'Карточка программы',
-  'program-level': 'Уровень программы',
-  programs: 'Программы',
-  'programs-section': 'Программы (главная)',
-  'programs-page': 'Страница программ',
-  'programs-page-bottom': 'Низ страницы программ',
-  'cta-section': 'Блок CTA',
-  'home-bottom': 'Низ главной',
-  'about-bottom': 'Низ «О школе»',
-  'coaches-bottom': 'Низ «Тренеры»',
-  'catalog-page-bottom': 'Низ каталога',
-  'gallery-page-bottom': 'Низ галереи',
-  location: 'Филиал',
-  'location-preview': 'Филиалы (превью)',
-  'contacts-location': 'Контакты · филиал',
-  'contacts-page': 'Страница контактов',
-  catalog: 'Каталог',
-  cart: 'Корзина',
-  favorites: 'Избранное',
+/** Группы источников для менеджера */
+export type LeadSourceGroup =
+  | 'shop'
+  | 'nav'
+  | 'home'
+  | 'programs'
+  | 'contacts'
+  | 'pages'
+  | 'other'
+
+export interface LeadSourceInfo {
+  group: LeadSourceGroup
+  groupLabel: string
+  label: string
 }
 
-/** Человекочитаемый источник заявки для админки */
-export function leadSourceLabel(source?: string | null) {
-  if (!source) return '—'
-  const known = LEAD_SOURCE_LABELS[source]
-  if (known) return known
+const LEAD_SOURCE_GROUP_LABELS: Record<LeadSourceGroup, string> = {
+  shop: 'Магазин',
+  nav: 'Навигация',
+  home: 'Главная',
+  programs: 'Программы',
+  contacts: 'Контакты',
+  pages: 'Страницы сайта',
+  other: 'Прочее',
+}
+
+const LEAD_SOURCES: Record<string, { group: LeadSourceGroup; label: string }> = {
+  // Магазин
+  cart: { group: 'shop', label: 'Корзина · оформление' },
+  favorites: { group: 'shop', label: 'Избранное' },
+  catalog: { group: 'shop', label: 'Карточка товара' },
+  'catalog-page-bottom': { group: 'shop', label: 'Низ страницы каталога' },
+
+  // Навигация
+  header: { group: 'nav', label: 'Кнопка в шапке' },
+  'header-mobile': { group: 'nav', label: 'Кнопка в шапке · телефон' },
+  'sticky-mobile': { group: 'nav', label: 'Нижняя кнопка на телефоне' },
+
+  // Главная
+  hero: { group: 'home', label: 'Первый экран' },
+  steps: { group: 'home', label: 'Блок «Как записаться»' },
+  'pain-points': { group: 'home', label: 'Блок проблем родителей' },
+  ecosystem: { group: 'home', label: 'Блок экосистемы' },
+  'programs-section': { group: 'home', label: 'Программы на главной' },
+  'cta-section': { group: 'home', label: 'Призыв к записи' },
+  'home-bottom': { group: 'home', label: 'Низ главной' },
+  'exit-intent': { group: 'home', label: 'Окно при уходе с сайта' },
+
+  // Программы
+  programs: { group: 'programs', label: 'Список программ' },
+  'programs-page': { group: 'programs', label: 'Страница программ' },
+  'programs-page-bottom': { group: 'programs', label: 'Низ страницы программ' },
+  'program-card': { group: 'programs', label: 'Карточка программы' },
+  'program-level': { group: 'programs', label: 'Уровень программы' },
+
+  // Контакты / филиалы
+  'contacts-page': { group: 'contacts', label: 'Форма на странице контактов' },
+  'contacts-map': { group: 'contacts', label: 'Карта на странице контактов' },
+  'contacts-location': { group: 'contacts', label: 'Филиал на странице контактов' },
+  map: { group: 'contacts', label: 'Карта филиалов' },
+  location: { group: 'contacts', label: 'Карточка филиала' },
+  'location-preview': { group: 'contacts', label: 'Превью филиалов' },
+
+  // Другие страницы
+  'about-bottom': { group: 'pages', label: 'Низ «О школе»' },
+  'coaches-bottom': { group: 'pages', label: 'Низ «Тренеры»' },
+  'gallery-page-bottom': { group: 'pages', label: 'Низ галереи' },
+
+  // Служебные
+  curl: { group: 'other', label: 'Тестовая заявка (API)' },
+  debug: { group: 'other', label: 'Отладка' },
+}
+
+export const LEAD_STATUS_OPTIONS: { value: LeadStatus; label: string }[] = [
+  { value: 'NEW', label: 'Новая' },
+  { value: 'IN_PROGRESS', label: 'В работе' },
+  { value: 'PROCESSED', label: 'Обработана' },
+  { value: 'TRIAL', label: 'Пробное' },
+  { value: 'ENROLLED', label: 'Записан' },
+  { value: 'LOST', label: 'Отказ' },
+  { value: 'DONE', label: 'Завершена' },
+]
+
+export const LEAD_LOST_REASONS = [
+  'Не дозвонились',
+  'Передумал',
+  'Выбрал другую школу',
+  'Не подходит расписание',
+  'Дорого',
+  'Возраст / группа',
+  'Спам / ошибка',
+  'Другое',
+] as const
+
+export function leadStatusLabel(status: LeadStatus) {
+  return LEAD_STATUS_OPTIONS.find((item) => item.value === status)?.label ?? status
+}
+
+export function leadStatusTagType(status: LeadStatus): 'warning' | 'primary' | 'success' | 'info' | 'danger' {
+  if (status === 'NEW') return 'warning'
+  if (status === 'IN_PROGRESS') return 'primary'
+  if (status === 'PROCESSED' || status === 'TRIAL') return 'success'
+  if (status === 'ENROLLED') return 'success'
+  if (status === 'LOST') return 'danger'
+  return 'info'
+}
+
+export function isCallbackOverdue(nextContactAt?: string | null) {
+  if (!nextContactAt) return false
+  const day = new Date()
+  day.setHours(0, 0, 0, 0)
+  return new Date(nextContactAt).getTime() < day.getTime()
+}
+
+export function isCallbackToday(nextContactAt?: string | null) {
+  if (!nextContactAt) return false
+  const value = new Date(nextContactAt)
+  const start = new Date()
+  start.setHours(0, 0, 0, 0)
+  const end = new Date()
+  end.setHours(23, 59, 59, 999)
+  const t = value.getTime()
+  return t >= start.getTime() && t <= end.getTime()
+}
+
+export function assigneeLabel(user?: LeadAssignee | null) {
+  if (!user) return '—'
+  const name = [user.firstName, user.lastName].filter(Boolean).join(' ').trim()
+  return name || user.email
+}
+
+export function leadSourceInfo(source?: string | null): LeadSourceInfo {
+  if (!source) {
+    return {
+      group: 'other',
+      groupLabel: LEAD_SOURCE_GROUP_LABELS.other,
+      label: 'Не указан',
+    }
+  }
+
+  const known = LEAD_SOURCES[source]
+  if (known) {
+    return {
+      group: known.group,
+      groupLabel: LEAD_SOURCE_GROUP_LABELS[known.group],
+      label: known.label,
+    }
+  }
 
   if (source.endsWith('-details')) {
     const base = source.slice(0, -'-details'.length)
-    const baseLabel = LEAD_SOURCE_LABELS[base] || base
-    return `${baseLabel} · подробнее`
+    const baseInfo = leadSourceInfo(base)
+    return {
+      ...baseInfo,
+      label: `${baseInfo.label} · подробнее`,
+    }
   }
 
-  return source
+  return {
+    group: 'other',
+    groupLabel: LEAD_SOURCE_GROUP_LABELS.other,
+    label: source,
+  }
+}
+
+/** Короткая подпись: «Магазин · Корзина · оформление» */
+export function leadSourceLabel(source?: string | null) {
+  const info = leadSourceInfo(source)
+  if (!source) return '—'
+  return `${info.groupLabel} · ${info.label}`
 }
 
 /** Дата рождения (YYYY-MM-DD) или старый свободный текст возраста */

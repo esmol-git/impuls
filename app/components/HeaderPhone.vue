@@ -7,8 +7,13 @@ withDefaults(defineProps<{
   variant: 'inline',
 })
 
-const { isOpen, ready } = useBusinessHours()
-const { phone, phoneHours, hasPhone, telHref } = await useSiteContacts()
+const { phone, phoneHours, phoneHoursFrom, phoneHoursTo, hasPhone, telHref } =
+  await useSiteContacts()
+const { isOpen, ready } = useBusinessHours({
+  from: phoneHoursFrom,
+  to: phoneHoursTo,
+  text: phoneHours,
+})
 
 const dotClass = computed(() => {
   if (!ready.value) return 'bg-brand-300'

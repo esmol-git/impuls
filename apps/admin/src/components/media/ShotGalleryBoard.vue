@@ -30,6 +30,7 @@ const emit = defineEmits<{
   replace: [id: string, file: File]
   remove: [item: MediaItem]
   reorder: [items: MediaItem[]]
+  'toggle-published': [item: MediaItem]
 }>()
 
 const replaceInput = ref<HTMLInputElement | null>(null)
@@ -180,6 +181,7 @@ function onShotDrop(target: MediaItem, event: DragEvent) {
             'is-dragging': dragId === item.id,
             'is-drop-target': dropTargetId === item.id,
             'is-busy': busyItemId === item.id,
+            'is-hidden': !item.published,
           },
         ]"
         draggable="true"
@@ -204,7 +206,24 @@ function onShotDrop(target: MediaItem, event: DragEvent) {
           <span class="review-phone__handle" title="Перетащить">
             <el-icon :size="16"><component :is="icons['drag-move']" /></el-icon>
           </span>
+          <span
+            class="shot-badge"
+            :class="item.published ? 'is-live' : 'is-off'"
+          >
+            {{ item.published ? 'На сайте' : 'Скрыто' }}
+          </span>
           <div class="review-phone__actions">
+            <button
+              type="button"
+              class="shot-action"
+              :title="item.published ? 'Скрыть с сайта' : 'Показать на сайте'"
+              :aria-label="item.published ? 'Скрыть с сайта' : 'Показать на сайте'"
+              :disabled="replacing || uploading"
+              @click.stop="$emit('toggle-published', item)"
+              @mousedown.stop
+            >
+              <el-icon :size="16"><component :is="item.published ? icons.lock : icons.unlock" /></el-icon>
+            </button>
             <button
               type="button"
               class="shot-action"
@@ -241,7 +260,24 @@ function onShotDrop(target: MediaItem, event: DragEvent) {
           <span class="photo-tile__handle" title="Перетащить">
             <el-icon :size="16"><component :is="icons['drag-move']" /></el-icon>
           </span>
+          <span
+            class="shot-badge"
+            :class="item.published ? 'is-live' : 'is-off'"
+          >
+            {{ item.published ? 'На сайте' : 'Скрыто' }}
+          </span>
           <div class="photo-tile__actions">
+            <button
+              type="button"
+              class="shot-action"
+              :title="item.published ? 'Скрыть с сайта' : 'Показать на сайте'"
+              :aria-label="item.published ? 'Скрыть с сайта' : 'Показать на сайте'"
+              :disabled="replacing || uploading"
+              @click.stop="$emit('toggle-published', item)"
+              @mousedown.stop
+            >
+              <el-icon :size="16"><component :is="item.published ? icons.lock : icons.unlock" /></el-icon>
+            </button>
             <button
               type="button"
               class="shot-action"
@@ -491,6 +527,42 @@ function onShotDrop(target: MediaItem, event: DragEvent) {
 .photo-tile.is-busy,
 .review-phone.is-busy {
   pointer-events: none;
+}
+
+.photo-tile.is-hidden .photo-tile__img,
+.review-phone.is-hidden .review-phone__img {
+  filter: grayscale(0.35) brightness(0.82);
+}
+
+.shot-badge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  height: 1.45rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.review-phone .shot-badge {
+  left: 14px;
+  bottom: 14px;
+}
+
+.shot-badge.is-live {
+  background: rgb(4 120 87 / 0.92);
+  color: #fff;
+}
+
+.shot-badge.is-off {
+  background: rgb(15 23 42 / 0.78);
+  color: #e2e8f0;
 }
 
 .photo-tile--add.is-busy,

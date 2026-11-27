@@ -2,7 +2,60 @@ export type Role = 'SUPERADMIN' | 'ADMIN' | 'MANAGER'
 export type Gender = 'MALE' | 'FEMALE'
 export type MediaType = 'CATALOG' | 'NEWS' | 'REVIEW' | 'GALLERY'
 export type SiteSectionKey = MediaType | 'COACHES'
-export type LeadStatus = 'NEW' | 'DONE'
+export type LeadStatus =
+  | 'NEW'
+  | 'IN_PROGRESS'
+  | 'PROCESSED'
+  | 'TRIAL'
+  | 'ENROLLED'
+  | 'LOST'
+  | 'DONE'
+
+export type LeadActivityType =
+  | 'STATUS'
+  | 'ASSIGNEE'
+  | 'NOTE'
+  | 'CALL'
+  | 'CALLBACK'
+  | 'SYSTEM'
+
+export type CallResult = 'answered' | 'no_answer' | 'busy' | 'callback'
+export type LeadCallbackFilter = 'today' | 'overdue' | 'upcoming'
+
+export interface LeadAssignee {
+  id: string
+  email: string
+  firstName?: string | null
+  lastName?: string | null
+  role: Role
+}
+
+export interface LeadActivityUser {
+  id: string
+  email: string
+  firstName?: string | null
+  lastName?: string | null
+}
+
+export interface LeadActivity {
+  id: string
+  leadId: string
+  userId?: string | null
+  user?: LeadActivityUser | null
+  type: LeadActivityType
+  body?: string | null
+  meta?: Record<string, unknown> | null
+  createdAt: string
+}
+
+export interface RelatedLead {
+  id: string
+  name: string
+  status: LeadStatus
+  source?: string | null
+  createdAt: string
+  assignee?: LeadAssignee | null
+}
 
 export interface User {
   id: string
@@ -175,6 +228,8 @@ export interface ThemeStatus {
 export interface ContactsStatus {
   phone: string
   phoneHours: string
+  phoneHoursFrom?: string
+  phoneHoursTo?: string
   email: string
   socials: {
     vk: string
@@ -231,7 +286,9 @@ export interface Lead {
   id: string
   name: string
   phone: string
+  phoneNorm?: string | null
   age?: string | null
+  childName?: string | null
   message?: string | null
   source?: string | null
   location?: string | null
@@ -240,11 +297,25 @@ export interface Lead {
   guestToken?: string | null
   items?: LeadPurchaseItem[] | null
   status: LeadStatus
+  assigneeId?: string | null
+  assignee?: LeadAssignee | null
+  handledAt?: string | null
+  nextContactAt?: string | null
+  lostReason?: string | null
+  note?: string | null
   createdAt: string
   updatedAt: string
+  activities?: LeadActivity[]
+  relatedLeads?: RelatedLead[]
 }
 
-export type LeadSortField = 'createdAt' | 'name' | 'phone' | 'source' | 'status'
+export type LeadSortField =
+  | 'createdAt'
+  | 'name'
+  | 'phone'
+  | 'source'
+  | 'status'
+  | 'nextContactAt'
 
 export interface LeadsMeta {
   page: number
@@ -262,6 +333,9 @@ export interface LeadsPage {
 
 export interface DashboardStats {
   newLeads: number
+  inProgress?: number
+  callbacksToday?: number
+  callbacksOverdue?: number
   coaches: number
   media: {
     catalog: number
@@ -269,6 +343,40 @@ export interface DashboardStats {
     reviews: number
     gallery: number
   }
+}
+
+export interface CrmKpiManager {
+  id: string
+  email: string
+  name: string
+  assigned: number
+  trial: number
+  enrolled: number
+  lost: number
+  conversionEnrolled: number
+  avgReactionMinutes: number | null
+  overdue: number
+}
+
+export interface CrmKpi {
+  range: StatsRange
+  from: string
+  to: string
+  summary: {
+    total: number
+    byStatus: Record<string, number>
+    trial: number
+    enrolled: number
+    lost: number
+    closed: number
+    conversionTrial: number
+    conversionEnrolled: number
+    avgReactionMinutes: number | null
+    medianReactionMinutes: number | null
+    callbacksToday: number
+    callbacksOverdue: number
+  }
+  managers: CrmKpiManager[]
 }
 
 export type StatsRange = 'day' | 'week' | 'month' | 'year' | 'all'
@@ -306,4 +414,8 @@ export interface NotificationLead {
 export interface NotificationsPayload {
   newLeads: number
   latest: NotificationLead[]
+  callbacksToday: number
+  callbacksOverdue: number
+  /** Перезвоны на сегодня, у которых уже подошло время */
+  dueNow: number
 }

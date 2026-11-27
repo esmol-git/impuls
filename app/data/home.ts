@@ -33,10 +33,10 @@ export const heroBenefits: HeroBenefit[] = [
 ]
 
 export const heroStats: HeroStat[] = [
-  { value: '15+', label: 'филиалов' },
-  { value: '700+', label: 'воспитанников' },
+  { value: '15+', label: 'филиалов', target: 15, suffix: '+' },
+  { value: '700+', label: 'воспитанников', target: 700, suffix: '+' },
   { value: '4–15', label: 'возраст' },
-  { value: '5+', label: 'лет работы' },
+  { value: '5+', label: 'лет работы', target: 5, suffix: '+' },
 ]
 
 export const advantages: Advantage[] = [

@@ -29,7 +29,7 @@ export const agePrograms: AgeProgram[] = [
     levels: [
       {
         id: '4-6-beginner',
-        eyebrow: 'Начальный уровень',
+        eyebrow: 'Формат: группы',
         title: 'Базовые группы',
         buttonVariant: 'brand',
         features: features([
@@ -42,7 +42,7 @@ export const agePrograms: AgeProgram[] = [
       },
       {
         id: '4-6-advanced',
-        eyebrow: 'Продвинутый уровень',
+        eyebrow: 'Формат: сборные',
         title: 'Сборные команды',
         buttonVariant: 'accent',
         features: features([
@@ -66,7 +66,7 @@ export const agePrograms: AgeProgram[] = [
     levels: [
       {
         id: '7-9-beginner',
-        eyebrow: 'Начальный уровень',
+        eyebrow: 'Формат: группы',
         title: 'Базовые группы',
         buttonVariant: 'brand',
         features: features([
@@ -79,7 +79,7 @@ export const agePrograms: AgeProgram[] = [
       },
       {
         id: '7-9-advanced',
-        eyebrow: 'Продвинутый уровень',
+        eyebrow: 'Формат: сборные',
         title: 'Сборные команды',
         buttonVariant: 'accent',
         features: features([
@@ -103,7 +103,7 @@ export const agePrograms: AgeProgram[] = [
     levels: [
       {
         id: '10-12-beginner',
-        eyebrow: 'Начальный уровень',
+        eyebrow: 'Формат: группы',
         title: 'Базовые группы',
         buttonVariant: 'brand',
         features: features([
@@ -116,7 +116,7 @@ export const agePrograms: AgeProgram[] = [
       },
       {
         id: '10-12-advanced',
-        eyebrow: 'Продвинутый уровень',
+        eyebrow: 'Формат: сборные',
         title: 'Сборные команды',
         buttonVariant: 'accent',
         features: features([
@@ -140,7 +140,7 @@ export const agePrograms: AgeProgram[] = [
     levels: [
       {
         id: '13-15-beginner',
-        eyebrow: 'Начальный уровень',
+        eyebrow: 'Формат: группы',
         title: 'Базовые группы',
         buttonVariant: 'brand',
         features: features([
@@ -153,7 +153,7 @@ export const agePrograms: AgeProgram[] = [
       },
       {
         id: '13-15-advanced',
-        eyebrow: 'Продвинутый уровень',
+        eyebrow: 'Формат: сборные',
         title: 'Сборные команды',
         buttonVariant: 'accent',
         features: features([

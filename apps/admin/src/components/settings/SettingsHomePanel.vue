@@ -195,10 +195,6 @@ onMounted(async () => {
       />
     </div>
 
-    <p class="mb-4 text-xs text-slate-400">
-      Для каталога, новостей, отзывов, галереи и тренеров на главной также нужен контент и свитч «На сайте» в соответствующем разделе.
-    </p>
-
     <ul class="space-y-2">
       <li
         v-for="(block, index) in homeBlocks"

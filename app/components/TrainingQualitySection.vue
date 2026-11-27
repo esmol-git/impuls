@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { founderSpeech, trainingSection } from '~/data/training'
 
-const [lead, ...rest] = founderSpeech.paragraphs
-const closing = rest[rest.length - 1]!
-const middle = rest.slice(0, -1)
+const [lead, ...body] = founderSpeech.paragraphs
 </script>
 
 <template>
@@ -29,7 +27,13 @@ const middle = rest.slice(0, -1)
             <div class="founder__layout">
               <article class="founder__quote">
                 <p class="founder__lead">{{ lead }}</p>
-                <p class="founder__close">{{ closing }}</p>
+                <p
+                  v-for="(paragraph, index) in body"
+                  :key="index"
+                  class="founder__p"
+                >
+                  {{ paragraph }}
+                </p>
 
                 <footer class="founder__sign">
                   <strong>{{ founderSpeech.name }}</strong>
@@ -49,16 +53,6 @@ const middle = rest.slice(0, -1)
                 >
               </div>
             </div>
-          </div>
-
-          <div class="founder__letter">
-            <p
-              v-for="(paragraph, index) in middle"
-              :key="index"
-              class="founder__p"
-            >
-              {{ paragraph }}
-            </p>
           </div>
         </div>
       </ScrollReveal>
@@ -106,14 +100,14 @@ const middle = rest.slice(0, -1)
   overflow: hidden;
   border-radius: 1.35rem;
   background: #dfe8f2;
-  padding: 0.85rem 0.85rem 0.85rem;
+  padding: 0.85rem;
 }
 
 @media (min-width: 1024px) {
   .founder__stage {
     overflow: visible;
     margin-top: 4.5rem;
-    padding: 1.25rem 0.35rem 0 1.5rem;
+    padding: 1.35rem 0.5rem 1.35rem 1.5rem;
   }
 }
 
@@ -140,9 +134,9 @@ const middle = rest.slice(0, -1)
 @media (min-width: 1024px) {
   .founder__layout {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(16rem, 0.95fr);
-    gap: 1rem;
-    align-items: end;
+    grid-template-columns: minmax(0, 1.08fr) minmax(16rem, 0.92fr);
+    gap: 1.25rem;
+    align-items: center;
   }
 }
 
@@ -152,10 +146,10 @@ const middle = rest.slice(0, -1)
   order: 2;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem 1.05rem 1.1rem;
+  gap: 0.7rem;
+  padding: 1.05rem 1.1rem 1.15rem;
   border-radius: 1rem;
-  background: rgb(255 255 255 / 0.94);
+  background: rgb(255 255 255 / 0.96);
   border: 1px solid rgb(255 255 255 / 0.72);
   box-shadow: 0 10px 24px rgb(37 56 99 / 0.08);
   backdrop-filter: blur(12px);
@@ -165,26 +159,36 @@ const middle = rest.slice(0, -1)
   .founder__quote {
     order: 0;
     align-self: center;
-    gap: 0.9rem;
-    margin-bottom: 1.5rem;
-    padding: 1.1rem 1.15rem 1.2rem;
+    gap: 0.8rem;
+    padding: 1.25rem 1.3rem 1.35rem;
     box-shadow: 0 14px 34px rgb(37 56 99 / 0.1);
   }
 }
 
-.founder__lead,
-.founder__close {
+.founder__lead {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 700;
-  line-height: 1.45;
+  line-height: 1.5;
   color: #253863;
 }
 
+.founder__p {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.55;
+  color: rgb(37 56 99 / 0.86);
+}
+
 @media (min-width: 1024px) {
-  .founder__lead,
-  .founder__close {
+  .founder__lead {
     font-size: 1.05rem;
+  }
+
+  .founder__p {
+    font-size: 0.98rem;
+    line-height: 1.6;
   }
 }
 
@@ -192,8 +196,8 @@ const middle = rest.slice(0, -1)
   display: flex;
   flex-direction: column;
   gap: 0.12rem;
-  margin-top: 0.15rem;
-  padding-top: 0.95rem;
+  margin-top: 0.2rem;
+  padding-top: 0.9rem;
   border-top: 1px solid rgb(37 56 99 / 0.12);
 }
 
@@ -228,9 +232,9 @@ const middle = rest.slice(0, -1)
     order: 0;
     width: auto;
     height: auto;
-    min-height: 28rem;
+    min-height: 26rem;
     overflow: visible;
-    margin: -7.5rem 0 -0.4rem;
+    margin: -7.5rem 0 -1.1rem;
     justify-content: flex-end;
     align-items: flex-end;
   }
@@ -250,29 +254,14 @@ const middle = rest.slice(0, -1)
 
 @media (min-width: 1024px) {
   .founder__img {
-    height: clamp(30rem, 44vw, 37rem);
+    height: clamp(28rem, 42vw, 35rem);
     object-position: bottom center;
     filter: drop-shadow(0 22px 34px rgb(16 28 48 / 0.34));
   }
 }
 
-.founder__letter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-  max-width: 42rem;
-}
-
-.founder__p {
-  margin: 0;
-  font-size: 0.98rem;
-  line-height: 1.7;
-  color: rgb(37 56 99 / 0.84);
-}
-
 :global(html.dark) .founder__title,
 :global(html.dark) .founder__lead,
-:global(html.dark) .founder__close,
 :global(html.dark) .founder__sign strong {
   color: #e8eef8;
 }

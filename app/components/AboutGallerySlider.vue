@@ -213,7 +213,15 @@ onUnmounted(() => {
 
 @media (min-width: 1024px) {
   .gallery__stage {
-    min-height: 26rem;
+    aspect-ratio: 3 / 4;
+    min-height: 28rem;
+    padding: 0 9% 11% 0;
+  }
+}
+
+@media (min-width: 1280px) {
+  .gallery__stage {
+    min-height: 30rem;
   }
 }
 
@@ -292,6 +300,13 @@ onUnmounted(() => {
   margin-top: 0.9rem;
 }
 
+@media (min-width: 1024px) {
+  .gallery__controls {
+    gap: 0.85rem;
+    margin-top: 1.1rem;
+  }
+}
+
 .gallery__nav {
   display: inline-flex;
   align-items: center;
@@ -320,13 +335,25 @@ onUnmounted(() => {
   height: 1rem;
 }
 
+@media (min-width: 1024px) {
+  .gallery__nav {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+
+  .gallery__nav svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+}
+
 .gallery__dots {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  max-width: min(100%, 11.5rem);
+  max-width: min(100%, 14rem);
   padding: 0.15rem;
 }
 

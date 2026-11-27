@@ -87,6 +87,8 @@ export class SettingsAdminController {
     return this.settings.setContacts({
       phone: dto.phone,
       phoneHours: dto.phoneHours,
+      phoneHoursFrom: dto.phoneHoursFrom,
+      phoneHoursTo: dto.phoneHoursTo,
       email: dto.email,
       socials: dto.socials
         ? {

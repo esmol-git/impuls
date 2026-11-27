@@ -13,6 +13,9 @@ const meta = pages.about
 definePageMeta({ breadcrumb: meta.breadcrumb })
 
 usePageSeo(`${meta.title} — ${site.name}`, meta.description)
+
+const aboutLead = aboutParagraphs[0]
+const aboutBeside = aboutParagraphs.slice(1)
 </script>
 
 <template>
@@ -22,20 +25,24 @@ usePageSeo(`${meta.title} — ${site.name}`, meta.description)
         <Breadcrumbs />
       </ScrollReveal>
 
-      <div class="mt-6 grid gap-8 sm:mt-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-start lg:gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
-        <ScrollReveal>
+      <ScrollReveal class="about-hero mt-6 sm:mt-8">
+        <div class="about-hero__intro">
           <SectionHeader v-bind="aboutIntro" />
-          <div class="mt-6 space-y-5 text-brand-600/80 sm:mt-8">
-            <p v-for="(paragraph, index) in aboutParagraphs" :key="index" class="leading-relaxed">
-              {{ paragraph }}
-            </p>
-          </div>
-        </ScrollReveal>
-
-        <ScrollReveal class="lg:pt-1">
+          <p class="about-hero__lead">
+            {{ aboutLead }}
+          </p>
+          <p
+            v-for="(paragraph, index) in aboutBeside"
+            :key="index"
+            class="about-hero__p"
+          >
+            {{ paragraph }}
+          </p>
+        </div>
+        <aside class="about-hero__media">
           <AboutGallerySlider />
-        </ScrollReveal>
-      </div>
+        </aside>
+      </ScrollReveal>
 
       <ScrollReveal class="mt-8 sm:mt-10">
         <AboutLeadershipCard />
@@ -95,3 +102,70 @@ usePageSeo(`${meta.title} — ${site.name}`, meta.description)
     />
   </div>
 </template>
+
+<style scoped>
+.about-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.about-hero__lead {
+  margin: 1.35rem 0 0;
+  max-width: 36rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.65;
+  color: #253863;
+}
+
+.about-hero__p {
+  margin: 0.95rem 0 0;
+  max-width: 36rem;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: rgb(37 56 99 / 0.82);
+}
+
+.about-hero__media {
+  width: 100%;
+  max-width: 24rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .about-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(22rem, 26rem);
+    align-items: start;
+    column-gap: 2.75rem;
+  }
+
+  .about-hero__media {
+    max-width: none;
+    margin-inline: 0;
+    position: sticky;
+    top: 6.5rem;
+  }
+
+  .about-hero__lead {
+    margin-top: 1.5rem;
+    font-size: 1.08rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .about-hero {
+    grid-template-columns: minmax(0, 1.2fr) minmax(24rem, 28rem);
+    column-gap: 3rem;
+  }
+}
+
+:global(html.dark) .about-hero__lead {
+  color: #e8eef8;
+}
+
+:global(html.dark) .about-hero__p {
+  color: rgb(232 238 248 / 0.8);
+}
+</style>

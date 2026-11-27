@@ -24,60 +24,60 @@ const modalPayload = computed(() => ({
 
 <template>
   <article class="program-card card flex h-full flex-col p-4 sm:p-5">
-    <p v-if="level.eyebrow" class="program-card__eyebrow text-[11px] font-semibold uppercase tracking-wide sm:text-xs">
+    <p
+      v-if="level.eyebrow"
+      class="program-card__eyebrow text-[11px] font-semibold uppercase tracking-[0.08em] sm:text-xs"
+      :class="level.buttonVariant === 'accent' ? 'program-card__eyebrow--accent' : 'program-card__eyebrow--brand'"
+    >
       {{ level.eyebrow }}
     </p>
     <h3
       class="program-card__title text-sm font-bold leading-snug sm:text-base"
-      :class="{ 'mt-1': level.eyebrow }"
+      :class="{ 'mt-1.5': level.eyebrow }"
     >
       {{ level.title }}
     </h3>
 
-    <ul class="mt-3 flex-1 space-y-2 sm:mt-4">
+    <ul class="program-card__list mt-3.5 flex-1 sm:mt-4">
       <li
         v-for="feature in level.features"
         :key="feature.text"
-        class="program-card__row flex items-start gap-2.5 text-xs leading-snug sm:text-sm"
+        class="program-card__row flex items-start gap-2.5 text-xs leading-snug sm:gap-3 sm:text-sm"
       >
-        <svg
-          class="program-card__icon mt-0.5 h-4 w-4 shrink-0"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          stroke-width="1.5"
-          aria-hidden="true"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" :d="icons[feature.icon]" />
-        </svg>
-        {{ feature.text }}
+        <span class="program-card__icon-wrap" aria-hidden="true">
+          <svg
+            class="program-card__icon"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.75"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" :d="icons[feature.icon]" />
+          </svg>
+        </span>
+        <span>{{ feature.text }}</span>
       </li>
     </ul>
 
-    <div class="program-card__foot mt-4 flex items-center gap-2 pt-3 sm:mt-5">
+    <div class="program-card__foot mt-4 pt-3 sm:mt-5">
       <ModalTrigger
         type="lead"
         :payload="modalPayload"
-        class="inline-flex min-h-[40px] flex-1 items-center justify-center rounded-lg px-3 text-xs font-bold uppercase tracking-wide text-white transition sm:text-sm"
-        :class="level.buttonVariant === 'accent' ? 'bg-accent-500 hover:bg-accent-600' : 'bg-brand-600 hover:bg-brand-700'"
+        class="program-card__cta"
+        :class="level.buttonVariant === 'accent' ? 'program-card__cta--accent' : 'program-card__cta--brand'"
       >
-        Подробнее
+        Записаться
       </ModalTrigger>
-      <button
-        type="button"
-        class="program-card__info flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition"
-        :aria-label="`Подробнее о ${level.title}`"
-      >
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </button>
     </div>
   </article>
 </template>
 
 <style scoped>
-.program-card__eyebrow {
+.program-card__eyebrow--brand {
+  color: rgb(var(--c-brand-500));
+}
+
+.program-card__eyebrow--accent {
   color: rgb(var(--c-accent-500));
 }
 
@@ -85,30 +85,83 @@ const modalPayload = computed(() => ({
   color: var(--page-fg);
 }
 
+.program-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
 .program-card__row {
-  color: rgb(var(--c-brand-600) / 0.78);
+  color: rgb(var(--c-brand-600) / 0.8);
+}
+
+.program-card__icon-wrap {
+  display: flex;
+  width: 1.55rem;
+  height: 1.55rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.05rem;
+  border-radius: 0.45rem;
+  background: rgb(var(--c-brand-50));
+  color: rgb(var(--c-brand-500));
 }
 
 .program-card__icon {
-  color: rgb(var(--c-brand-400));
+  width: 0.9rem;
+  height: 0.9rem;
 }
 
 .program-card__foot {
   border-top: 1px solid var(--card-border);
 }
 
-.program-card__info {
-  border: 1px solid var(--card-border);
-  color: rgb(var(--c-brand-400));
+.program-card__cta {
+  display: inline-flex;
+  min-height: 2.5rem;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  padding-inline: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  transition: filter 0.2s ease, background-color 0.2s ease;
 }
 
-.program-card__info:hover {
-  border-color: var(--outline-border-hover);
-  color: var(--page-fg);
+@media (min-width: 640px) {
+  .program-card__cta {
+    font-size: 0.875rem;
+  }
+}
+
+.program-card__cta--brand {
+  background: rgb(var(--c-brand-600));
+}
+
+.program-card__cta--brand:hover {
+  background: rgb(var(--c-brand-700));
+}
+
+.program-card__cta--accent {
+  background: rgb(var(--c-accent-500));
+}
+
+.program-card__cta--accent:hover {
+  background: rgb(var(--c-accent-600));
 }
 
 :global(html.dark .program-card) {
   background: rgb(255 255 255 / 0.05);
   box-shadow: none;
+}
+
+:global(html.dark .program-card__icon-wrap) {
+  background: rgb(255 255 255 / 0.06);
+  color: rgb(var(--c-brand-300));
 }
 </style>

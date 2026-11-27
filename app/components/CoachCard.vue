@@ -1,19 +1,14 @@
 <script setup lang="ts">
 import type { Coach } from '~/types'
-import { sanitizeHtml } from '~/utils/sanitizeHtml'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     coach: Coach
-    /** Для слайдера на главной — короче, без био */
+    /** Для слайдера на главной — чуть компактнее типографика */
     compact?: boolean
   }>(),
   { compact: false },
 )
-
-/** Пока на карточке только фото + ФИО; роль/стаж/теги/био оставлены ниже */
-const showDetails = false
-const safeBio = computed(() => sanitizeHtml(props.coach.bio))
 </script>
 
 <template>
@@ -47,40 +42,26 @@ const safeBio = computed(() => sanitizeHtml(props.coach.bio))
         {{ coach.name }}
       </h3>
 
-      <template v-if="showDetails">
-        <p
-          v-if="coach.role"
-          class="mt-1 text-sm font-medium text-accent-500"
-        >
-          {{ coach.role }}
-        </p>
-
-        <p
-          v-if="coach.experience"
-          class="mt-2 text-xs font-semibold text-brand-400"
-        >
-          Стаж {{ coach.experience }}
-        </p>
-
-        <ul
-          v-if="coach.specialties?.length"
-          class="mt-2 flex flex-wrap gap-1.5"
-        >
-          <li
-            v-for="tag in coach.specialties.slice(0, compact ? 3 : 4)"
-            :key="tag"
-            class="rounded-md bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-600"
-          >
-            {{ tag }}
-          </li>
-        </ul>
-
-        <div
-          v-if="!compact && safeBio"
-          class="coach-card__bio mt-3 line-clamp-3 flex-1 text-sm leading-relaxed text-brand-600/70"
-          v-html="safeBio"
-        />
-      </template>
+      <p
+        v-if="coach.role"
+        class="coach-card__role mt-1.5"
+        :class="compact ? 'text-xs sm:text-[0.8125rem]' : 'text-sm'"
+      >
+        {{ coach.role }}
+      </p>
     </div>
   </NuxtLink>
 </template>
+
+<style scoped>
+.coach-card__role {
+  font-weight: 500;
+  line-height: 1.35;
+  color: rgb(var(--c-brand-600) / 0.58);
+  letter-spacing: 0.01em;
+}
+
+.group:hover .coach-card__role {
+  color: rgb(var(--c-brand-600) / 0.72);
+}
+</style>

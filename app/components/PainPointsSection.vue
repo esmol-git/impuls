@@ -1,14 +1,28 @@
 <script setup lang="ts">
 import type { PainPointIcon } from '~/types'
 import { painPoints, painPointsSection } from '~/data/painPoints'
+import iconSearch from '~/assets/icons/pain-search.svg'
+import iconHealth from '~/assets/icons/pain-health.svg'
+import iconGadget from '~/assets/icons/pain-gadget.svg'
+import iconCoach from '~/assets/icons/pain-coach.svg'
+import iconQuality from '~/assets/icons/pain-quality.svg'
+import iconFriends from '~/assets/icons/pain-friends.svg'
 
 const icons: Record<PainPointIcon, string> = {
-  search: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
-  health: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
-  gadget: 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z',
-  coach: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
-  quality: 'M7 20l4-16m2 16l4-16M6 9h14M4 15h14',
-  friends: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
+  search: iconSearch,
+  health: iconHealth,
+  gadget: iconGadget,
+  coach: iconCoach,
+  quality: iconQuality,
+  friends: iconFriends,
+}
+
+function iconMaskStyle(name: PainPointIcon) {
+  const value = `url("${icons[name]}")`
+  return {
+    maskImage: value,
+    WebkitMaskImage: value,
+  }
 }
 </script>
 
@@ -21,17 +35,21 @@ const icons: Record<PainPointIcon, string> = {
     </ScrollReveal>
 
     <ScrollReveal>
-      <ul class="mt-6 grid list-none gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-        <li v-for="point in painPoints" :key="point.id">
-          <article class="card flex h-full gap-3 p-4 sm:gap-4 sm:p-5">
-            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-50 text-accent-500 sm:h-10 sm:w-10">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" :d="icons[point.icon]" />
-              </svg>
+      <ul class="pain-grid mt-6 list-none sm:mt-8">
+        <li v-for="(point, index) in painPoints" :key="point.id">
+          <article class="pain-card card">
+            <span class="pain-badge" aria-hidden="true">
+              <span
+                class="pain-icon"
+                :style="iconMaskStyle(point.icon)"
+              />
             </span>
-            <p class="text-sm leading-relaxed text-brand-600/80 sm:text-base">
+            <p class="pain-text">
               {{ point.text }}
             </p>
+            <span class="pain-index" aria-hidden="true">
+              {{ String(index + 1).padStart(2, '0') }}
+            </span>
           </article>
         </li>
       </ul>
@@ -63,3 +81,150 @@ const icons: Record<PainPointIcon, string> = {
     </ScrollReveal>
   </BaseSection>
 </template>
+
+<style scoped>
+.pain-grid {
+  display: grid;
+  gap: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .pain-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pain-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.125rem;
+  }
+}
+
+.pain-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 1.35rem;
+  overflow: hidden;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.pain-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, rgb(var(--c-accent-500)), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.pain-card:hover {
+  transform: translateY(-3px);
+  border-color: rgb(var(--c-accent-500) / 0.28);
+}
+
+.pain-card:hover::before {
+  opacity: 1;
+}
+
+.pain-badge {
+  display: flex;
+  width: 4.75rem;
+  height: 4.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(circle at 30% 25%, rgb(255 255 255 / 0.9), transparent 55%),
+    rgb(var(--c-accent-50));
+  color: rgb(var(--c-accent-500));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    0 10px 22px -10px rgb(var(--c-accent-500) / 0.38);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pain-card:hover .pain-badge {
+  transform: scale(1.05);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    0 14px 26px -10px rgb(var(--c-accent-500) / 0.48);
+}
+
+.pain-icon {
+  display: block;
+  width: 2.75rem;
+  height: 2.75rem;
+  background-color: currentColor;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.pain-text {
+  margin: 0;
+  padding-right: 1.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: rgb(var(--c-brand-600) / 0.82);
+}
+
+.pain-index {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.65rem;
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: rgb(var(--c-brand-600) / 0.08);
+  pointer-events: none;
+  transition: color 0.25s ease;
+}
+
+.pain-card:hover .pain-index {
+  color: rgb(var(--c-accent-500) / 0.16);
+}
+
+@media (min-width: 640px) {
+  .pain-card {
+    padding: 1.5rem 1.5rem 1.6rem;
+    gap: 1.25rem;
+  }
+
+  .pain-badge {
+    width: 5.25rem;
+    height: 5.25rem;
+    border-radius: 1.35rem;
+  }
+
+  .pain-icon {
+    width: 3.1rem;
+    height: 3.1rem;
+  }
+
+  .pain-text {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .pain-index {
+    font-size: 2rem;
+    right: 1.05rem;
+    bottom: 0.8rem;
+  }
+}
+</style>

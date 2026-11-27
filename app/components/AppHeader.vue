@@ -55,13 +55,21 @@ function toggleMenu() {
   mobileOpen.value = !mobileOpen.value
 }
 
+function onResize() {
+  if (window.innerWidth >= 1024 && mobileOpen.value) {
+    mobileOpen.value = false
+  }
+}
+
 onMounted(() => {
   syncCompact()
   window.addEventListener('scroll', syncCompact, { passive: true })
+  window.addEventListener('resize', onResize)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', syncCompact)
+  window.removeEventListener('resize', onResize)
   document.documentElement.classList.remove('header-compact')
   if (mobileOpen.value) unlockBodyScroll()
 })
@@ -112,7 +120,7 @@ onUnmounted(() => {
           </NuxtLink>
         </nav>
 
-        <div class="app-header__actions hidden min-w-0 items-center gap-2.5 lg:flex xl:gap-3">
+        <div class="app-header__actions min-w-0 items-center gap-2.5 xl:gap-3">
           <SocialLinks
             v-if="hasSocials"
             size="sm"
@@ -171,7 +179,7 @@ onUnmounted(() => {
           </ModalTrigger>
         </div>
 
-        <div class="flex shrink-0 items-center gap-2 lg:hidden">
+        <div class="app-header__mobile shrink-0 items-center gap-2">
           <a
             v-if="hasPhone"
             :href="telHref"
@@ -235,7 +243,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Полная навигация только наверху (desktop) -->
-    <div class="app-header__nav hidden lg:block">
+    <div class="app-header__nav">
       <div class="container-site">
         <nav class="app-header__nav-list" aria-label="Основное меню">
           <NuxtLink
@@ -258,7 +266,7 @@ onUnmounted(() => {
       :duration="{ enter: 350, leave: 350 }"
       @after-leave="onDrawerAfterLeave"
     >
-      <div v-if="mobileOpen" class="fixed inset-0 z-[60] lg:hidden">
+      <div v-if="mobileOpen" class="app-header__drawer fixed inset-0 z-[60]">
         <div class="drawer-backdrop absolute inset-0 bg-brand-900/50" @click="closeMenu" />
 
         <nav
@@ -340,6 +348,33 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 0.75rem;
   transition: height 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.app-header__mobile {
+  display: flex;
+}
+
+.app-header__actions {
+  display: none;
+}
+
+.app-header__nav {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .app-header__mobile,
+  .app-header__drawer {
+    display: none !important;
+  }
+
+  .app-header__actions {
+    display: flex;
+  }
+
+  .app-header__nav {
+    display: block;
+  }
 }
 
 @media (min-width: 640px) {

@@ -355,6 +355,7 @@ watch(
       @replace="replaceShotFile"
       @remove="removeItem"
       @reorder="persistShotOrder"
+      @toggle-published="togglePublished"
     />
 
     <NewsMediaTable

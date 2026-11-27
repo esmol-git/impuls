@@ -14,15 +14,19 @@ const { enabled: features } = await useSiteFeatures()
 const laidOutBlocks = computed(() => {
   const edgesOn = features.value.sectionEdges
   let edgeIndex = 0
+  let skipWave = false
   return blocks.value.map((block) => {
     let surface: SectionSurfaceProps
     if (SECTION_NO_EDGE.has(block.key)) {
       surface = { wave: false }
+      skipWave = true
     }
     else {
       const base = surfaceForVisibleIndex(edgeIndex)
       edgeIndex += 1
-      surface = edgesOn ? base : { ...base, wave: false }
+      const withEdges = edgesOn ? base : { ...base, wave: false }
+      surface = skipWave ? { ...withEdges, wave: false } : withEdges
+      skipWave = false
     }
     return { ...block, surface }
   })

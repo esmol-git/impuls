@@ -62,11 +62,11 @@ const modalPayload = computed(() => ({
       >
         <div :key="activeTab" class="programs-block mt-5 sm:mt-6">
           <div class="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-start sm:justify-between lg:mb-1">
-            <div class="min-w-0">
+            <div class="min-w-0 max-w-2xl">
               <h3 class="text-lg font-bold text-brand-600 sm:text-xl">
                 {{ activeProgram.groupLabel }}
               </h3>
-              <p v-if="showDetails" class="mt-2 max-w-2xl text-sm leading-relaxed text-brand-600/70 sm:text-base">
+              <p class="mt-1.5 text-sm leading-relaxed text-brand-600/70">
                 {{ activeProgram.description }}
               </p>
             </div>
@@ -246,9 +246,9 @@ const modalPayload = computed(() => ({
 }
 
 .programs-levels__card :deep(.program-card) {
-  background: rgb(255 255 255 / 0.82);
-  border-color: rgb(255 255 255 / 0.78);
-  box-shadow: 0 14px 36px rgb(37 56 99 / 0.12);
+  background: rgb(255 255 255 / 0.86);
+  border-color: rgb(255 255 255 / 0.82);
+  box-shadow: 0 12px 28px rgb(37 56 99 / 0.1);
   backdrop-filter: blur(14px);
 }
 

@@ -1,5 +1,15 @@
 import { Type } from 'class-transformer'
-import { IsEmail, IsOptional, IsString, MaxLength, ValidateIf, ValidateNested } from 'class-validator'
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+  ValidateIf,
+  ValidateNested,
+} from 'class-validator'
+
+const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/
 
 class ContactsSocialsDto {
   @IsOptional()
@@ -28,6 +38,16 @@ export class UpdateContactsDto {
   @IsString()
   @MaxLength(120)
   phoneHours?: string
+
+  @IsOptional()
+  @ValidateIf((_, value) => value !== '' && value != null)
+  @Matches(CLOCK, { message: 'Укажите время в формате ЧЧ:ММ' })
+  phoneHoursFrom?: string
+
+  @IsOptional()
+  @ValidateIf((_, value) => value !== '' && value != null)
+  @Matches(CLOCK, { message: 'Укажите время в формате ЧЧ:ММ' })
+  phoneHoursTo?: string
 
   @IsOptional()
   @ValidateIf((_, value) => value !== '' && value != null)

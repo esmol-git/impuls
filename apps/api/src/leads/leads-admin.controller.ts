@@ -5,15 +5,19 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common'
 import { Role } from '@prisma/client'
 import { SkipThrottle } from '@nestjs/throttler'
+import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { Roles } from '../auth/decorators/roles.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../auth/guards/roles.guard'
+import type { AuthUser } from '../auth/types'
 import { SKIP_ALL_THROTTLES } from '../common/throttle'
+import { CreateLeadActivityDto } from './dto/create-lead-activity.dto'
 import { ListLeadsQueryDto } from './dto/list-leads-query.dto'
 import { UpdateLeadDto } from './dto/update-lead.dto'
 import { LeadsService } from './leads.service'
@@ -25,8 +29,13 @@ export class LeadsAdminController {
   constructor(private readonly leads: LeadsService) {}
 
   @Get()
-  list(@Query() query: ListLeadsQueryDto) {
-    return this.leads.list(query)
+  list(@Query() query: ListLeadsQueryDto, @CurrentUser() user: AuthUser) {
+    return this.leads.list(query, user)
+  }
+
+  @Get('assignees')
+  listAssignees() {
+    return this.leads.listAssignees()
   }
 
   @Get(':id')
@@ -35,8 +44,21 @@ export class LeadsAdminController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateLeadDto) {
-    return this.leads.update(id, dto)
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateLeadDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.leads.update(id, dto, user)
+  }
+
+  @Post(':id/activities')
+  addActivity(
+    @Param('id') id: string,
+    @Body() dto: CreateLeadActivityDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.leads.addActivity(id, dto, user)
   }
 
   @Delete(':id')

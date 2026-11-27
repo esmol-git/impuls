@@ -73,12 +73,19 @@ export interface ChildBenefitCard {
 export interface HeroStat {
   value: string
   label: string
+  /** Целевое число для count-up; без него значение статичное (например «4–15»). */
+  target?: number
+  prefix?: string
+  suffix?: string
 }
+
+export type EnrollmentStepIcon = 'form' | 'trial' | 'train'
 
 export interface EnrollmentStep {
   step: number
   title: string
   description: string
+  icon?: EnrollmentStepIcon
 }
 
 export interface SocialLink {
@@ -124,7 +131,7 @@ export interface ProgramFeature {
 
 export interface ProgramLevel {
   id: string
-  /** Например: «Начальный уровень» */
+  /** Например: «Формат: группы» */
   eyebrow?: string
   title: string
   features: ProgramFeature[]

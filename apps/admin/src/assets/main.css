@@ -202,13 +202,16 @@ body {
 
 .admin-sidebar {
   display: none;
+  position: relative;
+  z-index: 4;
   width: 280px;
   height: 100vh;
   flex-shrink: 0;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   border-right: 1px solid rgb(226 232 240 / 80%);
   background: #fff;
+  transition: width 0.2s ease;
 }
 
 @media (min-width: 768px) {
@@ -217,9 +220,17 @@ body {
   }
 }
 
+.admin-sidebar.is-mini {
+  width: 76px;
+}
+
 .admin-sidebar__brand {
   flex-shrink: 0;
   padding: 1.25rem 1.25rem 1rem;
+}
+
+.admin-sidebar.is-mini .admin-sidebar__brand {
+  padding: 1rem 0.5rem 0.75rem;
 }
 
 .admin-sidebar__brand-link {
@@ -252,6 +263,37 @@ body {
   line-height: 1.25;
 }
 
+.admin-sidebar.is-mini .admin-sidebar__brand-text,
+.admin-sidebar.is-mini .admin-sidebar__user {
+  display: none;
+}
+
+.admin-sidebar__collapse {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  background: #fff;
+  color: #64748b;
+  box-shadow: 0 1px 4px rgb(15 23 42 / 12%);
+  cursor: pointer;
+  transform: translate(50%, -50%);
+}
+
+.admin-sidebar__collapse:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 .admin-sidebar__tagline,
 .admin-sidebar__name {
   display: block;
@@ -275,6 +317,27 @@ body {
   overflow-y: auto;
   border-right: 0 !important;
   padding: 0 8px;
+}
+
+.admin-sidebar.is-mini .admin-sidebar__menu {
+  padding: 0 6px;
+}
+
+.admin-sidebar.is-mini .admin-sidebar__brand-link {
+  justify-content: center;
+}
+
+.admin-sidebar.is-mini .admin-sidebar__menu .el-menu-item {
+  justify-content: center;
+  padding: 0 8px !important;
+}
+
+.admin-sidebar.is-mini .admin-sidebar__menu .el-menu-item .el-icon {
+  margin-right: 0;
+}
+
+.admin-sidebar.is-mini .admin-sidebar__menu .el-menu-item > span {
+  display: none;
 }
 
 .admin-sidebar__menu .el-menu-item {
@@ -311,6 +374,11 @@ body {
   margin-top: auto;
   border-top: 1px solid rgb(241 245 249);
   padding: 1rem 1.25rem;
+}
+
+.admin-sidebar.is-mini .admin-sidebar__footer {
+  justify-content: center;
+  padding: 0.85rem 0.5rem;
 }
 
 .admin-content {

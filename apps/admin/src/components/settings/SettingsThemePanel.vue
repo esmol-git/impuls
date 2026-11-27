@@ -67,7 +67,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="settings-feature-row mb-4 !items-start sm:!items-center">
+  <div class="settings-feature-row h-full !items-start sm:!items-center">
     <div class="min-w-0 flex-1">
       <p class="font-semibold text-slate-800">Тема сайта</p>
       <p class="mt-0.5 text-sm text-slate-500">

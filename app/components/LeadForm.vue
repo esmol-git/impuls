@@ -38,9 +38,12 @@ const form = reactive({
   website: '',
 })
 
+const AUTO_CLOSE_MS = 5000
+
 const openedAt = Date.now()
 const submitted = ref(false)
 const isMock = ref(false)
+const autoClose = ref(false)
 const errors = reactive<Record<string, string>>({})
 let closeTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -86,10 +89,12 @@ function onPhoneFocus() {
 
 function scheduleAutoClose() {
   if (closeTimer) clearTimeout(closeTimer)
+  autoClose.value = false
   if (!active.value) return
+  autoClose.value = true
   closeTimer = setTimeout(() => {
     close()
-  }, 5000)
+  }, AUTO_CLOSE_MS)
 }
 
 async function onSubmit() {
@@ -127,15 +132,38 @@ onUnmounted(() => {
   if (closeTimer) clearTimeout(closeTimer)
 })
 
-defineExpose({ reset: () => { submitted.value = false } })
+defineExpose({
+  reset: () => {
+    submitted.value = false
+    autoClose.value = false
+    if (closeTimer) clearTimeout(closeTimer)
+  },
+})
 </script>
 
 <template>
-  <div v-if="submitted" class="py-4 text-center">
-    <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent-50 text-accent-500">
-      <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+  <div v-if="submitted" class="lead-success">
+    <div class="lead-success__mark">
+      <svg
+        v-if="autoClose"
+        class="lead-success__ring"
+        viewBox="0 0 64 64"
+        aria-hidden="true"
+      >
+        <circle class="lead-success__ring-track" cx="32" cy="32" r="28" />
+        <circle
+          class="lead-success__ring-fill"
+          cx="32"
+          cy="32"
+          r="28"
+          :style="{ animationDuration: `${AUTO_CLOSE_MS}ms` }"
+        />
       </svg>
+      <div class="lead-success__icon">
+        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
     </div>
     <p class="font-semibold text-brand-600">
       {{ isCheckout ? 'Заявка на покупку отправлена' : 'Заявка отправлена' }}
@@ -146,6 +174,22 @@ defineExpose({ reset: () => { submitted.value = false } })
     <p v-if="isMock" class="mt-2 text-sm text-brand-600/60">
       Telegram не настроен — заявка сохранена локально (mock).
     </p>
+    <p v-if="autoClose" class="mt-3 text-xs text-brand-600/50">
+      Окно закроется автоматически
+    </p>
+    <div
+      v-if="autoClose"
+      class="lead-success__bar"
+      role="progressbar"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-label="До закрытия окна"
+    >
+      <span
+        class="lead-success__bar-fill"
+        :style="{ animationDuration: `${AUTO_CLOSE_MS}ms` }"
+      />
+    </div>
   </div>
 
   <form v-else class="space-y-4" novalidate @submit.prevent="onSubmit">
@@ -323,6 +367,101 @@ defineExpose({ reset: () => { submitted.value = false } })
 </template>
 
 <style scoped>
+.lead-success {
+  position: relative;
+  padding: 1rem 0 0.25rem;
+  text-align: center;
+}
+
+.lead-success__mark {
+  position: relative;
+  display: flex;
+  width: 4.25rem;
+  height: 4.25rem;
+  margin: 0 auto 1rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.lead-success__icon {
+  display: flex;
+  width: 3.5rem;
+  height: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #fef2f2;
+  color: #b0191b;
+}
+
+.lead-success__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.lead-success__ring-track,
+.lead-success__ring-fill {
+  fill: none;
+  stroke-width: 3;
+}
+
+.lead-success__ring-track {
+  stroke: #fecaca;
+}
+
+.lead-success__ring-fill {
+  stroke: #b0191b;
+  stroke-linecap: round;
+  stroke-dasharray: 175.93;
+  stroke-dashoffset: 175.93;
+  animation-name: lead-ring-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.lead-success__bar {
+  height: 4px;
+  margin-top: 1.15rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #fee2e2;
+}
+
+.lead-success__bar-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  border-radius: inherit;
+  background: #b0191b;
+  animation-name: lead-bar-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes lead-ring-fill {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lead-bar-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lead-success__ring-fill,
+  .lead-success__bar-fill {
+    animation-duration: 0.01ms !important;
+  }
+}
+
 .lead-hp {
   position: absolute;
   left: -10000px;

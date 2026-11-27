@@ -86,7 +86,7 @@ const pageTitle = computed(
     <div class="admin-header__left">
       <button
         type="button"
-        class="admin-header__icon-btn md:hidden"
+        class="admin-header__icon-btn admin-header__menu-btn"
         title="Меню"
         aria-label="Открыть меню"
         :aria-expanded="mobileOpen"
@@ -180,6 +180,12 @@ const pageTitle = computed(
   border-color: #93c5fd;
   background: #eff6ff;
   color: #1d4ed8;
+}
+
+@media (min-width: 768px) {
+  .admin-header__menu-btn {
+    display: none !important;
+  }
 }
 
 .admin-header__clock {

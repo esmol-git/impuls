@@ -83,6 +83,7 @@ onUnmounted(() => {
         :label="config.label"
         :title="config.title"
         :description="config.description"
+        :action="config.action"
         :title-id="headingId"
       />
 
@@ -126,18 +127,6 @@ onUnmounted(() => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         </button>
-
-        <div
-          v-if="config.action"
-          class="mt-4 flex justify-center sm:mt-6"
-        >
-          <NuxtLink
-            :to="config.action.to"
-            class="btn-outline w-full sm:w-auto"
-          >
-            {{ config.action.label }}
-          </NuxtLink>
-        </div>
       </div>
     </template>
   </BaseSection>

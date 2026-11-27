@@ -23,13 +23,24 @@ export class StatsController {
     return this.stats.series(query.range ?? 'week')
   }
 
+  @Get('stats/crm')
+  crm(@Query() query: StatsSeriesQueryDto) {
+    return this.stats.crmKpi(query.range ?? 'week')
+  }
+
   @Get('notifications')
   async notifications(
     @Headers('if-none-match') ifNoneMatch: string | undefined,
     @Res({ passthrough: true }) res: Response,
   ) {
     const data = await this.stats.notifications()
-    const fingerprint = `${data.newLeads}:${data.latest.map((l) => l.id).join(',')}`
+    const fingerprint = [
+      data.newLeads,
+      data.callbacksToday,
+      data.callbacksOverdue,
+      data.dueNow,
+      data.latest.map((l) => l.id).join(','),
+    ].join(':')
     const etag = `"${createHash('sha1').update(fingerprint).digest('hex')}"`
 
     res.setHeader('ETag', etag)

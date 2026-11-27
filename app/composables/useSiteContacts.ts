@@ -3,6 +3,8 @@ import type { SocialLink } from '~/types'
 export interface SiteContacts {
   phone: string
   phoneHours: string
+  phoneHoursFrom?: string
+  phoneHoursTo?: string
   email: string
   socials: {
     vk: string
@@ -29,6 +31,8 @@ function normalize(row: SiteContacts | null | undefined): SiteContacts {
   return {
     phone: row.phone?.trim() || '',
     phoneHours: row.phoneHours?.trim() || '',
+    phoneHoursFrom: row.phoneHoursFrom?.trim() || '',
+    phoneHoursTo: row.phoneHoursTo?.trim() || '',
     email: row.email?.trim() || '',
     socials: {
       vk: row.socials?.vk?.trim() || '',
@@ -48,6 +52,8 @@ export async function useSiteContacts() {
 
   const phone = computed(() => contacts.value.phone)
   const phoneHours = computed(() => contacts.value.phoneHours)
+  const phoneHoursFrom = computed(() => contacts.value.phoneHoursFrom || '')
+  const phoneHoursTo = computed(() => contacts.value.phoneHoursTo || '')
   const email = computed(() => contacts.value.email)
 
   const socialLinks = computed<SocialLink[]>(() =>
@@ -72,6 +78,8 @@ export async function useSiteContacts() {
     contacts,
     phone,
     phoneHours,
+    phoneHoursFrom,
+    phoneHoursTo,
     email,
     socialLinks,
     hasPhone,

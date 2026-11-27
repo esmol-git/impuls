@@ -57,7 +57,7 @@ onMounted(() => {
 <template>
   <div
     v-if="auth.isSuperAdmin"
-    class="settings-feature-row mb-4"
+    class="settings-feature-row h-full"
     :class="{ 'is-off': !enabled, 'is-maintenance-on': enabled }"
   >
     <div class="min-w-0 flex-1">

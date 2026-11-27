@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import {
   CONTACTS_DEFAULT,
   CONTACTS_SETTING_KEY,
+  isValidHoursRange,
   normalizeContacts,
   parseContactsValue,
   type ContactsStatus,
@@ -50,9 +51,16 @@ export class SettingsAppearanceService {
 
   async setContacts(input: Partial<ContactsStatus>): Promise<ContactsStatus> {
     const current = await this.getContacts()
+    const from = input.phoneHoursFrom ?? current.phoneHoursFrom
+    const to = input.phoneHoursTo ?? current.phoneHoursTo
+    if (from && to && !isValidHoursRange(from, to)) {
+      throw new BadRequestException('Часы связи: время «до» должно быть позже «с»')
+    }
     const next = normalizeContacts({
       phone: input.phone ?? current.phone,
       phoneHours: input.phoneHours ?? current.phoneHours,
+      phoneHoursFrom: input.phoneHoursFrom ?? current.phoneHoursFrom,
+      phoneHoursTo: input.phoneHoursTo ?? current.phoneHoursTo,
       email: input.email ?? current.email,
       socials: {
         vk: input.socials?.vk ?? current.socials.vk,

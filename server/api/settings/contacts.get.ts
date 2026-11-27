@@ -1,6 +1,8 @@
 export interface ContactsStatus {
   phone: string
   phoneHours: string
+  phoneHoursFrom?: string
+  phoneHoursTo?: string
   email: string
   socials: {
     vk: string

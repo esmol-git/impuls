@@ -166,7 +166,23 @@ export function mapRequestToAudit(
         entity: 'lead',
         entityId,
         summary: `Обновлена заявка ${entityId}`,
-        meta: pick(body, ['status']),
+        meta: pick(body, [
+          'status',
+          'assigneeId',
+          'note',
+          'nextContactAt',
+          'lostReason',
+          'childName',
+        ]),
+      }
+    }
+    if (method === 'POST' && path.includes('/activities')) {
+      return {
+        action: 'lead.activity',
+        entity: 'lead',
+        entityId,
+        summary: `Активность по заявке ${entityId}`,
+        meta: pick(body, ['type', 'callResult', 'nextContactAt']),
       }
     }
     if (method === 'DELETE') {
